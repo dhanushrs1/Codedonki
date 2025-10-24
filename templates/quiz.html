@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Quiz · CodeDonki{% endblock %}
+{% block head_extra %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/quiz.css') }}">
+{% endblock %}
+{% block content %}
+  <div class="container quiz-page">
+    <div class="quiz-header">
+      <a href="javascript:history.back()" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back to Lesson
+      </a>
+      <h1 id="quiz-title">Quiz</h1>
+    </div>
+
+    <div id="loading-message" class="loading-state">
+      <i class="fas fa-circle-notch fa-spin"></i>
+      <p>Loading quiz questions...</p>
+    </div>
+
+    <div id="quiz-container" style="display: none;">
+      <div class="quiz-content">
+        <div id="questions-container"></div>
+        
+        <div class="quiz-actions">
+          <button id="submit-quiz" class="btn btn-primary">
+            Submit Quiz <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="results-container" style="display: none;">
+      <div class="results-content">
+        <div id="score-display"></div>
+        <div id="xp-message"></div>
+        <div id="ai-tip-container" style="display: none;">
+          <h3>💡 AI Learning Tip</h3>
+          <p id="ai-tip-text"></p>
+        </div>
+        <div class="results-actions">
+          <a href="/archive" class="btn btn-secondary">Back to Lessons</a>
+          <button id="retry-quiz" class="btn btn-primary" style="display: none;">
+            Retry Quiz <i class="fas fa-redo"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,101 @@
+# Python virtual environment
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE/Editor folders
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# OS generated files
+Thumbs.db
+.DS_Store
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Uploads (user-generated content)
+# Keep the directory structure and SVG assets but ignore user uploads
+uploads/lesson_*.html
+uploads/avatar_*.jpg
+uploads/avatar_*.png
+uploads/avatar_*.JPG
+uploads/badge_*.png
+uploads/badge_*.jpg
+uploads/badges/badge_*.png
+uploads/WhatsApp_*.jpg
+
+# Keep these static assets
+!uploads/*.svg
+!uploads/profile.png
+!uploads/.gitkeep
+!uploads/README.md
+!uploads/badges/.gitkeep
+
+# Documentation drafts (keep main docs)
+*_DRAFT.md
+*_OLD.md
+COPY_PASTE_CODE.txt
+IFRAME_CODE_ONLY.txt
+IFRAME_INTEGRATION_GUIDE.txt
+SIMPLE_IFRAME_INSTRUCTIONS.txt
+
+# Keep only essential documentation
+# Remove all other .md files except:
+# - README.md
+# - AI_DIALOGUE_SYSTEM.md
+# - UNIVERSAL_LESSON_FRAMEWORK.md

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Coding Games - CodeDonki{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/games.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="games-container">
+    <div class="games-header">
+        <h1 class="gradient-text">🎮 Coding Games Arcade</h1>
+        <p>Learn coding through fun, interactive games! Choose your adventure and level up your skills.</p>
+        <div class="games-stats">
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-info">
+                    <div class="stat-number" id="userPoints">0</div>
+                    <div class="stat-label">Total XP</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-info">
+                    <div class="stat-number" id="gamesPlayed">0</div>
+                    <div class="stat-label">Games Played</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="games-grid">
+        <!-- Memory Game -->
+        <div class="game-card" data-game="memory">
+            <div class="game-icon">🧠</div>
+            <h3>Code Memory</h3>
+            <p>Match code snippets with their outputs! Test your understanding of Python concepts.</p>
+            <div class="game-difficulty">
+                <span class="difficulty-badge beginner">Beginner</span>
+                <span class="game-points">+15 XP</span>
+            </div>
+            <button class="btn btn-primary game-start-btn" onclick="startGame('memory')">
+                <i class="fas fa-play"></i> Play Now
+            </button>
+        </div>
+
+        <!-- Typing Race -->
+        <div class="game-card" data-game="typing">
+            <div class="game-icon">⌨️</div>
+            <h3>Code Typing Race</h3>
+            <p>Type code as fast as you can! Improve your coding speed and accuracy.</p>
+            <div class="game-difficulty">
+                <span class="difficulty-badge intermediate">Intermediate</span>
+                <span class="game-points">+25 XP</span>
+            </div>
+            <button class="btn btn-primary game-start-btn" onclick="startGame('typing')">
+                <i class="fas fa-play"></i> Play Now
+            </button>
+        </div>
+
+        <!-- Puzzle Solver -->
+        <div class="game-card" data-game="puzzle">
+            <div class="game-icon">🧩</div>
+            <h3>Code Puzzle</h3>
+            <p>Solve coding puzzles by writing the correct code! Think logically and debug your way to victory.</p>
+            <div class="game-difficulty">
+                <span class="difficulty-badge advanced">Advanced</span>
+                <span class="game-points">+30 XP</span>
+            </div>
+            <button class="btn btn-primary game-start-btn" onclick="startGame('puzzle')">
+                <i class="fas fa-play"></i> Play Now
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Modal -->
+    <div id="gameModal" class="game-modal">
+        <div class="game-modal-content">
+            <div class="game-modal-header">
+                <h2 id="gameTitle">Game Title</h2>
+                <button class="close-btn" onclick="closeGame()">&times;</button>
+            </div>
+            <div class="game-modal-body" id="gameContent">
+                <!-- Game content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/games.js') }}"></script>
+{% endblock %}
+

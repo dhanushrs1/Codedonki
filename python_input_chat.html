@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Python Input - Computer Lab Chat</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Exo+2:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Exo 2', sans-serif;
+            background: #1E1E2F;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .pc-split-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .pc-canvas-container {
+            flex: 1;
+            position: relative;
+            background: #E8F4F8;
+            min-width: 0;
+        }
+        
+        .pc-canvas-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .pc-story-bubble {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 3px solid #00C2FF;
+            border-radius: 20px;
+            padding: clamp(15px, 4vw, 30px);
+            max-width: min(90%, 600px);
+            text-align: center;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: pc-bounceIn 0.5s ease;
+        }
+        
+        @keyframes pc-bounceIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .pc-story-bubble h2 {
+            font-family: 'Fredoka', sans-serif;
+            color: #00C2FF;
+            font-size: clamp(18px, 4vw, 26px);
+            margin-bottom: 10px;
+        }
+        
+        .pc-story-bubble p {
+            font-size: clamp(13px, 2.5vw, 16px);
+            color: #1E1E2F;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .pc-code-example {
+            background: #1E1E2F;
+            color: #A8E10C;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(11px, 2vw, 14px);
+            margin: 8px 0;
+            text-align: left;
+        }
+        
+        .pc-start-btn {
+            background: linear-gradient(135deg, #00C2FF, #0099CC);
+            color: white;
+            border: none;
+            padding: clamp(10px, 2vw, 14px) clamp(20px, 4vw, 35px);
+            border-radius: 10px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(14px, 2.5vw, 18px);
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,194,255,0.4);
+            transition: all 0.3s;
+        }
+        
+        .pc-start-btn:hover {
+            background: linear-gradient(135deg, #A8E10C, #B8F01C);
+            color: #1E1E2F;
+            transform: translateY(-2px);
+        }
+        
+        .pc-speech-bubble {
+            position: absolute;
+            background: white;
+            border: 3px solid #00C2FF;
+            border-radius: 15px;
+            padding: clamp(10px, 2vw, 15px) clamp(12px, 2.5vw, 22px);
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(12px, 2vw, 16px);
+            font-weight: 600;
+            z-index: 12;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: none;
+            animation: pc-popIn 0.3s ease;
+            max-width: 280px;
+        }
+        
+        .pc-speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid white;
+        }
+        
+        .pc-speech-bubble.pc-show {
+            display: block;
+        }
+        
+        #pc-ria-speech {
+            top: 8%;
+            right: 8%;
+            color: #FF69B4;
+        }
+        
+        #pc-computer-speech {
+            top: 35%;
+            left: 12%;
+            color: #00C2FF;
+            background: #E3F2FD;
+            border-color: #2196F3;
+        }
+        
+        @media (max-width: 768px) {
+            #pc-ria-speech {
+                top: 5%;
+                right: 5%;
+            }
+            #pc-computer-speech {
+                top: 30%;
+                left: 5%;
+            }
+        }
+        
+        #pc-ui-overlay {
+            flex: 1;
+            position: relative;
+            z-index: 10;
+            pointer-events: all;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            min-width: 0;
+            border-left: 3px solid #00C2FF;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .pc-lesson-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #FFFFFF;
+            padding: clamp(20px, 3vw, 30px);
+            overflow-y: auto;
+        }
+        
+        .pc-lesson-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #E8E8E8;
+        }
+        
+        .pc-lesson-title {
+            font-family: 'Fredoka', sans-serif;
+            color: #1E1E2F;
+            font-size: clamp(16px, 2.5vw, 20px);
+            font-weight: 700;
+        }
+        
+        .pc-lesson-title .pc-highlight {
+            color: #00C2FF;
+        }
+        
+        .pc-lesson-subtitle {
+            font-size: clamp(11px, 2vw, 13px);
+            color: #5E6C84;
+            margin-top: 2px;
+        }
+        
+        .pc-xp-badge {
+            background: linear-gradient(135deg, #00C2FF, #0099CC);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: clamp(10px, 2vw, 12px);
+            font-weight: 700;
+            display: none;
+            white-space: nowrap;
+        }
+        
+        .pc-xp-badge.pc-show {
+            display: inline-block;
+            animation: pc-popIn 0.3s ease;
+        }
+        
+        @keyframes pc-popIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .pc-challenge-card {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-left: 4px solid #00C2FF;
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2.5vw, 16px);
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: clamp(13px, 2vw, 15px);
+            color: #1E1E2F;
+            transition: all 0.3s ease;
+        }
+        
+        .pc-challenge-number {
+            display: inline-block;
+            background: #00C2FF;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            margin-right: 6px;
+        }
+        
+        .pc-challenge-card.pc-completed {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-left-color: #A8E10C;
+        }
+        
+        .pc-challenge-card.pc-completed .pc-challenge-number {
+            background: #A8E10C;
+        }
+        
+        #pc-code-input {
+            width: 100%;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(14px, 2.5vw, 16px);
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px);
+            border: 2px solid #DFE1E6;
+            border-radius: 8px;
+            margin: 12px 0 8px 0;
+            transition: all 0.3s;
+            background: #1E1E2F;
+            color: #A8E10C;
+        }
+        
+        #pc-code-input:focus {
+            outline: none;
+            border-color: #00C2FF;
+            box-shadow: 0 0 0 3px rgba(0,194,255,0.2);
+        }
+        
+        .pc-hint-text {
+            color: #5E6C84;
+            font-size: clamp(10px, 2vw, 12px);
+            margin: 4px 0;
+            line-height: 1.4;
+        }
+        
+        .pc-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .pc-btn {
+            font-family: 'Fredoka', sans-serif;
+            padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 24px);
+            border: none;
+            border-radius: 8px;
+            font-size: clamp(14px, 2vw, 16px);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        #pc-run-btn {
+            background: linear-gradient(135deg, #00C2FF, #0099CC);
+            color: white;
+            flex: 1;
+            box-shadow: 0 2px 8px rgba(0,194,255,0.3);
+        }
+        
+        #pc-run-btn:hover {
+            background: linear-gradient(135deg, #A8E10C, #B8F01C);
+            color: #1E1E2F;
+            transform: translateY(-2px);
+        }
+        
+        .pc-status-message {
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px);
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: clamp(12px, 2vw, 14px);
+            font-weight: 600;
+            display: none;
+            line-height: 1.5;
+        }
+        
+        .pc-status-message.pc-success {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            color: #2E7D32;
+            border: 2px solid #A8E10C;
+        }
+        
+        .pc-status-message.pc-error {
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            color: #C62828;
+            border: 2px solid #FF5555;
+        }
+        
+        .pc-status-message.pc-hint {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            color: #E65100;
+            border: 2px solid #FF7B00;
+        }
+        
+        .pc-status-message.pc-show {
+            display: block;
+            animation: pc-slideUp 0.3s ease;
+        }
+        
+        @keyframes pc-slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pc-interaction-hint {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,194,255,0.9);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: clamp(10px, 2vw, 12px);
+            color: white;
+            z-index: 11;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 968px) {
+            .pc-split-container {
+                flex-direction: column;
+            }
+            .pc-canvas-container {
+                height: 40%;
+                min-height: 300px;
+            }
+            #pc-ui-overlay {
+                height: 60%;
+                border-left: none;
+                border-top: 3px solid #00C2FF;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            }
+            .pc-speech-bubble {
+                font-size: 11px;
+                max-width: 200px;
+                padding: 8px 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .pc-story-bubble {
+                padding: 15px 20px;
+            }
+            .pc-code-example {
+                font-size: 11px;
+            }
+            .pc-interaction-hint {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pc-split-container">
+        <div id="pc-canvas-container" class="pc-canvas-container">
+            <div class="pc-interaction-hint" style="display:none;" id="pc-interaction-hint">
+                🖱️ Drag • Scroll zoom
+            </div>
+            
+            <div id="pc-ria-speech" class="pc-speech-bubble">Let me show you! 💻</div>
+            <div id="pc-computer-speech" class="pc-speech-bubble">...</div>
+        </div>
+        
+        <div id="pc-ui-overlay" style="display:none;">
+            <div class="pc-lesson-panel">
+                <div class="pc-lesson-header">
+                    <div>
+                        <div class="pc-lesson-title">Challenge: <span class="pc-highlight" id="pc-challenge-title">Ask for Name</span></div>
+                        <div class="pc-lesson-subtitle">Chat with the computer!</div>
+                    </div>
+                    <div class="pc-xp-badge" id="pc-xp-badge">+100 XP! 🎉</div>
+                </div>
+                
+                <div id="pc-challenge1" class="pc-challenge-card">
+                    <span class="pc-challenge-number">1</span>
+                    <strong>Ask Name:</strong> <code style="color: #00C2FF;">name = input("What is your name? ")</code>
+                </div>
+                
+                <div id="pc-challenge2" class="pc-challenge-card" style="opacity: 0.5;">
+                    <span class="pc-challenge-number">2</span>
+                    <strong>Greet Back:</strong> <code style="color: #FF69B4;">print("Hello " + name)</code>
+                </div>
+                
+                <div id="pc-challenge3" class="pc-challenge-card" style="opacity: 0.5;">
+                    <span class="pc-challenge-number">3</span>
+                    <strong>Ask Age:</strong> <code style="color: #845EC2;">age = input("How old are you? ")</code>
+                </div>
+                
+                <input type="text" id="pc-code-input" placeholder='name = input("What is your name? ")' autocomplete="off" spellcheck="false">
+                
+                <div class="pc-hint-text" id="pc-live-hint">💡 Type: name = input("What is your name? ")</div>
+                
+                <div class="pc-controls">
+                    <button id="pc-run-btn" class="pc-btn">▶ Run Code</button>
+                </div>
+                
+                <div class="pc-status-message" id="pc-status"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="pc-story-intro" class="pc-story-bubble">
+        <h2>💬 The Computer Lab Chat</h2>
+        <p><strong style="color: #FF69B4;">Ria</strong> is chatting with her computer!</p>
+        <p>Learn to <strong>talk</strong> with the computer using <strong>input()</strong>:</p>
+        <div class="pc-code-example">
+            <div>1️⃣ Ask a question:</div>
+            <div style="color: #FFD700;">name = input("What is your name? ")</div>
+            <br>
+            <div>2️⃣ Use the answer:</div>
+            <div style="color: #FFD700;">print("Hello " + name)</div>
+            <br>
+            <div>💡 input() = Computer asks YOU!</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2); padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #FF7B00;">
+            <strong>🐴 Donki is here to help!</strong><br>
+            <small style="color: #666;">If you make a mistake, Donki will automatically give you smart hints!</small>
+        </div>
+        <button class="pc-start-btn" onclick="window.pcStartLesson()">Start Chatting! 💬</button>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        const container = document.getElementById('pc-canvas-container');
+        const scene = new THREE.Scene();
+        
+        // Computer Lab Background - Soft indoor colors
+        scene.background = new THREE.Color(0xE8F4F8); // Light blue-gray
+        scene.fog = new THREE.Fog(0xD0E8F0, 20, 50);
+        
+        const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 3, 12);
+        
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: true,
+            alpha: false,
+            preserveDrawingBuffer: true
+        });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+        
+        console.log('✅ 3D Computer Lab created');
+        
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.target.set(0, 1.5, 0);
+        controls.maxPolarAngle = Math.PI / 2.2;
+        controls.minDistance = 5;
+        controls.maxDistance = 20;
+        
+        // Warm indoor lighting
+        scene.add(new THREE.AmbientLight(0xFFF8E1, 0.8));
+        const roomLight = new THREE.DirectionalLight(0xFFE5B4, 1.0);
+        roomLight.position.set(5, 10, 5);
+        roomLight.castShadow = true;
+        roomLight.shadow.camera.left = roomLight.shadow.camera.bottom = -15;
+        roomLight.shadow.camera.right = roomLight.shadow.camera.top = 15;
+        roomLight.shadow.mapSize.width = roomLight.shadow.mapSize.height = 2048;
+        scene.add(roomLight);
+        
+        // Floor (wooden pattern)
+        const floorGeometry = new THREE.PlaneGeometry(50, 50, 20, 20);
+        const floor = new THREE.Mesh(
+            floorGeometry,
+            new THREE.MeshStandardMaterial({ 
+                color: 0xD2B48C,
+                roughness: 0.85,
+                metalness: 0.05
+            })
+        );
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+        
+        // Room walls
+        // Back wall
+        const backWall = new THREE.Mesh(
+            new THREE.PlaneGeometry(25, 8),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xE8E8F0,
+                roughness: 0.95
+            })
+        );
+        backWall.position.set(0, 4, -8);
+        backWall.receiveShadow = true;
+        scene.add(backWall);
+        
+        // Left wall
+        const leftWall = new THREE.Mesh(
+            new THREE.PlaneGeometry(16, 8),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xDCDCF0,
+                roughness: 0.95
+            })
+        );
+        leftWall.rotation.y = Math.PI / 2;
+        leftWall.position.set(-8, 4, 0);
+        leftWall.receiveShadow = true;
+        scene.add(leftWall);
+        
+        // Right wall
+        const rightWall = new THREE.Mesh(
+            new THREE.PlaneGeometry(16, 8),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xDCDCF0,
+                roughness: 0.95
+            })
+        );
+        rightWall.rotation.y = -Math.PI / 2;
+        rightWall.position.set(8, 4, 0);
+        rightWall.receiveShadow = true;
+        scene.add(rightWall);
+        
+        // Ceiling
+        const ceiling = new THREE.Mesh(
+            new THREE.PlaneGeometry(25, 16),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xFFFFF0,
+                roughness: 0.9
+            })
+        );
+        ceiling.rotation.x = Math.PI / 2;
+        ceiling.position.y = 8;
+        scene.add(ceiling);
+        
+        // Desk
+        const desk = new THREE.Group();
+        const deskTop = new THREE.Mesh(
+            new THREE.BoxGeometry(4, 0.15, 2),
+            new THREE.MeshStandardMaterial({ color: 0x8B6F47 })
+        );
+        deskTop.position.y = 1;
+        deskTop.castShadow = true;
+        desk.add(deskTop);
+        
+        // Desk legs
+        const legPositions = [[-1.8, -1.8], [-1.8, 1.8], [1.8, -1.8], [1.8, 1.8]];
+        legPositions.forEach(([x, z]) => {
+            const leg = new THREE.Mesh(
+                new THREE.BoxGeometry(0.15, 1, 0.15),
+                new THREE.MeshStandardMaterial({ color: 0x6B5742 })
+            );
+            leg.position.set(x, 0.5, z);
+            leg.castShadow = true;
+            desk.add(leg);
+        });
+        
+        desk.position.set(0, 0, 0);
+        scene.add(desk);
+        
+        // Computer Monitor
+        const monitor = new THREE.Group();
+        
+        // Monitor stand
+        const stand = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.15, 0.2, 0.4, 16),
+            new THREE.MeshStandardMaterial({ color: 0x2C2C2C })
+        );
+        stand.position.y = 1.35;
+        monitor.add(stand);
+        
+        // Monitor screen back
+        const screenBack = new THREE.Mesh(
+            new THREE.BoxGeometry(2.2, 1.5, 0.15),
+            new THREE.MeshStandardMaterial({ color: 0x1E1E1E })
+        );
+        screenBack.position.y = 2.1;
+        screenBack.castShadow = true;
+        monitor.add(screenBack);
+        
+        // Monitor screen (glowing)
+        const screen = new THREE.Mesh(
+            new THREE.BoxGeometry(2, 1.3, 0.05),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x4FC3F7,
+                emissive: 0x00B0FF,
+                emissiveIntensity: 0.6
+            })
+        );
+        screen.position.set(0, 2.1, 0.1);
+        monitor.add(screen);
+        monitor.userData.screen = screen;
+        
+        monitor.position.set(-0.5, 0, -0.3);
+        scene.add(monitor);
+        
+        // Keyboard
+        const keyboard = new THREE.Mesh(
+            new THREE.BoxGeometry(1.2, 0.08, 0.4),
+            new THREE.MeshStandardMaterial({ color: 0x3C3C3C })
+        );
+        keyboard.position.set(-0.3, 1.12, 0.6);
+        keyboard.castShadow = true;
+        scene.add(keyboard);
+        
+        // Mouse
+        const mouse = new THREE.Mesh(
+            new THREE.SphereGeometry(0.08, 12, 12),
+            new THREE.MeshStandardMaterial({ color: 0x2C2C2C })
+        );
+        mouse.scale.set(1, 0.5, 1.2);
+        mouse.position.set(0.6, 1.12, 0.5);
+        mouse.castShadow = true;
+        scene.add(mouse);
+        
+        // Chair
+        const chair = new THREE.Group();
+        
+        // Seat
+        const seat = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.5, 0.55, 0.15, 16),
+            new THREE.MeshStandardMaterial({ color: 0x2196F3 })
+        );
+        seat.position.y = 0.6;
+        seat.castShadow = true;
+        chair.add(seat);
+        
+        // Backrest
+        const backrest = new THREE.Mesh(
+            new THREE.BoxGeometry(0.9, 1, 0.15),
+            new THREE.MeshStandardMaterial({ color: 0x1976D2 })
+        );
+        backrest.position.set(0, 1.1, -0.35);
+        backrest.castShadow = true;
+        chair.add(backrest);
+        
+        // Chair base
+        const chairBase = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.15, 0.25, 0.5, 16),
+            new THREE.MeshStandardMaterial({ color: 0x424242 })
+        );
+        chairBase.position.y = 0.25;
+        chair.add(chairBase);
+        
+        chair.position.set(0, 0, 2.5);
+        scene.add(chair);
+        
+        // Ria Character (sitting at desk)
+        function createRia() {
+            const ria = new THREE.Group();
+            
+            // Legs (sitting position)
+            const leftLeg = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.12, 0.8, 8, 12),
+                new THREE.MeshStandardMaterial({ color: 0x4169E1 })
+            );
+            leftLeg.position.set(-0.2, 0.4, 2.2);
+            leftLeg.rotation.x = Math.PI / 2.5;
+            leftLeg.castShadow = true;
+            ria.add(leftLeg);
+            
+            const rightLeg = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.12, 0.8, 8, 12),
+                new THREE.MeshStandardMaterial({ color: 0x4169E1 })
+            );
+            rightLeg.position.set(0.2, 0.4, 2.2);
+            rightLeg.rotation.x = Math.PI / 2.5;
+            rightLeg.castShadow = true;
+            ria.add(rightLeg);
+            
+            // Torso
+            const torso = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.35, 0.38, 0.9, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFF69B4, roughness: 0.7 })
+            );
+            torso.position.set(0, 1.3, 2.3);
+            torso.castShadow = true;
+            ria.add(torso);
+            
+            // Neck
+            const neck = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.12, 0.15, 0.2, 12),
+                new THREE.MeshStandardMaterial({ color: 0xFFDBAC })
+            );
+            neck.position.set(0, 1.85, 2.3);
+            ria.add(neck);
+            
+            // Head (facing forward towards computer)
+            const head = new THREE.Mesh(
+                new THREE.SphereGeometry(0.32, 16, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFFDBAC, roughness: 0.75 })
+            );
+            head.scale.set(0.9, 1.05, 0.95);
+            head.castShadow = true;
+            head.position.set(0, 2.15, 2.3);
+            head.rotation.y = Math.PI; // Face forward!
+            ria.add(head);
+            
+            // Hair (long with ponytail) - also rotated
+            const hair = new THREE.Mesh(
+                new THREE.SphereGeometry(0.34, 16, 16),
+                new THREE.MeshStandardMaterial({ color: 0x4A2511, roughness: 0.9 })
+            );
+            hair.scale.set(1, 0.9, 1);
+            hair.position.set(0, 2.3, 2.3);
+            hair.rotation.y = Math.PI;
+            ria.add(hair);
+            
+            const ponytail = new THREE.Mesh(
+                new THREE.SphereGeometry(0.2, 10, 10),
+                new THREE.MeshStandardMaterial({ color: 0x4A2511, roughness: 0.9 })
+            );
+            ponytail.scale.set(0.7, 1.3, 0.7);
+            ponytail.position.set(0, 2.15, 2.65); // Behind head now
+            ria.add(ponytail);
+            
+            // Eyes (facing forward)
+            const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+            const leftEyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 10), eyeWhiteMat);
+            leftEyeWhite.position.set(-0.13, 2.18, 1.95); // Front of head
+            ria.add(leftEyeWhite);
+            
+            const rightEyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 10), eyeWhiteMat);
+            rightEyeWhite.position.set(0.13, 2.18, 1.95);
+            ria.add(rightEyeWhite);
+            
+            // Pupils (facing forward)
+            const pupilMat = new THREE.MeshBasicMaterial({ color: 0x1E1E2F });
+            const leftPupil = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), pupilMat);
+            leftPupil.position.set(-0.13, 2.18, 1.89); // In front
+            ria.add(leftPupil);
+            ria.userData.leftEye = leftPupil;
+            
+            const rightPupil = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), pupilMat);
+            rightPupil.position.set(0.13, 2.18, 1.89);
+            ria.add(rightPupil);
+            ria.userData.rightEye = rightPupil;
+            
+            // Smiling mouth (facing forward)
+            const mouth = new THREE.Mesh(
+                new THREE.TorusGeometry(0.12, 0.02, 8, 16, Math.PI),
+                new THREE.MeshStandardMaterial({ color: 0xE67E80 })
+            );
+            mouth.position.set(0, 2.0, 1.92); // Front of face
+            mouth.rotation.x = Math.PI;
+            ria.add(mouth);
+            ria.userData.mouth = mouth;
+            
+            // Arms (typing position)
+            const armMat = new THREE.MeshStandardMaterial({ color: 0xFFDBAC, roughness: 0.8 });
+            
+            const leftArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.7, 6, 10), armMat);
+            leftArm.position.set(-0.48, 1.2, 1.7);
+            leftArm.rotation.set(1.2, 0, 0.3);
+            leftArm.castShadow = true;
+            ria.add(leftArm);
+            ria.userData.leftArm = leftArm;
+            
+            const rightArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.7, 6, 10), armMat);
+            rightArm.position.set(0.48, 1.2, 1.7);
+            rightArm.rotation.set(1.2, 0, -0.3);
+            rightArm.castShadow = true;
+            ria.add(rightArm);
+            ria.userData.rightArm = rightArm;
+            
+            return ria;
+        }
+        
+        const ria = createRia();
+        scene.add(ria);
+        
+        // Store globe for animation
+        let animatedGlobe = null;
+        
+        // Backpack (from previous lesson)
+        const backpack = new THREE.Mesh(
+            new THREE.BoxGeometry(0.5, 0.6, 0.3),
+            new THREE.MeshStandardMaterial({ color: 0xFF6B9D })
+        );
+        backpack.position.set(1.5, 1.13, -0.8);
+        backpack.castShadow = true;
+        scene.add(backpack);
+        
+        // Books on desk
+        for (let i = 0; i < 3; i++) {
+            const book = new THREE.Mesh(
+                new THREE.BoxGeometry(0.6, 0.08, 0.8),
+                new THREE.MeshStandardMaterial({ 
+                    color: [0xFF5722, 0x4CAF50, 0x2196F3][i]
+                })
+            );
+            book.position.set(1.2, 1.16 + i * 0.09, -0.3);
+            book.rotation.y = 0.3;
+            book.castShadow = true;
+            scene.add(book);
+        }
+        
+        // Window on back wall
+        const windowFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(3, 2.5, 0.1),
+            new THREE.MeshStandardMaterial({ color: 0x8B7355 })
+        );
+        windowFrame.position.set(3, 4, -7.9);
+        scene.add(windowFrame);
+        
+        const windowGlass = new THREE.Mesh(
+            new THREE.BoxGeometry(2.7, 2.2, 0.05),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x87CEEB,
+                transparent: true,
+                opacity: 0.6,
+                emissive: 0x4FC3F7,
+                emissiveIntensity: 0.3
+            })
+        );
+        windowGlass.position.set(3, 4, -7.85);
+        scene.add(windowGlass);
+        
+        // Whiteboard on wall
+        const whiteboardFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(3.5, 2, 0.08),
+            new THREE.MeshStandardMaterial({ color: 0x333333 })
+        );
+        whiteboardFrame.position.set(-3, 4.5, -7.9);
+        scene.add(whiteboardFrame);
+        
+        const whiteboard = new THREE.Mesh(
+            new THREE.BoxGeometry(3.3, 1.8, 0.05),
+            new THREE.MeshStandardMaterial({ color: 0xFFFFFF })
+        );
+        whiteboard.position.set(-3, 4.5, -7.85);
+        scene.add(whiteboard);
+        
+        // "Python" text on whiteboard (simple)
+        const pythonText = new THREE.Mesh(
+            new THREE.BoxGeometry(2, 0.3, 0.02),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x2196F3,
+                emissive: 0x2196F3,
+                emissiveIntensity: 0.2
+            })
+        );
+        pythonText.position.set(-3, 4.8, -7.8);
+        scene.add(pythonText);
+        
+        // Coding posters on walls
+        const poster1 = new THREE.Mesh(
+            new THREE.BoxGeometry(1.2, 1.5, 0.02),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xFF69B4,
+                emissive: 0xFF69B4,
+                emissiveIntensity: 0.1
+            })
+        );
+        poster1.position.set(-7.9, 3.5, -3);
+        poster1.rotation.y = Math.PI / 2;
+        scene.add(poster1);
+        
+        const poster2 = new THREE.Mesh(
+            new THREE.BoxGeometry(1.2, 1.5, 0.02),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xA8E10C,
+                emissive: 0xA8E10C,
+                emissiveIntensity: 0.1
+            })
+        );
+        poster2.position.set(-7.9, 3.5, 2);
+        poster2.rotation.y = Math.PI / 2;
+        scene.add(poster2);
+        
+        // Shelf on wall
+        const shelf = new THREE.Mesh(
+            new THREE.BoxGeometry(2.5, 0.1, 0.4),
+            new THREE.MeshStandardMaterial({ color: 0x8B6F47 })
+        );
+        shelf.position.set(-3, 2.5, -7.8);
+        shelf.castShadow = true;
+        scene.add(shelf);
+        
+        // Items on shelf - trophy
+        const trophy = new THREE.Group();
+        const trophyBase = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.15, 0.2, 0.15, 8),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xFFD700,
+                metalness: 0.8,
+                roughness: 0.2
+            })
+        );
+        trophyBase.position.set(-3.5, 2.65, -7.6);
+        trophy.add(trophyBase);
+        
+        const trophyCup = new THREE.Mesh(
+            new THREE.SphereGeometry(0.15, 8, 8),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xFFD700,
+                metalness: 0.8,
+                roughness: 0.2
+            })
+        );
+        trophyCup.scale.set(1, 1.2, 1);
+        trophyCup.position.set(-3.5, 2.85, -7.6);
+        trophy.add(trophyCup);
+        scene.add(trophy);
+        
+        // Globe on shelf
+        const globeStand = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.08, 0.12, 0.3, 8),
+            new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+        );
+        globeStand.position.set(-2.5, 2.7, -7.6);
+        scene.add(globeStand);
+        
+        animatedGlobe = new THREE.Mesh(
+            new THREE.SphereGeometry(0.2, 12, 12),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x4FC3F7,
+                emissive: 0x2196F3,
+                emissiveIntensity: 0.2
+            })
+        );
+        animatedGlobe.position.set(-2.5, 3, -7.6);
+        scene.add(animatedGlobe);
+        
+        // Plant in corner
+        const plantPot = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.25, 0.3, 0.4, 8),
+            new THREE.MeshStandardMaterial({ color: 0xD2691E })
+        );
+        plantPot.position.set(-6, 0.2, -6);
+        plantPot.castShadow = true;
+        scene.add(plantPot);
+        
+        // Plant leaves
+        for (let i = 0; i < 6; i++) {
+            const leaf = new THREE.Mesh(
+                new THREE.SphereGeometry(0.2, 8, 8),
+                new THREE.MeshStandardMaterial({ color: 0x2E7D32 })
+            );
+            const angle = (i / 6) * Math.PI * 2;
+            leaf.position.set(
+                -6 + Math.cos(angle) * 0.3,
+                0.5 + Math.random() * 0.5,
+                -6 + Math.sin(angle) * 0.3
+            );
+            leaf.scale.set(1, 1.5, 0.5);
+            scene.add(leaf);
+        }
+        
+        // Notebook and pen on desk
+        const notebook2 = new THREE.Mesh(
+            new THREE.BoxGeometry(0.7, 0.05, 0.9),
+            new THREE.MeshStandardMaterial({ color: 0xFFEB3B })
+        );
+        notebook2.position.set(-1.2, 1.13, 0.2);
+        notebook2.rotation.y = -0.3;
+        notebook2.castShadow = true;
+        scene.add(notebook2);
+        
+        const pen = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.02, 0.02, 0.5, 8),
+            new THREE.MeshStandardMaterial({ color: 0x2196F3 })
+        );
+        pen.rotation.z = Math.PI / 2;
+        pen.position.set(-1.2, 1.15, 0.5);
+        scene.add(pen);
+        
+        // Coffee/tea mug
+        const mug = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.12, 0.1, 0.2, 12),
+            new THREE.MeshStandardMaterial({ color: 0xFF5722 })
+        );
+        mug.position.set(1, 1.22, 0.8);
+        mug.castShadow = true;
+        scene.add(mug);
+        
+        const mugHandle = new THREE.Mesh(
+            new THREE.TorusGeometry(0.08, 0.02, 8, 12, Math.PI),
+            new THREE.MeshStandardMaterial({ color: 0xFF5722 })
+        );
+        mugHandle.rotation.x = Math.PI / 2;
+        mugHandle.rotation.z = Math.PI / 2;
+        mugHandle.position.set(1.12, 1.22, 0.8);
+        scene.add(mugHandle);
+        
+        // Clock on wall
+        const clockBack = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.3, 0.3, 0.05, 16),
+            new THREE.MeshStandardMaterial({ color: 0x2C2C2C })
+        );
+        clockBack.rotation.x = Math.PI / 2;
+        clockBack.position.set(7.9, 5, 3);
+        scene.add(clockBack);
+        
+        const clockFace = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.28, 0.28, 0.02, 16),
+            new THREE.MeshStandardMaterial({ color: 0xFFFFFF })
+        );
+        clockFace.rotation.x = Math.PI / 2;
+        clockFace.position.set(7.85, 5, 3);
+        scene.add(clockFace);
+        
+        // Trash bin
+        const trashBin = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.25, 0.3, 0.5, 8),
+            new THREE.MeshStandardMaterial({ color: 0x757575 })
+        );
+        trashBin.position.set(2.5, 0.25, -1.5);
+        trashBin.castShadow = true;
+        scene.add(trashBin);
+        
+        // Desk lamp
+        const lampBase = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.15, 0.2, 0.05, 16),
+            new THREE.MeshStandardMaterial({ color: 0xFFD700 })
+        );
+        lampBase.position.set(-1.5, 1.12, -0.5);
+        scene.add(lampBase);
+        
+        const lampArm = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.03, 0.03, 1, 8),
+            new THREE.MeshStandardMaterial({ color: 0xFFD700 })
+        );
+        lampArm.position.set(-1.5, 1.6, -0.5);
+        lampArm.rotation.z = 0.5;
+        scene.add(lampArm);
+        
+        const lampHead = new THREE.Mesh(
+            new THREE.ConeGeometry(0.2, 0.3, 16),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xFFEB3B,
+                emissive: 0xFFD700,
+                emissiveIntensity: 0.4
+            })
+        );
+        lampHead.position.set(-1.1, 1.8, -0.5);
+        lampHead.rotation.z = Math.PI / 2;
+        scene.add(lampHead);
+        
+        // Floating chat bubbles (decorative)
+        const chatBubbles = [];
+        for (let i = 0; i < 5; i++) {
+            const bubble = new THREE.Mesh(
+                new THREE.SphereGeometry(0.15, 8, 8),
+                new THREE.MeshBasicMaterial({ 
+                    color: i % 2 === 0 ? 0x00C2FF : 0xFF69B4,
+                    transparent: true,
+                    opacity: 0.6
+                })
+            );
+            bubble.position.set(
+                (Math.random() - 0.5) * 6,
+                1 + Math.random() * 3,
+                -3 - Math.random() * 2
+            );
+            bubble.userData.speed = 0.005 + Math.random() * 0.01;
+            chatBubbles.push(bubble);
+            scene.add(bubble);
+        }
+        
+        // Stars celebration
+        const stars = new THREE.Group();
+        scene.add(stars);
+        
+        function createStarCelebration() {
+            stars.clear();
+            for (let i = 0; i < 30; i++) {
+                const star = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.1, 6, 6),
+                    new THREE.MeshBasicMaterial({ 
+                        color: [0xFFD700, 0x00C2FF, 0xFF69B4, 0xA8E10C][i % 4]
+                    })
+                );
+                star.position.set(
+                    (Math.random() - 0.5) * 8,
+                    1 + Math.random() * 2,
+                    (Math.random() - 0.5) * 4
+                );
+                star.userData.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.04,
+                    0.04 + Math.random() * 0.05,
+                    (Math.random() - 0.5) * 0.04
+                );
+                stars.add(star);
+            }
+            setTimeout(() => stars.clear(), 3500);
+        }
+        
+        // Animation
+        let time = 0;
+        let currentChallenge = 1;
+        let blinkTimer = 0;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+            blinkTimer += 0.016;
+            
+            // Ria typing animation
+            ria.userData.leftArm.rotation.x = 1.2 + Math.sin(time * 3) * 0.1;
+            ria.userData.rightArm.rotation.x = 1.2 + Math.sin(time * 3.5) * 0.1;
+            
+            // Screen glow pulsing
+            monitor.userData.screen.material.emissiveIntensity = 0.5 + Math.sin(time * 2) * 0.15;
+            
+            // Blinking
+            if (blinkTimer > 3 && Math.random() < 0.015) {
+                ria.userData.leftEye.scale.y = 0.1;
+                ria.userData.rightEye.scale.y = 0.1;
+                setTimeout(() => {
+                    ria.userData.leftEye.scale.y = 1;
+                    ria.userData.rightEye.scale.y = 1;
+                }, 120);
+                blinkTimer = 0;
+            }
+            
+            // Floating chat bubbles
+            chatBubbles.forEach(bubble => {
+                bubble.position.y += bubble.userData.speed;
+                if (bubble.position.y > 4) bubble.position.y = 1;
+                bubble.rotation.y += 0.02;
+            });
+            
+            // Rotate globe
+            if (animatedGlobe) {
+                animatedGlobe.rotation.y += 0.01;
+            }
+            
+            // Stars animation
+            stars.children.forEach(star => {
+                star.position.add(star.userData.velocity);
+                star.rotation.x += 0.12;
+                star.rotation.y += 0.12;
+            });
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // Responsive resize
+        function handleResize() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+        
+        window.addEventListener('resize', handleResize);
+        new ResizeObserver(handleResize).observe(container);
+        
+        // UI Logic
+        const storyIntro = document.getElementById('pc-story-intro');
+        const uiOverlay = document.getElementById('pc-ui-overlay');
+        const riaSpeech = document.getElementById('pc-ria-speech');
+        const computerSpeech = document.getElementById('pc-computer-speech');
+        const interactionHint = document.getElementById('pc-interaction-hint');
+        const codeInput = document.getElementById('pc-code-input');
+        const runBtn = document.getElementById('pc-run-btn');
+        const status = document.getElementById('pc-status');
+        const liveHint = document.getElementById('pc-live-hint');
+        const xpBadge = document.getElementById('pc-xp-badge');
+        const challengeTitle = document.getElementById('pc-challenge-title');
+        const challenge1 = document.getElementById('pc-challenge1');
+        const challenge2 = document.getElementById('pc-challenge2');
+        const challenge3 = document.getElementById('pc-challenge3');
+        
+        // Enhanced API_BASE detection for iframe context
+        function getAPIBase() {
+            if (window.parent && window.parent !== window) {
+                try {
+                    const parentOrigin = window.parent.location.origin;
+                    console.log('✅ Iframe detected, using parent origin:', parentOrigin);
+                    return parentOrigin;
+                } catch (e) {
+                    console.log('⚠️ Cross-origin iframe, using document referrer');
+                    if (document.referrer) {
+                        const url = new URL(document.referrer);
+                        return url.origin;
+                    }
+                }
+            }
+            
+            if (location.port === '5500') {
+                console.log('🔧 Live Server detected, using localhost:5000');
+                return 'http://127.0.0.1:5000';
+            }
+            
+            console.log('📍 Using same origin for API calls');
+            return '';
+        }
+        
+        const API_BASE = getAPIBase();
+        console.log('🌐 API_BASE set to:', API_BASE || 'same-origin');
+        
+        let studentName = sessionStorage.getItem('studentName') || 'Student';
+        
+        async function fetchStudentName() {
+            try {
+                const response = await fetch(`${API_BASE}/api/user-info`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.name) {
+                        studentName = data.name;
+                        sessionStorage.setItem('studentName', studentName);
+                    }
+                }
+            } catch (e) {
+                console.log('No user session found');
+            }
+        }
+        
+        fetchStudentName();
+        
+        function speak(text, pitch = 1, useFemaleVoice = false) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = pitch;
+                
+                if (useFemaleVoice) {
+                    const voices = window.speechSynthesis.getVoices();
+                    const femaleVoice = voices.find(voice => 
+                        voice.name.includes('Female') || 
+                        voice.name.includes('Zira')
+                    );
+                    if (femaleVoice) {
+                        utterance.voice = femaleVoice;
+                    }
+                    utterance.pitch = 1.2;
+                }
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        
+        window.pcStartLesson = function() {
+            storyIntro.style.display = 'none';
+            uiOverlay.style.display = 'flex';
+            interactionHint.style.display = 'block';
+            
+            setTimeout(() => {
+                riaSpeech.classList.add('pc-show');
+                riaSpeech.textContent = `Hi ${studentName}! Watch the computer ask ME! 💬`;
+                speak(`Hi ${studentName}! Watch the computer ask me questions!`, 1.2, true);
+            }, 500);
+            
+            setTimeout(() => {
+                computerSpeech.classList.add('pc-show');
+                computerSpeech.textContent = "What is your name? 🖥️";
+                speak("What is your name?", 1);
+            }, 2000);
+            
+            setTimeout(() => {
+                riaSpeech.textContent = "Help me code this! 💻";
+                speak(`${studentName}, help me code this conversation!`, 1.2, true);
+            }, 3500);
+        };
+        
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            try {
+                if (type === 'success') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        setTimeout(() => {
+                            const osc = audioContext.createOscillator();
+                            const gain = audioContext.createGain();
+                            osc.connect(gain).connect(audioContext.destination);
+                            osc.frequency.value = freq;
+                            osc.type = 'sine';
+                            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                            osc.start();
+                            osc.stop(audioContext.currentTime + 0.4);
+                        }, i * 150);
+                    });
+                } else {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain).connect(audioContext.destination);
+                    osc.frequency.value = 200;
+                    osc.type = 'square';
+                    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(audioContext.currentTime + 0.15);
+                }
+            } catch (e) {}
+        }
+        
+        function updateLiveHint(code) {
+            code = code.trim();
+            if (currentChallenge === 1) {
+                if (!code) {
+                    liveHint.innerHTML = '💡 Type: <strong>name = input("What is your name? ")</strong>';
+                } else if (!/^name/i.test(code)) {
+                    liveHint.innerHTML = '💡 Start with variable: <strong>name</strong>';
+                } else if (!/=/.test(code)) {
+                    liveHint.innerHTML = '💡 Add <strong>=</strong> to store';
+                } else if (!/input/.test(code)) {
+                    liveHint.innerHTML = '💡 Use <strong>input()</strong> to ask';
+                } else if (!/["']/.test(code)) {
+                    liveHint.innerHTML = '💡 Add question in <strong>quotes</strong>';
+                } else {
+                    liveHint.innerHTML = '✅ Perfect! Run it!';
+                }
+            } else if (currentChallenge === 2) {
+                if (!code) {
+                    liveHint.innerHTML = '💡 Type: <strong>print("Hello " + name)</strong>';
+                } else if (!/^print/i.test(code)) {
+                    liveHint.innerHTML = '💡 Start with <strong>print</strong>';
+                } else if (!/\+/.test(code)) {
+                    liveHint.innerHTML = '💡 Use <strong>+</strong> to join text and variable';
+                } else {
+                    liveHint.innerHTML = '✅ Great! Run it!';
+                }
+            } else {
+                if (!code) {
+                    liveHint.innerHTML = '💡 Type: <strong>age = input("How old are you? ")</strong>';
+                } else if (!/^age/i.test(code)) {
+                    liveHint.innerHTML = '💡 Start with variable: <strong>age</strong>';
+                } else if (!/input/.test(code)) {
+                    liveHint.innerHTML = '💡 Use <strong>input()</strong> to ask';
+                } else {
+                    liveHint.innerHTML = '✅ Awesome! Run it!';
+                }
+            }
+        }
+        
+        codeInput.addEventListener('input', (e) => {
+            updateLiveHint(e.target.value);
+        });
+        
+        function validateChallenge1(code) {
+            const normalized = code.trim().replace(/\s+/g, ' ');
+            const match = normalized.match(/^(\w+)\s*=\s*input\s*\(\s*(["'])(.*?)\2\s*\)$/i);
+            if (match && match[1].toLowerCase() === 'name' && match[3].length > 0) {
+                return { variable: match[1], question: match[3] };
+            }
+            return null;
+        }
+        
+        function validateChallenge2(code) {
+            const normalized = code.trim().replace(/\s+/g, ' ');
+            const match = normalized.match(/^print\s*\(\s*(["'])(.*?)\1\s*\+\s*(\w+)\s*\)$/i);
+            if (match && match[3].toLowerCase() === 'name') {
+                return { greeting: match[2], variable: match[3] };
+            }
+            return null;
+        }
+        
+        function validateChallenge3(code) {
+            const normalized = code.trim().replace(/\s+/g, ' ');
+            const match = normalized.match(/^(\w+)\s*=\s*input\s*\(\s*(["'])(.*?)\2\s*\)$/i);
+            if (match && match[1].toLowerCase() === 'age' && match[3].length > 0) {
+                return { variable: match[1], question: match[3] };
+            }
+            return null;
+        }
+        
+        async function requestAIHint(userCode) {
+            status.className = 'pc-status-message pc-hint pc-show';
+            status.innerHTML = '🐴 Donki is thinking...';
+            
+            console.log('🐴 Requesting Donki hint...', {
+                api: `${API_BASE}/api/hint`,
+                challenge: currentChallenge,
+                code: userCode,
+                topic: 'input'
+            });
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/hint`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ 
+                        code: userCode,
+                        student_name: studentName,
+                        challenge: currentChallenge,
+                        topic: 'input'
+                    })
+                });
+                
+                console.log('📡 Donki API response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Donki hint received:', data);
+                    if (data.hint) {
+                        status.innerHTML = `🐴 <strong>Donki:</strong> ${data.hint}`;
+                        const cleanHint = data.hint.replace(studentName + ',', '').replace(studentName + '!', '');
+                        speak(cleanHint, 1.1, true);
+                        return;
+                    }
+                } else {
+                    console.error('❌ Donki API error:', response.status, response.statusText);
+                }
+            } catch (e) {
+                console.error('❌ Donki hint fetch error:', e);
+            }
+            
+            // Fallback hints (offline mode)
+            console.log('⚠️ Using fallback hint (Donki API unavailable)');
+            let hint = '';
+            if (currentChallenge === 1) {
+                hint = `Hey ${studentName}! Use input() to ask: <strong>name = input("What is your name? ")</strong>`;
+            } else if (currentChallenge === 2) {
+                hint = `Remember ${studentName}, join text with +: <strong>print("Hello " + name)</strong>`;
+            } else {
+                hint = `${studentName}, ask for age: <strong>age = input("How old are you? ")</strong>`;
+            }
+            status.innerHTML = `🐴 <strong>Donki:</strong> ${hint}`;
+            const cleanText = hint.replace(/<[^>]*>/g, '').replace(studentName + ',', '').replace(studentName + '!', '');
+            speak(cleanText, 1.1, true);
+        }
+        
+        // Simulated user input for demonstration
+        let simulatedInput = studentName;
+        
+        runBtn.addEventListener('click', async () => {
+            const code = codeInput.value;
+            
+            if (currentChallenge === 1) {
+                const result = validateChallenge1(code);
+                if (result) {
+                    computerSpeech.textContent = result.question + " 💬";
+                    speak(result.question, 1);
+                    
+                    setTimeout(() => {
+                        riaSpeech.textContent = `I'm ${simulatedInput}! ✅`;
+                        speak(`I'm ${simulatedInput}!`, 1.2, true);
+                        
+                        challenge1.classList.add('pc-completed');
+                        challenge1.innerHTML = '<span class="pc-challenge-number">✓</span><strong>Asked!</strong> Computer asked your name!';
+                        
+                        status.className = 'pc-status-message pc-success pc-show';
+                        status.innerHTML = `🎉 <strong>Perfect!</strong> input() asked: "${result.question}"<br>Computer waits for YOUR answer!`;
+                        playSound('success');
+                        
+                        currentChallenge = 2;
+                        challenge2.style.opacity = '1';
+                        
+                        setTimeout(() => {
+                            challengeTitle.textContent = "Greet with Name";
+                            codeInput.value = '';
+                            codeInput.placeholder = 'print("Hello " + name)';
+                            updateLiveHint('');
+                            status.style.display = 'none';
+                            computerSpeech.textContent = "Now use my name! 🤝";
+                            speak("Now use my name to greet back!", 1);
+                        }, 3000);
+                    }, 1500);
+                    
+                } else {
+                    playSound('error');
+                    await requestAIHint(code);
+                }
+                
+            } else if (currentChallenge === 2) {
+                const result = validateChallenge2(code);
+                if (result) {
+                    computerSpeech.textContent = `${result.greeting}${simulatedInput}! 💙`;
+                    speak(`${result.greeting}${simulatedInput}!`, 1);
+                    
+                    riaSpeech.textContent = "It used my name! 🎊";
+                    speak("Yay! It used my name!", 1.2, true);
+                    
+                    challenge2.classList.add('pc-completed');
+                    challenge2.innerHTML = `<span class="pc-challenge-number">✓</span><strong>Greeted!</strong> Used the stored name!`;
+                    
+                    status.className = 'pc-status-message pc-success pc-show';
+                    status.innerHTML = `🎉 <strong>Excellent!</strong> You joined "${result.greeting}" + name!`;
+                    playSound('success');
+                    
+                    currentChallenge = 3;
+                    challenge3.style.opacity = '1';
+                    
+                    setTimeout(() => {
+                        challengeTitle.textContent = "Ask for Age";
+                        codeInput.value = '';
+                        codeInput.placeholder = 'age = input("How old are you? ")';
+                        updateLiveHint('');
+                        status.style.display = 'none';
+                        computerSpeech.textContent = "Ask me more! 💬";
+                        speak("Now ask me how old I am!", 1);
+                    }, 3000);
+                    
+                } else {
+                    playSound('error');
+                    await requestAIHint(code);
+                }
+                
+            } else if (currentChallenge === 3) {
+                const result = validateChallenge3(code);
+                if (result) {
+                    currentChallenge = 4;
+                    
+                    computerSpeech.textContent = result.question + " 💬";
+                    speak(result.question, 1);
+                    
+                    setTimeout(() => {
+                        riaSpeech.textContent = "I'm 12! 🎂";
+                        speak("I'm twelve!", 1.2, true);
+                        
+                        challenge3.classList.add('pc-completed');
+                        challenge3.innerHTML = `<span class="pc-challenge-number">✓</span><strong>Chatted!</strong> You mastered input()!`;
+                        
+                        status.className = 'pc-status-message pc-success pc-show';
+                        status.innerHTML = `🎉 <strong>Amazing ${studentName}!</strong> You've mastered:<br>• input() - Asking questions<br>• Storing answers in variables<br>• Using variables with print()!`;
+                        xpBadge.classList.add('pc-show');
+                        playSound('success');
+                        createStarCelebration();
+                        
+                        setTimeout(() => {
+                            riaSpeech.textContent = "You're a chat master! 🌟";
+                            computerSpeech.textContent = "Well done! 🏆";
+                            speak(`Congratulations ${studentName}! You're a Python chat master!`, 1.2, true);
+                        }, 1500);
+                        
+                        setTimeout(() => {
+                            signalLessonComplete();
+                        }, 3000);
+                    }, 1500);
+                    
+                } else {
+                    playSound('error');
+                    await requestAIHint(code);
+                }
+            }
+        });
+        
+        codeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') runBtn.click();
+        });
+        
+        // Universal lesson completion signal
+        function signalLessonComplete() {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'LESSON_COMPLETE',
+                    studentName: studentName,
+                    timestamp: new Date().toISOString()
+                }, '*');
+                console.log('✅ Lesson completion signal sent to parent page');
+            } else {
+                console.log('⚠️ Not in iframe, cannot signal parent');
+            }
+        }
+        
+        window.signalLessonComplete = signalLessonComplete;
+    </script>
+</body>
+</html>
+

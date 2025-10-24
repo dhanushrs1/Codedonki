@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Python Variables - Backpack Adventure</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Exo+2:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Exo 2', sans-serif;
+            background: #1E1E2F;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .pv-split-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .pv-canvas-container {
+            flex: 1;
+            position: relative;
+            background: #87CEEB;
+            min-width: 0;
+        }
+        
+        .pv-canvas-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .pv-story-bubble {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 3px solid #845EC2;
+            border-radius: 20px;
+            padding: clamp(15px, 4vw, 30px);
+            max-width: min(90%, 600px);
+            text-align: center;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: pv-bounceIn 0.5s ease;
+        }
+        
+        @keyframes pv-bounceIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .pv-story-bubble h2 {
+            font-family: 'Fredoka', sans-serif;
+            color: #845EC2;
+            font-size: clamp(18px, 4vw, 26px);
+            margin-bottom: 10px;
+        }
+        
+        .pv-story-bubble p {
+            font-size: clamp(13px, 2.5vw, 16px);
+            color: #1E1E2F;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .pv-code-example {
+            background: #1E1E2F;
+            color: #A8E10C;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(11px, 2vw, 14px);
+            margin: 8px 0;
+            text-align: left;
+        }
+        
+        .pv-start-btn {
+            background: linear-gradient(135deg, #845EC2, #A855F7);
+            color: white;
+            border: none;
+            padding: clamp(10px, 2vw, 14px) clamp(20px, 4vw, 35px);
+            border-radius: 10px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(14px, 2.5vw, 18px);
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(132,94,194,0.4);
+            transition: all 0.3s;
+        }
+        
+        .pv-start-btn:hover {
+            background: linear-gradient(135deg, #A8E10C, #B8F01C);
+            color: #1E1E2F;
+            transform: translateY(-2px);
+        }
+        
+        .pv-speech-bubble {
+            position: absolute;
+            background: white;
+            border: 3px solid #845EC2;
+            border-radius: 15px;
+            padding: clamp(10px, 2vw, 15px) clamp(12px, 2.5vw, 22px);
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(12px, 2vw, 16px);
+            font-weight: 600;
+            z-index: 12;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: none;
+            animation: pv-popIn 0.3s ease;
+            max-width: 280px;
+        }
+        
+        .pv-speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid white;
+        }
+        
+        .pv-speech-bubble.pv-show {
+            display: block;
+        }
+        
+        #pv-maya-speech {
+            top: 8%;
+            left: 8%;
+            color: #FF69B4;
+        }
+        
+        #pv-leo-speech {
+            top: 8%;
+            right: 8%;
+            color: #00C2FF;
+        }
+        
+        @media (max-width: 768px) {
+            #pv-maya-speech {
+                top: 5%;
+                left: 5%;
+            }
+            #pv-leo-speech {
+                top: 5%;
+                right: 5%;
+            }
+        }
+        
+        #pv-ui-overlay {
+            flex: 1;
+            position: relative;
+            z-index: 10;
+            pointer-events: all;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            min-width: 0;
+            border-left: 3px solid #845EC2;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .pv-lesson-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #FFFFFF;
+            padding: clamp(20px, 3vw, 30px);
+            overflow-y: auto;
+        }
+        
+        .pv-lesson-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #E8E8E8;
+        }
+        
+        .pv-lesson-title {
+            font-family: 'Fredoka', sans-serif;
+            color: #1E1E2F;
+            font-size: clamp(16px, 2.5vw, 20px);
+            font-weight: 700;
+        }
+        
+        .pv-lesson-title .pv-highlight {
+            color: #845EC2;
+        }
+        
+        .pv-lesson-subtitle {
+            font-size: clamp(11px, 2vw, 13px);
+            color: #5E6C84;
+            margin-top: 2px;
+        }
+        
+        .pv-xp-badge {
+            background: linear-gradient(135deg, #845EC2, #A855F7);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: clamp(10px, 2vw, 12px);
+            font-weight: 700;
+            display: none;
+            white-space: nowrap;
+        }
+        
+        .pv-xp-badge.pv-show {
+            display: inline-block;
+            animation: pv-popIn 0.3s ease;
+        }
+        
+        @keyframes pv-popIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .pv-challenge-card {
+            background: linear-gradient(135deg, #F3E5F5, #E1BEE7);
+            border-left: 4px solid #845EC2;
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2.5vw, 16px);
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: clamp(13px, 2vw, 15px);
+            color: #1E1E2F;
+            transition: all 0.3s ease;
+        }
+        
+        .pv-challenge-number {
+            display: inline-block;
+            background: #845EC2;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            margin-right: 6px;
+        }
+        
+        .pv-challenge-card.pv-completed {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-left-color: #A8E10C;
+        }
+        
+        .pv-challenge-card.pv-completed .pv-challenge-number {
+            background: #A8E10C;
+        }
+        
+        #pv-code-input {
+            width: 100%;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(14px, 2.5vw, 16px);
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px);
+            border: 2px solid #DFE1E6;
+            border-radius: 8px;
+            margin: 12px 0 8px 0;
+            transition: all 0.3s;
+            background: #1E1E2F;
+            color: #A8E10C;
+        }
+        
+        #pv-code-input:focus {
+            outline: none;
+            border-color: #845EC2;
+            box-shadow: 0 0 0 3px rgba(132,94,194,0.2);
+        }
+        
+        .pv-hint-text {
+            color: #5E6C84;
+            font-size: clamp(10px, 2vw, 12px);
+            margin: 4px 0;
+            line-height: 1.4;
+        }
+        
+        .pv-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .pv-btn {
+            font-family: 'Fredoka', sans-serif;
+            padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 24px);
+            border: none;
+            border-radius: 8px;
+            font-size: clamp(14px, 2vw, 16px);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        #pv-run-btn {
+            background: linear-gradient(135deg, #845EC2, #A855F7);
+            color: white;
+            flex: 1;
+            box-shadow: 0 2px 8px rgba(132,94,194,0.3);
+        }
+        
+        #pv-run-btn:hover {
+            background: linear-gradient(135deg, #A8E10C, #B8F01C);
+            color: #1E1E2F;
+            transform: translateY(-2px);
+        }
+        
+        .pv-status-message {
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px);
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: clamp(12px, 2vw, 14px);
+            font-weight: 600;
+            display: none;
+            line-height: 1.5;
+        }
+        
+        .pv-status-message.pv-success {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            color: #2E7D32;
+            border: 2px solid #A8E10C;
+        }
+        
+        .pv-status-message.pv-error {
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            color: #C62828;
+            border: 2px solid #FF5555;
+        }
+        
+        .pv-status-message.pv-hint {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            color: #E65100;
+            border: 2px solid #FF7B00;
+        }
+        
+        .pv-status-message.pv-show {
+            display: block;
+            animation: pv-slideUp 0.3s ease;
+        }
+        
+        @keyframes pv-slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pv-interaction-hint {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(132,94,194,0.9);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: clamp(10px, 2vw, 12px);
+            color: white;
+            z-index: 11;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 968px) {
+            .pv-split-container {
+                flex-direction: column;
+            }
+            .pv-canvas-container {
+                height: 40%;
+                min-height: 300px;
+            }
+            #pv-ui-overlay {
+                height: 60%;
+                border-left: none;
+                border-top: 3px solid #845EC2;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            }
+            .pv-speech-bubble {
+                font-size: 11px;
+                max-width: 200px;
+                padding: 8px 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .pv-story-bubble {
+                padding: 15px 20px;
+            }
+            .pv-code-example {
+                font-size: 11px;
+            }
+            .pv-interaction-hint {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pv-split-container">
+        <div id="pv-canvas-container" class="pv-canvas-container">
+            <div class="pv-interaction-hint" style="display:none;" id="pv-interaction-hint">
+                🖱️ Drag • Scroll zoom
+            </div>
+            
+            <div id="pv-maya-speech" class="pv-speech-bubble">Let's pack! 🎒</div>
+            <div id="pv-leo-speech" class="pv-speech-bubble">...</div>
+        </div>
+        
+        <div id="pv-ui-overlay" style="display:none;">
+            <div class="pv-lesson-panel">
+                <div class="pv-lesson-header">
+                    <div>
+                        <div class="pv-lesson-title">Challenge: <span class="pv-highlight" id="pv-challenge-title">Store Notebooks</span></div>
+                        <div class="pv-lesson-subtitle">Help Maya pack!</div>
+                    </div>
+                    <div class="pv-xp-badge" id="pv-xp-badge">+75 XP! 🎉</div>
+                </div>
+                
+                <div id="pv-challenge1" class="pv-challenge-card">
+                    <span class="pv-challenge-number">1</span>
+                    <strong>Number:</strong> <code style="color: #845EC2;">notebooks = 3</code>
+                </div>
+                
+                <div id="pv-challenge2" class="pv-challenge-card" style="opacity: 0.5;">
+                    <span class="pv-challenge-number">2</span>
+                    <strong>Text:</strong> <code style="color: #FF69B4;">pencil_case = "blue pencil case"</code>
+                </div>
+                
+                <div id="pv-challenge3" class="pv-challenge-card" style="opacity: 0.5;">
+                    <span class="pv-challenge-number">3</span>
+                    <strong>Print:</strong> <code style="color: #00C2FF;">print(notebooks), print(pencil_case)</code>
+                </div>
+                
+                <input type="text" id="pv-code-input" placeholder='notebooks = 3' autocomplete="off" spellcheck="false">
+                
+                <div class="pv-hint-text" id="pv-live-hint">💡 Type: notebooks = 3</div>
+                
+                <div class="pv-controls">
+                    <button id="pv-run-btn" class="pv-btn">▶ Run Code</button>
+                </div>
+                
+                <div class="pv-status-message" id="pv-status"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="pv-story-intro" class="pv-story-bubble">
+        <h2>🎒 The School Backpack Adventure</h2>
+        <p><strong style="color: #FF69B4;">Maya</strong> (girl) and <strong style="color: #00C2FF;">Leo</strong> (boy) are packing their backpack!</p>
+        <p>Learn to <strong>store</strong> items in Python <strong>variables</strong>:</p>
+        <div class="pv-code-example">
+            <div>1️⃣ Store a number:</div>
+            <div style="color: #FFD700;">notebooks = 3</div>
+            <br>
+            <div>2️⃣ Store text:</div>
+            <div style="color: #FFD700;">item = "pencil case"</div>
+            <br>
+            <div>3️⃣ Show what's stored:</div>
+            <div style="color: #FFD700;">print(notebooks)</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2); padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #FF7B00;">
+            <strong>🐴 Donki is here to help!</strong><br>
+            <small style="color: #666;">If you make a mistake, Donki will automatically give you smart hints!</small>
+        </div>
+        <button class="pv-start-btn" onclick="window.pvStartLesson()">Start Packing! 🎒</button>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        const container = document.getElementById('pv-canvas-container');
+        const scene = new THREE.Scene();
+        
+        // Enhanced School Campus Background
+        scene.background = new THREE.Color(0x87CEEB); // Sky blue
+        scene.fog = new THREE.Fog(0xB0E0E6, 40, 120);
+        
+        const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 5, 18);
+        
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: true,
+            alpha: false,
+            preserveDrawingBuffer: true
+        });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+        
+        // Debug: Ensure canvas is visible
+        console.log('✅ 3D Canvas created:', {
+            width: container.clientWidth,
+            height: container.clientHeight,
+            canvas: renderer.domElement,
+            zIndex: window.getComputedStyle(container).zIndex
+        });
+        
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.target.set(0, 2, 0);
+        controls.maxPolarAngle = Math.PI / 2.2;
+        controls.minDistance = 8;
+        controls.maxDistance = 35;
+        
+        // Enhanced Lighting
+        scene.add(new THREE.AmbientLight(0xFFFFFF, 0.7));
+        const sunLight = new THREE.DirectionalLight(0xFFFAF0, 1.5);
+        sunLight.position.set(20, 30, 15);
+        sunLight.castShadow = true;
+        sunLight.shadow.camera.left = sunLight.shadow.camera.bottom = -30;
+        sunLight.shadow.camera.right = sunLight.shadow.camera.top = 30;
+        sunLight.shadow.mapSize.width = sunLight.shadow.mapSize.height = 2048;
+        scene.add(sunLight);
+        
+        // Enhanced grass ground with vibrant texture
+        const groundGeometry = new THREE.PlaneGeometry(100, 100, 60, 60);
+        const vertices = groundGeometry.attributes.position.array;
+        for (let i = 0; i < vertices.length; i += 3) {
+            vertices[i + 2] = Math.sin(vertices[i] * 0.3) * 0.2 + Math.random() * 0.25;
+        }
+        groundGeometry.attributes.position.needsUpdate = true;
+        groundGeometry.computeVertexNormals();
+        
+        const ground = new THREE.Mesh(
+            groundGeometry,
+            new THREE.MeshStandardMaterial({ 
+                color: 0x5CB85C,  // Brighter, more vibrant green
+                roughness: 0.92,
+                metalness: 0.05
+            })
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+        
+        // Add scattered grass patches for variety
+        for (let i = 0; i < 30; i++) {
+            const grassPatch = new THREE.Mesh(
+                new THREE.CircleGeometry(0.8 + Math.random() * 0.5, 8),
+                new THREE.MeshStandardMaterial({ 
+                    color: Math.random() > 0.5 ? 0x6FD96F : 0x4EC74E,
+                    roughness: 0.95
+                })
+            );
+            grassPatch.rotation.x = -Math.PI / 2;
+            grassPatch.position.set(
+                (Math.random() - 0.5) * 40,
+                0.02,
+                (Math.random() - 0.5) * 40
+            );
+            scene.add(grassPatch);
+        }
+        
+        // School Building (3-story)
+        function createSchoolBuilding() {
+            const building = new THREE.Group();
+            
+            // Main structure
+            const main = new THREE.Mesh(
+                new THREE.BoxGeometry(25, 12, 15),
+                new THREE.MeshStandardMaterial({ color: 0xE8DACF, roughness: 0.8 })
+            );
+            main.position.set(0, 6, -30);
+            main.castShadow = true;
+            building.add(main);
+            
+            // Roof
+            const roof = new THREE.Mesh(
+                new THREE.ConeGeometry(18, 3, 4),
+                new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+            );
+            roof.position.set(0, 13.5, -30);
+            roof.rotation.y = Math.PI / 4;
+            roof.castShadow = true;
+            building.add(roof);
+            
+            // Windows (3 floors x 5 columns)
+            for (let floor = 0; floor < 3; floor++) {
+                for (let col = 0; col < 5; col++) {
+                    const window = new THREE.Mesh(
+                        new THREE.BoxGeometry(1.5, 2, 0.3),
+                        new THREE.MeshStandardMaterial({ 
+                            color: 0x87CEEB,
+                            transparent: true,
+                            opacity: 0.8,
+                            emissive: 0x4A90E2,
+                            emissiveIntensity: 0.3
+                        })
+                    );
+                    window.position.set(
+                        -8 + col * 4,
+                        2 + floor * 3.5,
+                        -22.4
+                    );
+                    building.add(window);
+                }
+            }
+            
+            // School sign with text
+            const sign = new THREE.Mesh(
+                new THREE.BoxGeometry(12, 2, 0.3),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x845EC2,  // Purple - encouraging color
+                    emissive: 0x845EC2,
+                    emissiveIntensity: 0.2
+                })
+            );
+            sign.position.set(0, 11.5, -22);
+            building.add(sign);
+            
+            // Colorful flags on roof
+            const flagColors = [0xFF69B4, 0x00C2FF, 0xFFD700, 0xA8E10C, 0xFF7B00];
+            for (let i = 0; i < 5; i++) {
+                const flagPole = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.08, 0.08, 3, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+                );
+                flagPole.position.set(-8 + i * 4, 14.5, -30);
+                building.add(flagPole);
+                
+                const flag = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.8, 0.6),
+                    new THREE.MeshStandardMaterial({ 
+                        color: flagColors[i],
+                        side: THREE.DoubleSide,
+                        emissive: flagColors[i],
+                        emissiveIntensity: 0.3
+                    })
+                );
+                flag.position.set(-8 + i * 4, 15.5, -29.5);
+                building.add(flag);
+            }
+            
+            // Welcome arch entrance
+            const archBase1 = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.4, 0.4, 3, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFFD700 })
+            );
+            archBase1.position.set(-2.5, 1.5, -22);
+            building.add(archBase1);
+            
+            const archBase2 = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.4, 0.4, 3, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFFD700 })
+            );
+            archBase2.position.set(2.5, 1.5, -22);
+            building.add(archBase2);
+            
+            const archTop = new THREE.Mesh(
+                new THREE.TorusGeometry(2.5, 0.4, 16, 32, Math.PI),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xFFD700,
+                    emissive: 0xFFD700,
+                    emissiveIntensity: 0.3
+                })
+            );
+            archTop.rotation.x = Math.PI / 2;
+            archTop.position.set(0, 3, -22);
+            building.add(archTop);
+            
+            return building;
+        }
+        scene.add(createSchoolBuilding());
+        
+        // Trees around campus
+        function createTree(x, z, scale = 1) {
+            const tree = new THREE.Group();
+            
+            // Trunk
+            const trunk = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.3 * scale, 0.4 * scale, 3 * scale, 8),
+                new THREE.MeshStandardMaterial({ color: 0x4A3728 })
+            );
+            trunk.position.y = 1.5 * scale;
+            trunk.castShadow = true;
+            tree.add(trunk);
+            
+            // Foliage
+            for (let i = 0; i < 3; i++) {
+                const leaves = new THREE.Mesh(
+                    new THREE.SphereGeometry(1.5 * scale, 8, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x2D5016 })
+                );
+                leaves.position.y = (3 + i * 0.8) * scale;
+                leaves.position.x = (Math.random() - 0.5) * 0.5;
+                leaves.castShadow = true;
+                tree.add(leaves);
+            }
+            
+            tree.position.set(x, 0, z);
+            return tree;
+        }
+        
+        // Place trees
+        const treePositions = [
+            [-18, -20], [-18, -10], [-18, 5],
+            [18, -20], [18, -10], [18, 5],
+            [-10, 12], [10, 12], [-25, 0], [25, 0]
+        ];
+        treePositions.forEach(([x, z]) => {
+            scene.add(createTree(x, z, 0.8 + Math.random() * 0.5));
+        });
+        
+        // Garden beds with flowers
+        function createGardenBed(x, z) {
+            const bed = new THREE.Mesh(
+                new THREE.BoxGeometry(4, 0.3, 4),
+                new THREE.MeshStandardMaterial({ color: 0x654321 })
+            );
+            bed.position.set(x, 0.15, z);
+            bed.receiveShadow = true;
+            scene.add(bed);
+            
+            // Flowers
+            for (let i = 0; i < 15; i++) {
+                const flower = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.12, 6, 6),
+                    new THREE.MeshStandardMaterial({ 
+                        color: [0xFF69B4, 0xFFFF00, 0xFF4500, 0x9370DB, 0xFF1493][Math.floor(Math.random() * 5)]
+                    })
+                );
+                flower.position.set(
+                    x + (Math.random() - 0.5) * 3.5,
+                    0.35,
+                    z + (Math.random() - 0.5) * 3.5
+                );
+                scene.add(flower);
+            }
+        }
+        
+        createGardenBed(-12, 15);
+        createGardenBed(12, 15);
+        
+        // Colorful pathway with stepping stones
+        for (let i = 0; i < 15; i++) {
+            const stone = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.6, 0.58, 0.15, 8),
+                new THREE.MeshStandardMaterial({ 
+                    color: [0xD2B48C, 0xC8B08A, 0xBFA580][i % 3],
+                    roughness: 0.85
+                })
+            );
+            stone.rotation.x = -Math.PI / 2;
+            stone.position.set(
+                -2 + (i % 3) * 1.5,
+                0.08,
+                -15 + Math.floor(i / 3) * 2.5
+            );
+            stone.castShadow = true;
+            scene.add(stone);
+        }
+        
+        // Encouraging benches
+        function createBench(x, z, rotation) {
+            const bench = new THREE.Group();
+            
+            // Seat
+            const seat = new THREE.Mesh(
+                new THREE.BoxGeometry(2, 0.15, 0.6),
+                new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+            );
+            seat.position.y = 0.5;
+            seat.castShadow = true;
+            bench.add(seat);
+            
+            // Backrest
+            const back = new THREE.Mesh(
+                new THREE.BoxGeometry(2, 0.8, 0.1),
+                new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+            );
+            back.position.set(0, 0.9, -0.25);
+            back.castShadow = true;
+            bench.add(back);
+            
+            // Legs
+            for (let i = 0; i < 4; i++) {
+                const leg = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.08, 0.08, 0.5, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x654321 })
+                );
+                leg.position.set(
+                    i < 2 ? -0.8 : 0.8,
+                    0.25,
+                    i % 2 === 0 ? -0.2 : 0.2
+                );
+                leg.castShadow = true;
+                bench.add(leg);
+            }
+            
+            bench.position.set(x, 0, z);
+            bench.rotation.y = rotation;
+            return bench;
+        }
+        
+        scene.add(createBench(-8, 8, Math.PI / 4));
+        scene.add(createBench(8, 8, -Math.PI / 4));
+        
+        // Recycling bins with labels
+        function createRecycleBin(x, z, color, label) {
+            const bin = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.4, 0.35, 0.8, 8),
+                new THREE.MeshStandardMaterial({ 
+                    color: color,
+                    emissive: color,
+                    emissiveIntensity: 0.2
+                })
+            );
+            bin.position.set(x, 0.4, z);
+            bin.castShadow = true;
+            scene.add(bin);
+            
+            // Lid
+            const lid = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.45, 0.42, 0.08, 8),
+                new THREE.MeshStandardMaterial({ color: color })
+            );
+            lid.position.set(x, 0.84, z);
+            scene.add(lid);
+        }
+        
+        createRecycleBin(-7, 10, 0x00CC00, '♻️'); // Green
+        createRecycleBin(-5.5, 10, 0x4169E1, '📄'); // Blue
+        createRecycleBin(-4, 10, 0xFFD700, '🗑️'); // Yellow
+        
+        // Animated butterflies for encouragement
+        const butterflies = [];
+        for (let i = 0; i < 5; i++) {
+            const butterfly = new THREE.Group();
+            
+            // Body
+            const body = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.08, 0.3, 4, 8),
+                new THREE.MeshStandardMaterial({ color: 0x000000 })
+            );
+            butterfly.add(body);
+            
+            // Wings
+            const wingColors = [0xFF69B4, 0xFFD700, 0x00C2FF, 0xA8E10C, 0xFF7B00];
+            const leftWing = new THREE.Mesh(
+                new THREE.CircleGeometry(0.25, 8),
+                new THREE.MeshStandardMaterial({ 
+                    color: wingColors[i],
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.8,
+                    emissive: wingColors[i],
+                    emissiveIntensity: 0.3
+                })
+            );
+            leftWing.position.set(-0.15, 0, 0);
+            leftWing.rotation.y = Math.PI / 4;
+            butterfly.add(leftWing);
+            butterfly.userData.leftWing = leftWing;
+            
+            const rightWing = new THREE.Mesh(
+                new THREE.CircleGeometry(0.25, 8),
+                new THREE.MeshStandardMaterial({ 
+                    color: wingColors[i],
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.8,
+                    emissive: wingColors[i],
+                    emissiveIntensity: 0.3
+                })
+            );
+            rightWing.position.set(0.15, 0, 0);
+            rightWing.rotation.y = -Math.PI / 4;
+            butterfly.add(rightWing);
+            butterfly.userData.rightWing = rightWing;
+            
+            butterfly.position.set(
+                (Math.random() - 0.5) * 20,
+                1.5 + Math.random() * 2,
+                (Math.random() - 0.5) * 20
+            );
+            butterfly.userData.speed = 0.02 + Math.random() * 0.03;
+            butterfly.userData.direction = Math.random() * Math.PI * 2;
+            butterfly.userData.wingSpeed = 8 + Math.random() * 4;
+            butterflies.push(butterfly);
+            scene.add(butterfly);
+        }
+        
+        // Animated clouds
+        const clouds = [];
+        for (let i = 0; i < 6; i++) {
+            const cloud = new THREE.Group();
+            for (let j = 0; j < 5; j++) {
+                const puff = new THREE.Mesh(
+                    new THREE.SphereGeometry(1 + Math.random() * 0.5, 8, 8),
+                    new THREE.MeshBasicMaterial({ 
+                        color: 0xFFFFFF,
+                        transparent: true,
+                        opacity: 0.85
+                    })
+                );
+                puff.position.set((j - 2) * 1.5, Math.random() * 0.5, 0);
+                cloud.add(puff);
+            }
+            cloud.position.set(
+                (Math.random() - 0.5) * 70,
+                18 + Math.random() * 8,
+                -45 - Math.random() * 20
+            );
+            cloud.userData.speed = 0.01 + Math.random() * 0.015;
+            clouds.push(cloud);
+            scene.add(cloud);
+        }
+        
+        // Desk
+        const desk = new THREE.Mesh(
+            new THREE.BoxGeometry(4, 0.2, 2.5),
+            new THREE.MeshStandardMaterial({ color: 0x8D6E63 })
+        );
+        desk.position.set(0, 0.8, 0);
+        desk.castShadow = true;
+        scene.add(desk);
+        
+        // Create backpack (3D model)
+        function createBackpack() {
+            const backpack = new THREE.Group();
+            
+            // Main body
+            const body = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 1.5, 0.6),
+                new THREE.MeshStandardMaterial({ color: 0x2196F3 })
+            );
+            body.position.y = 1.8;
+            body.castShadow = true;
+            backpack.add(body);
+            
+            // Front pocket
+            const pocket = new THREE.Mesh(
+                new THREE.BoxGeometry(0.9, 0.6, 0.3),
+                new THREE.MeshStandardMaterial({ color: 0x1976D2 })
+            );
+            pocket.position.set(0, 1.5, 0.45);
+            pocket.castShadow = true;
+            backpack.add(pocket);
+            
+            // Zipper
+            const zipper = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.05, 0.05, 0.6, 8),
+                new THREE.MeshStandardMaterial({ color: 0xFFD700 })
+            );
+            zipper.rotation.z = Math.PI / 2;
+            zipper.position.set(0, 2.3, 0.3);
+            backpack.add(zipper);
+            
+            // Straps
+            for (let i = 0; i < 2; i++) {
+                const strap = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.08, 0.08, 1.2, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x1565C0 })
+                );
+                strap.position.set(i === 0 ? -0.35 : 0.35, 1.5, -0.3);
+                strap.castShadow = true;
+                backpack.add(strap);
+            }
+            
+            backpack.position.set(0, 0, 0);
+            return backpack;
+        }
+        
+        const backpack = createBackpack();
+        scene.add(backpack);
+        
+        // Create full-body student with uniform
+        function createPerson(color, position, name) {
+            const person = new THREE.Group();
+            person.userData.name = name;
+            const isGirl = (name === 'Maya');
+            
+            // LEGS - Full body!
+            const leftLeg = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.15, 0.95, 8, 12),
+                new THREE.MeshStandardMaterial({ color: 0x2C3E50 })
+            );
+            leftLeg.position.set(-0.25, 0.52, 0);
+            leftLeg.castShadow = true;
+            person.add(leftLeg);
+            person.userData.leftLeg = leftLeg;
+            
+            const rightLeg = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.15, 0.95, 8, 12),
+                new THREE.MeshStandardMaterial({ color: 0x2C3E50 })
+            );
+            rightLeg.position.set(0.25, 0.52, 0);
+            rightLeg.castShadow = true;
+            person.add(rightLeg);
+            person.userData.rightLeg = rightLeg;
+            
+            // Shoes
+            const leftShoe = new THREE.Mesh(
+                new THREE.BoxGeometry(0.22, 0.12, 0.38),
+                new THREE.MeshStandardMaterial({ color: 0x000000 })
+            );
+            leftShoe.position.set(-0.25, 0.06, 0.05);
+            leftShoe.castShadow = true;
+            person.add(leftShoe);
+            
+            const rightShoe = new THREE.Mesh(
+                new THREE.BoxGeometry(0.22, 0.12, 0.38),
+                new THREE.MeshStandardMaterial({ color: 0x000000 })
+            );
+            rightShoe.position.set(0.25, 0.06, 0.05);
+            rightShoe.castShadow = true;
+            person.add(rightShoe);
+            
+            // TORSO - School Uniform
+            const torso = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.48, 0.50, 1.15, 16),
+                new THREE.MeshStandardMaterial({ color: color, roughness: 0.6 })
+            );
+            torso.castShadow = true;
+            torso.position.y = 1.6;
+            person.add(torso);
+            
+            // White collar
+            const collar = new THREE.Mesh(
+                new THREE.TorusGeometry(0.48, 0.08, 8, 16, Math.PI),
+                new THREE.MeshStandardMaterial({ color: 0xFFFFFF })
+            );
+            collar.position.y = 2.1;
+            collar.rotation.x = Math.PI / 2;
+            person.add(collar);
+            
+            // School badge
+            const badge = new THREE.Mesh(
+                new THREE.CircleGeometry(0.13, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFFD700, emissive: 0xFFD700, emissiveIntensity: 0.3 })
+            );
+            badge.position.set(0.28, 1.8, 0.49);
+            person.add(badge);
+            
+            // NECK
+            const neck = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.16, 0.19, 0.28, 12),
+                new THREE.MeshStandardMaterial({ color: 0xFFDBAC })
+            );
+            neck.position.y = 2.3;
+            person.add(neck);
+            
+            // HEAD
+            const head = new THREE.Mesh(
+                new THREE.SphereGeometry(0.44, 20, 20),
+                new THREE.MeshStandardMaterial({ color: 0xFFDBAC, roughness: 0.75 })
+            );
+            head.scale.set(0.95, 1.05, 0.95);
+            head.castShadow = true;
+            head.position.y = 2.65;
+            person.add(head);
+            
+            // HAIR - Different styles for girl/boy
+            if (isGirl) {
+                // Long hair for Maya
+                const hair = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.46, 16, 16),
+                    new THREE.MeshStandardMaterial({ color: 0x4A2511, roughness: 0.9 })
+                );
+                hair.scale.set(1, 0.9, 1);
+                hair.position.y = 2.8;
+                person.add(hair);
+                
+                // Ponytail
+                const ponytail = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.26, 10, 10),
+                    new THREE.MeshStandardMaterial({ color: 0x4A2511, roughness: 0.9 })
+                );
+                ponytail.scale.set(0.7, 1.3, 0.7);
+                ponytail.position.set(0, 2.65, -0.45);
+                person.add(ponytail);
+            } else {
+                // Short hair for Leo
+                const hair = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.45, 16, 16),
+                    new THREE.MeshStandardMaterial({ color: 0x2C1810, roughness: 0.9 })
+                );
+                hair.scale.set(1, 0.7, 1);
+                hair.position.y = 2.85;
+                person.add(hair);
+            }
+            
+            // EYES - Detailed
+            const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+            const leftEyeWhite = new THREE.Mesh(
+                new THREE.SphereGeometry(0.10, 12, 12),
+                eyeWhiteMat
+            );
+            leftEyeWhite.position.set(-0.18, 2.67, 0.40);
+            person.add(leftEyeWhite);
+            
+            const rightEyeWhite = new THREE.Mesh(
+                new THREE.SphereGeometry(0.10, 12, 12),
+                eyeWhiteMat
+            );
+            rightEyeWhite.position.set(0.18, 2.67, 0.40);
+            person.add(rightEyeWhite);
+            
+            // Pupils
+            const pupilMat = new THREE.MeshBasicMaterial({ color: 0x1E1E2F });
+            const leftPupil = new THREE.Mesh(
+                new THREE.SphereGeometry(0.06, 10, 10),
+                pupilMat
+            );
+            leftPupil.position.set(-0.18, 2.67, 0.47);
+            person.add(leftPupil);
+            person.userData.leftEye = leftPupil;
+            
+            const rightPupil = new THREE.Mesh(
+                new THREE.SphereGeometry(0.06, 10, 10),
+                pupilMat
+            );
+            rightPupil.position.set(0.18, 2.67, 0.47);
+            person.add(rightPupil);
+            person.userData.rightEye = rightPupil;
+            
+            // Eyebrows
+            const eyebrow1 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.16, 0.04, 0.02),
+                new THREE.MeshStandardMaterial({ color: 0x2C1810 })
+            );
+            eyebrow1.position.set(-0.18, 2.78, 0.42);
+            eyebrow1.rotation.z = isGirl ? -0.1 : -0.05;
+            person.add(eyebrow1);
+            
+            const eyebrow2 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.16, 0.04, 0.02),
+                new THREE.MeshStandardMaterial({ color: 0x2C1810 })
+            );
+            eyebrow2.position.set(0.18, 2.78, 0.42);
+            eyebrow2.rotation.z = isGirl ? 0.1 : 0.05;
+            person.add(eyebrow2);
+            
+            // Nose
+            const nose = new THREE.Mesh(
+                new THREE.SphereGeometry(0.07, 8, 8),
+                new THREE.MeshStandardMaterial({ color: 0xFFCBA4 })
+            );
+            nose.scale.set(0.5, 0.8, 1);
+            nose.position.set(0, 2.55, 0.45);
+            person.add(nose);
+            
+            // Smiling mouth
+            const mouth = new THREE.Mesh(
+                new THREE.TorusGeometry(0.14, 0.03, 8, 16, Math.PI),
+                new THREE.MeshStandardMaterial({ color: 0xE67E80 })
+            );
+            mouth.position.set(0, 2.4, 0.41);
+            mouth.rotation.x = Math.PI;
+            person.add(mouth);
+            person.userData.mouth = mouth;
+            
+            // ARMS - Full length with hands
+            const armMat = new THREE.MeshStandardMaterial({ color: 0xFFDBAC, roughness: 0.8 });
+            
+            // Left upper arm (uniform sleeve)
+            const leftUpperArm = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.12, 0.65, 8, 12),
+                new THREE.MeshStandardMaterial({ color: color })
+            );
+            leftUpperArm.position.set(-0.62, 1.8, 0);
+            leftUpperArm.rotation.z = 0.32;
+            leftUpperArm.castShadow = true;
+            person.add(leftUpperArm);
+            
+            // Left forearm (skin)
+            const leftForearm = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.10, 0.55, 8, 12),
+                armMat
+            );
+            leftForearm.position.set(-0.80, 1.25, 0);
+            leftForearm.rotation.z = 0.5;
+            leftForearm.castShadow = true;
+            person.add(leftForearm);
+            person.userData.leftArm = leftForearm;
+            
+            // Left hand
+            const leftHand = new THREE.Mesh(
+                new THREE.SphereGeometry(0.11, 10, 10),
+                armMat
+            );
+            leftHand.scale.set(0.8, 1, 0.9);
+            leftHand.position.set(-0.98, 0.95, 0);
+            leftHand.castShadow = true;
+            person.add(leftHand);
+            person.userData.leftHand = leftHand;
+            
+            // Right upper arm (uniform sleeve)
+            const rightUpperArm = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.12, 0.65, 8, 12),
+                new THREE.MeshStandardMaterial({ color: color })
+            );
+            rightUpperArm.position.set(0.62, 1.8, 0);
+            rightUpperArm.rotation.z = -0.32;
+            rightUpperArm.castShadow = true;
+            person.add(rightUpperArm);
+            
+            // Right forearm (skin)
+            const rightForearm = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.10, 0.55, 8, 12),
+                armMat
+            );
+            rightForearm.position.set(0.80, 1.25, 0);
+            rightForearm.rotation.z = -0.5;
+            rightForearm.castShadow = true;
+            person.add(rightForearm);
+            person.userData.rightArm = rightForearm;
+            
+            // Right hand
+            const rightHand = new THREE.Mesh(
+                new THREE.SphereGeometry(0.11, 10, 10),
+                armMat
+            );
+            rightHand.scale.set(0.8, 1, 0.9);
+            rightHand.position.set(0.98, 0.95, 0);
+            rightHand.castShadow = true;
+            person.add(rightHand);
+            person.userData.rightHand = rightHand;
+            
+            person.position.set(position[0], position[1], position[2]);
+            person.userData.originalY = position[1];
+            
+            return person;
+        }
+        
+        const maya = createPerson(0xFF69B4, [-2.5, 0, 1], 'Maya');
+        const leo = createPerson(0x00C2FF, [2.5, 0, 1], 'Leo');
+        scene.add(maya);
+        scene.add(leo);
+        
+        maya.rotation.y = Math.PI / 8;
+        leo.rotation.y = -Math.PI / 8;
+        
+        // Create school items
+        function createNotebook(x, y, z) {
+            const notebook = new THREE.Mesh(
+                new THREE.BoxGeometry(0.8, 0.05, 1),
+                new THREE.MeshStandardMaterial({ color: 0xFF5722 })
+            );
+            notebook.position.set(x, y, z);
+            notebook.rotation.y = Math.random() * Math.PI;
+            notebook.castShadow = true;
+            notebook.userData.visible = false;
+            notebook.scale.set(0, 0, 0);
+            return notebook;
+        }
+        
+        const notebooks = [];
+        for (let i = 0; i < 3; i++) {
+            const notebook = createNotebook(-1 + i * 0.3, 1 + i * 0.1, 0);
+            notebooks.push(notebook);
+            scene.add(notebook);
+        }
+        
+        // Pencil case
+        const pencilCase = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 0.25, 0.3),
+            new THREE.MeshStandardMaterial({ color: 0x2196F3 })
+        );
+        pencilCase.position.set(1, 1, 0.5);
+        pencilCase.castShadow = true;
+        pencilCase.userData.visible = false;
+        pencilCase.scale.set(0, 0, 0);
+        scene.add(pencilCase);
+        
+        // Stars celebration
+        const stars = new THREE.Group();
+        scene.add(stars);
+        
+        function createStarCelebration() {
+            stars.clear();
+            for (let i = 0; i < 30; i++) {
+                const star = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.12, 6, 6),
+                    new THREE.MeshBasicMaterial({ 
+                        color: [0xFFD700, 0xFF69B4, 0x845EC2, 0x00C2FF][i % 4]
+                    })
+                );
+                star.position.set((Math.random() - 0.5) * 8, 0.5 + Math.random() * 1.5, (Math.random() - 0.5) * 5);
+                star.userData.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.04,
+                    0.04 + Math.random() * 0.05,
+                    (Math.random() - 0.5) * 0.04
+                );
+                stars.add(star);
+            }
+            setTimeout(() => stars.clear(), 3500);
+        }
+        
+        // Animation
+        let time = 0;
+        let currentChallenge = 1;
+        let blinkTimer = 0;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+            blinkTimer += 0.016;
+            
+            // Characters - Enhanced animations
+            maya.position.y = maya.userData.originalY + Math.sin(time * 1.5) * 0.06;
+            maya.userData.leftArm.rotation.z = 0.5 + Math.sin(time * 4) * 0.4;
+            maya.userData.rightArm.rotation.z = -0.5 - Math.sin(time * 4.2) * 0.35;
+            maya.userData.leftLeg.rotation.x = Math.sin(time * 3) * 0.15;
+            maya.userData.rightLeg.rotation.x = -Math.sin(time * 3) * 0.15;
+            
+            leo.position.y = leo.userData.originalY + Math.sin(time * 1.2) * 0.05;
+            leo.userData.leftArm.rotation.z = 0.5 + Math.sin(time * 2.5) * 0.25;
+            leo.userData.rightArm.rotation.z = -0.5 - Math.sin(time * 2.8) * 0.22;
+            leo.userData.leftLeg.rotation.x = Math.sin(time * 2.5) * 0.12;
+            leo.userData.rightLeg.rotation.x = -Math.sin(time * 2.5) * 0.12;
+            
+            // Backpack animation
+            backpack.rotation.y = Math.sin(time * 0.5) * 0.1;
+            backpack.position.y = Math.sin(time * 2) * 0.05;
+            
+            // Blinking
+            if (blinkTimer > 3 && Math.random() < 0.015) {
+                [maya, leo].forEach(p => {
+                    p.userData.leftEye.scale.y = 0.1;
+                    p.userData.rightEye.scale.y = 0.1;
+                });
+                setTimeout(() => {
+                    [maya, leo].forEach(p => {
+                        p.userData.leftEye.scale.y = 1;
+                        p.userData.rightEye.scale.y = 1;
+                    });
+                }, 120);
+                blinkTimer = 0;
+            }
+            
+            // Animate items
+            notebooks.forEach((nb, i) => {
+                if (nb.userData.visible) {
+                    nb.position.y = 1 + i * 0.1 + Math.sin(time * 3 + i) * 0.03;
+                }
+            });
+            
+            if (pencilCase.userData.visible) {
+                pencilCase.position.y = 1 + Math.sin(time * 2.5) * 0.04;
+            }
+            
+            stars.children.forEach(star => {
+                star.position.add(star.userData.velocity);
+                star.rotation.x += 0.12;
+                star.rotation.y += 0.12;
+            });
+            
+            // Cloud movement
+            clouds.forEach(cloud => {
+                cloud.position.x += cloud.userData.speed;
+                if (cloud.position.x > 40) cloud.position.x = -40;
+            });
+            
+            // Butterfly movement and wing flapping
+            butterflies.forEach(butterfly => {
+                // Fluttering motion
+                butterfly.position.y += Math.sin(time * butterfly.userData.wingSpeed) * 0.01;
+                
+                // Forward movement
+                butterfly.userData.direction += (Math.random() - 0.5) * 0.05;
+                butterfly.position.x += Math.cos(butterfly.userData.direction) * butterfly.userData.speed;
+                butterfly.position.z += Math.sin(butterfly.userData.direction) * butterfly.userData.speed;
+                
+                // Keep in bounds
+                if (Math.abs(butterfly.position.x) > 25) butterfly.userData.direction += Math.PI;
+                if (Math.abs(butterfly.position.z) > 25) butterfly.userData.direction += Math.PI;
+                
+                // Wing flapping
+                butterfly.userData.leftWing.rotation.y = Math.PI / 4 + Math.sin(time * butterfly.userData.wingSpeed) * 0.5;
+                butterfly.userData.rightWing.rotation.y = -Math.PI / 4 - Math.sin(time * butterfly.userData.wingSpeed) * 0.5;
+                
+                // Face movement direction
+                butterfly.rotation.y = butterfly.userData.direction;
+            });
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // Responsive resize
+        function handleResize() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+        
+        window.addEventListener('resize', handleResize);
+        new ResizeObserver(handleResize).observe(container);
+        
+        // UI Logic
+        const storyIntro = document.getElementById('pv-story-intro');
+        const uiOverlay = document.getElementById('pv-ui-overlay');
+        const mayaSpeech = document.getElementById('pv-maya-speech');
+        const leoSpeech = document.getElementById('pv-leo-speech');
+        const interactionHint = document.getElementById('pv-interaction-hint');
+        const codeInput = document.getElementById('pv-code-input');
+        const runBtn = document.getElementById('pv-run-btn');
+        const status = document.getElementById('pv-status');
+        const liveHint = document.getElementById('pv-live-hint');
+        const xpBadge = document.getElementById('pv-xp-badge');
+        const challengeTitle = document.getElementById('pv-challenge-title');
+        const challenge1 = document.getElementById('pv-challenge1');
+        const challenge2 = document.getElementById('pv-challenge2');
+        const challenge3 = document.getElementById('pv-challenge3');
+        
+        // Enhanced API_BASE detection for iframe context
+        function getAPIBase() {
+            // If in iframe, try to get parent's origin
+            if (window.parent && window.parent !== window) {
+                try {
+                    // Try to access parent location (will fail if cross-origin)
+                    const parentOrigin = window.parent.location.origin;
+                    console.log('✅ Iframe detected, using parent origin:', parentOrigin);
+                    return parentOrigin;
+                } catch (e) {
+                    console.log('⚠️ Cross-origin iframe, using document referrer');
+                    // Cross-origin iframe - use document.referrer
+                    if (document.referrer) {
+                        const url = new URL(document.referrer);
+                        return url.origin;
+                    }
+                }
+            }
+            
+            // Standalone mode - check if Live Server
+            if (location.port === '5500') {
+                console.log('🔧 Live Server detected, using localhost:5000');
+                return 'http://127.0.0.1:5000';
+            }
+            
+            // Default: same origin
+            console.log('📍 Using same origin for API calls');
+            return '';
+        }
+        
+        const API_BASE = getAPIBase();
+        console.log('🌐 API_BASE set to:', API_BASE || 'same-origin');
+        
+        let studentName = sessionStorage.getItem('studentName') || 'Student';
+        
+        async function fetchStudentName() {
+            try {
+                const response = await fetch(`${API_BASE}/api/user-info`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.name) {
+                        studentName = data.name;
+                        sessionStorage.setItem('studentName', studentName);
+                    }
+                }
+            } catch (e) {
+                console.log('No user session found');
+            }
+        }
+        
+        fetchStudentName();
+        
+        function speak(text, pitch = 1, useFemaleVoice = false) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = pitch;
+                
+                if (useFemaleVoice) {
+                    const voices = window.speechSynthesis.getVoices();
+                    const femaleVoice = voices.find(voice => 
+                        voice.name.includes('Female') || 
+                        voice.name.includes('Zira')
+                    );
+                    if (femaleVoice) {
+                        utterance.voice = femaleVoice;
+                    }
+                    utterance.pitch = 1.2;
+                }
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        
+        window.pvStartLesson = function() {
+            const nameInput = document.getElementById('pv-student-name');
+            if (nameInput && nameInput.value.trim()) {
+                studentName = nameInput.value.trim();
+                sessionStorage.setItem('studentName', studentName);
+            }
+            
+            storyIntro.style.display = 'none';
+            uiOverlay.style.display = 'flex';
+            interactionHint.style.display = 'block';
+            
+            setTimeout(() => {
+                mayaSpeech.classList.add('pv-show');
+                mayaSpeech.textContent = `I put 3 notebooks in my backpack! 📚`;
+                speak(`Hi ${studentName}! I put 3 notebooks in my backpack. Can you store that?`, 1.1);
+            }, 500);
+            
+            setTimeout(() => {
+                leoSpeech.classList.add('pv-show');
+                leoSpeech.textContent = "Help us code! 💻";
+            }, 2000);
+        };
+        
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            try {
+                if (type === 'success') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        setTimeout(() => {
+                            const osc = audioContext.createOscillator();
+                            const gain = audioContext.createGain();
+                            osc.connect(gain).connect(audioContext.destination);
+                            osc.frequency.value = freq;
+                            osc.type = 'sine';
+                            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                            osc.start();
+                            osc.stop(audioContext.currentTime + 0.4);
+                        }, i * 150);
+                    });
+                } else {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain).connect(audioContext.destination);
+                    osc.frequency.value = 200;
+                    osc.type = 'square';
+                    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(audioContext.currentTime + 0.15);
+                }
+            } catch (e) {}
+        }
+        
+        function updateLiveHint(code) {
+            code = code.trim();
+            if (currentChallenge === 1) {
+                if (!code) {
+                    liveHint.innerHTML = '💡 Type: <strong>notebooks = 3</strong>';
+                } else if (!/^notebooks/i.test(code)) {
+                    liveHint.innerHTML = '💡 Start with <strong>notebooks</strong>';
+                } else if (!/=/.test(code)) {
+                    liveHint.innerHTML = '💡 Add <strong>=</strong> to store';
+                } else if (!/\d/.test(code)) {
+                    liveHint.innerHTML = '💡 Add the number <strong>3</strong>';
+                } else {
+                    liveHint.innerHTML = '✅ Perfect! Run it!';
+                }
+            } else if (currentChallenge === 2) {
+                if (!code) {
+                    liveHint.innerHTML = '💡 Type: <strong>pencil_case = "blue pencil case"</strong>';
+                } else if (!/^pencil_case/i.test(code)) {
+                    liveHint.innerHTML = '💡 Start with <strong>pencil_case</strong>';
+                } else if (!/=/.test(code)) {
+                    liveHint.innerHTML = '💡 Add <strong>=</strong> to store';
+                } else if (!/["']/.test(code)) {
+                    liveHint.innerHTML = '💡 Add <strong>quotes</strong> around text';
+                } else {
+                    liveHint.innerHTML = '✅ Great! Run it!';
+                }
+            } else {
+                if (!code) {
+                    liveHint.innerHTML = '💡 Type: <strong>print(notebooks)</strong> or <strong>print(pencil_case)</strong>';
+                } else if (!/^print/i.test(code)) {
+                    liveHint.innerHTML = '💡 Start with <strong>print</strong>';
+                } else if (!/\(/.test(code)) {
+                    liveHint.innerHTML = '💡 Add <strong>(</strong>';
+                } else if (!/(notebooks|pencil_case)/.test(code)) {
+                    liveHint.innerHTML = '💡 Print <strong>notebooks</strong> or <strong>pencil_case</strong>';
+                } else {
+                    liveHint.innerHTML = '✅ Awesome! Run it!';
+                }
+            }
+        }
+        
+        codeInput.addEventListener('input', (e) => {
+            updateLiveHint(e.target.value);
+        });
+        
+        function validateChallenge1(code) {
+            const normalized = code.trim().replace(/\s+/g, ' ');
+            if (/^notebooks\s*=\s*3$/i.test(normalized)) {
+                return 3;
+            }
+            return null;
+        }
+        
+        function validateChallenge2(code) {
+            const normalized = code.trim().replace(/\s+/g, ' ');
+            const match = normalized.match(/^pencil_case\s*=\s*(["'])(.*?)\1$/i);
+            if (match && match[2].length > 0) {
+                return match[2];
+            }
+            return null;
+        }
+        
+        function validateChallenge3(code) {
+            const normalized = code.trim().replace(/\s+/g, '');
+            if (/^print\((notebooks|pencil_case)\)$/i.test(normalized)) {
+                const match = normalized.match(/print\((notebooks|pencil_case)\)/i);
+                return match[1].toLowerCase();
+            }
+            return null;
+        }
+        
+        async function requestAIHint(userCode) {
+            status.className = 'pv-status-message pv-hint pv-show';
+            status.innerHTML = '🐴 Donki is thinking...';
+            
+            console.log('🐴 Requesting Donki hint...', {
+                api: `${API_BASE}/api/hint`,
+                challenge: currentChallenge,
+                code: userCode,
+                topic: 'variables'
+            });
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/hint`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',  // Important for iframe cookies/sessions
+                    body: JSON.stringify({ 
+                        code: userCode,
+                        student_name: studentName,
+                        challenge: currentChallenge,
+                        topic: 'variables'  // IMPORTANT: Tell Donki this is about VARIABLES!
+                    })
+                });
+                
+                console.log('📡 Donki API response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Donki hint received:', data);
+                    if (data.hint) {
+                        status.innerHTML = `🐴 <strong>Donki:</strong> ${data.hint}`;
+                        const cleanHint = data.hint.replace(studentName + ',', '').replace(studentName + '!', '');
+                        speak(cleanHint, 1.1, true);
+                        return;
+                    }
+                } else {
+                    console.error('❌ Donki API error:', response.status, response.statusText);
+                }
+            } catch (e) {
+                console.error('❌ Donki hint fetch error:', e);
+            }
+            
+            // Fallback hints (offline mode)
+            console.log('⚠️ Using fallback hint (Donki API unavailable)');
+            let hint = '';
+            if (currentChallenge === 1) {
+                hint = `Hey ${studentName}! To store a number in Python, type: <strong>notebooks = 3</strong>`;
+            } else if (currentChallenge === 2) {
+                hint = `Remember ${studentName}, text needs quotes! Try: <strong>pencil_case = "blue pencil case"</strong>`;
+            } else {
+                hint = `${studentName}, use <strong>print()</strong> to show what's stored! Example: <strong>print(notebooks)</strong>`;
+            }
+            status.innerHTML = `🐴 <strong>Donki:</strong> ${hint}`;
+            const cleanText = hint.replace(/<[^>]*>/g, '').replace(studentName + ',', '').replace(studentName + '!', '');
+            speak(cleanText, 1.1, true);
+        }
+        
+        runBtn.addEventListener('click', async () => {
+            const code = codeInput.value;
+            
+            if (currentChallenge === 1) {
+                const result = validateChallenge1(code);
+                if (result === 3) {
+                    // Show notebooks
+                    notebooks.forEach((nb, i) => {
+                        setTimeout(() => {
+                            nb.userData.visible = true;
+                            nb.scale.set(1, 1, 1);
+                        }, i * 200);
+                    });
+                    
+                    mayaSpeech.textContent = `Great! 3 notebooks stored! ✅`;
+                    speak(`Excellent ${studentName}! 3 notebooks are now stored in the variable!`, 1.1);
+                    
+                    challenge1.classList.add('pv-completed');
+                    challenge1.innerHTML = '<span class="pv-challenge-number">✓</span><strong>Stored!</strong> notebooks = 3';
+                    
+                    status.className = 'pv-status-message pv-success pv-show';
+                    status.innerHTML = `🎉 <strong>Perfect!</strong> Variable "notebooks" now holds the number 3!`;
+                    playSound('success');
+                    
+                    currentChallenge = 2;
+                    challenge2.style.opacity = '1';
+                    
+                    setTimeout(() => {
+                        challengeTitle.textContent = "Store Pencil Case";
+                        codeInput.value = '';
+                        codeInput.placeholder = 'pencil_case = "blue pencil case"';
+                        updateLiveHint('');
+                        status.style.display = 'none';
+                        leoSpeech.textContent = "I have a blue pencil case! 📝";
+                        speak("Now I have a blue pencil case. Can you store it?", 1);
+                    }, 3000);
+                    
+                } else {
+                    playSound('error');
+                    await requestAIHint(code);
+                }
+                
+            } else if (currentChallenge === 2) {
+                const result = validateChallenge2(code);
+                if (result) {
+                    // Show pencil case
+                    pencilCase.userData.visible = true;
+                    pencilCase.scale.set(1, 1, 1);
+                    
+                    leoSpeech.textContent = `${result} stored! ✅`;
+                    speak(`Perfect ${studentName}! Leo's ${result} is now stored!`, 1);
+                    
+                    challenge2.classList.add('pv-completed');
+                    challenge2.innerHTML = `<span class="pv-challenge-number">✓</span><strong>Stored!</strong> pencil_case = "${result}"`;
+                    
+                    status.className = 'pv-status-message pv-success pv-show';
+                    status.innerHTML = `🎉 <strong>Excellent!</strong> Variable "pencil_case" now holds: "${result}"`;
+                    playSound('success');
+                    
+                    currentChallenge = 3;
+                    challenge3.style.opacity = '1';
+                    
+                    setTimeout(() => {
+                        challengeTitle.textContent = "Print the Items";
+                        codeInput.value = '';
+                        codeInput.placeholder = 'print(notebooks)';
+                        updateLiveHint('');
+                        status.style.display = 'none';
+                        mayaSpeech.textContent = "Show me what's in the backpack! 🎒";
+                        speak("Can you show me what's in the backpack?", 1.1);
+                    }, 3000);
+                    
+                } else {
+                    playSound('error');
+                    await requestAIHint(code);
+                }
+                
+            } else if (currentChallenge === 3) {
+                const result = validateChallenge3(code);
+                if (result) {
+                    currentChallenge = 4;
+                    
+                    if (result === 'notebooks') {
+                        leoSpeech.textContent = "Output: 3 📚";
+                        speak("3", 1);
+                    } else {
+                        leoSpeech.textContent = "Output: blue pencil case 📝";
+                        speak("blue pencil case", 1);
+                    }
+                    
+                    challenge3.classList.add('pv-completed');
+                    challenge3.innerHTML = `<span class="pv-challenge-number">✓</span><strong>Printed!</strong> print(${result})`;
+                    
+                    status.className = 'pv-status-message pv-success pv-show';
+                    status.innerHTML = `🎉 <strong>Amazing ${studentName}!</strong> You've mastered:<br>• Storing numbers in variables<br>• Storing text in variables<br>• Printing variables!`;
+                    xpBadge.classList.add('pv-show');
+                    playSound('success');
+                    createStarCelebration();
+                    
+                    setTimeout(() => {
+                        mayaSpeech.textContent = "You're awesome! 🌟";
+                        leoSpeech.textContent = "Variables master! 🎒";
+                        speak(`Congratulations ${studentName}! You're a variables master!`, 1.2);
+                    }, 1500);
+                    
+                    // Signal lesson completion
+                    setTimeout(() => {
+                        signalLessonComplete();
+                    }, 3000);
+                    
+                } else {
+                    playSound('error');
+                    await requestAIHint(code);
+                }
+            }
+        });
+        
+        codeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') runBtn.click();
+        });
+        
+        // Universal lesson completion signal
+        function signalLessonComplete() {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'LESSON_COMPLETE',
+                    studentName: studentName,
+                    timestamp: new Date().toISOString()
+                }, '*');
+                console.log('✅ Lesson completion signal sent to parent page');
+            } else {
+                console.log('⚠️ Not in iframe, cannot signal parent');
+            }
+        }
+        
+        window.signalLessonComplete = signalLessonComplete;
+    </script>
+</body>
+</html>
+

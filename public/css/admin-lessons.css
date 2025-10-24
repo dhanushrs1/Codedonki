@@ -1,0 +1,768 @@
+/* ======================================
+   ADMIN LESSONS PAGE - REDESIGNED
+   Following CodeDonki Color Guide
+   ====================================== */
+
+/* --- Color Variables (from colorguide.html) --- */
+:root {
+  --primary-color: #00C2FF;       /* Sky Blue */
+  --accent-orange: #FF7B00;       /* Donki Orange - Actions */
+  --accent-green: #A8E10C;        /* Lime Green - Hover/Success */
+  --accent-purple: #845EC2;       /* Purple Accent */
+  --accent-error: #FF5555;        /* Error Red */
+}
+
+/* --- Page Container --- */
+.lessons-page-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  background: var(--bg-color);
+}
+
+/* --- Page Header --- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.header-content {
+  flex: 1;
+  min-width: 250px;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-heading);
+}
+
+.page-title i {
+  color: var(--primary-color);
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.6;
+  text-align: left;
+}
+
+/* --- Filters Section --- */
+.filters-section {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.75rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.filters-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+}
+
+.filters-title i {
+  color: var(--primary-color);
+}
+
+.btn-clear-filters {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+}
+
+.btn-clear-filters:hover {
+  background: #F0F2F5;
+  transform: translateY(-2px);
+}
+
+.filters-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+}
+
+.filter-group label i {
+  color: var(--primary-color);
+  font-size: 0.85rem;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--surface-color);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  font-family: var(--font-body);
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.2);
+}
+
+.filter-search {
+  grid-column: span 1;
+}
+
+/* --- Lessons Display --- */
+.lessons-display {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+/* --- Lesson Card Styles --- */
+.lesson-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.75rem;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.lesson-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 194, 255, 0.15);
+}
+
+.lesson-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
+}
+
+.lesson-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.4;
+  flex: 1;
+  word-break: break-word;
+  font-family: var(--font-heading);
+}
+
+.lesson-level-badge {
+  background: var(--accent-purple);
+  color: #FFFFFF;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: var(--font-heading);
+}
+
+.lesson-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lesson-description {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.lesson-meta {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.lesson-category {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.lesson-category i {
+  color: var(--primary-color);
+}
+
+.lesson-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.stat-item i {
+  color: var(--primary-color);
+  width: 16px;
+  text-align: center;
+}
+
+.lesson-card-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-action {
+  padding: 0.65rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-family: var(--font-heading);
+}
+
+.btn-action i {
+  font-size: 1rem;
+}
+
+.btn-edit {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-edit:hover {
+  background: var(--accent-green);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+}
+
+.btn-code {
+  background: var(--accent-purple);
+  color: white;
+}
+
+.btn-code:hover {
+  background: var(--accent-green);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+}
+
+.btn-quiz {
+  background: var(--accent-orange);
+  color: white;
+}
+
+.btn-quiz:hover {
+  background: var(--accent-green);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+}
+
+.btn-delete {
+  background: var(--accent-error);
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #cc0000;
+  transform: translateY(-2px);
+}
+
+/* --- Modal Styles --- */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background-color: var(--surface-color);
+  margin: 2% auto;
+  padding: 2.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 750px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-heading);
+}
+
+.modal-header h2 i {
+  color: var(--primary-color);
+}
+
+.close {
+  color: var(--text-secondary);
+  font-size: 2rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.close:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
+/* --- Form Styles --- */
+.form-group {
+  margin-bottom: 1.75rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.65rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  font-family: var(--font-heading);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--surface-color);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  font-family: var(--font-body);
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.2);
+}
+
+.form-group textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+/* --- Code Editor --- */
+.code-editor {
+  background: #F0F2F5;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.25rem;
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  min-height: 350px;
+  resize: vertical;
+  line-height: 1.7;
+  tab-size: 2;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.code-editor:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.2);
+}
+
+/* --- Info Boxes --- */
+.level-auto-info {
+  background: rgba(168, 225, 12, 0.1);
+  border: 1px solid var(--accent-green);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-top: 0.5rem;
+  color: #5A7007;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.level-auto-info i {
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+  color: var(--accent-green);
+}
+
+.delete-warning {
+  background: rgba(255, 85, 85, 0.1);
+  border: 1px solid var(--accent-error);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  color: var(--accent-error);
+}
+
+.delete-warning strong {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 1.05rem;
+  font-family: var(--font-heading);
+}
+
+.delete-warning ul {
+  margin: 0.75rem 0;
+  padding-left: 1.75rem;
+  line-height: 1.8;
+}
+
+/* --- Empty State --- */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-secondary);
+}
+
+.empty-state i {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* --- Popup Alert System --- */
+.popup-alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100000;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 420px;
+  pointer-events: none;
+}
+
+/* Alert styles removed - now using global alerts.css */
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  font-family: var(--font-heading);
+  white-space: nowrap;
+}
+
+/* ======================================
+   RESPONSIVE DESIGN
+   ====================================== */
+
+/* Tablet - Large Screens */
+@media (max-width: 1200px) {
+  .lessons-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+/* Tablet - Medium Screens */
+@media (max-width: 992px) {
+  .lessons-page-container {
+    padding: 2rem;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .lessons-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+
+  .filters-row {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-search {
+    grid-column: span 1;
+  }
+}
+
+/* Mobile - Large */
+@media (max-width: 768px) {
+  .lessons-page-container {
+    padding: 1.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .filters-section {
+    padding: 1.5rem;
+  }
+
+  .lessons-display {
+    padding: 1.5rem;
+  }
+
+  .lessons-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .lesson-card-actions {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    padding: 2rem;
+    margin: 5% auto;
+  }
+
+  .popup-alert {
+    left: 15px;
+    right: 15px;
+    max-width: none;
+  }
+
+  .alert-popup {
+    min-width: auto;
+  }
+}
+
+/* Mobile - Small */
+@media (max-width: 480px) {
+  .lessons-page-container {
+    padding: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.35rem;
+  }
+
+  .filters-section,
+  .lessons-display {
+    padding: 1.25rem;
+  }
+
+  .lesson-card {
+    padding: 1.5rem;
+  }
+
+  .lesson-card-actions {
+    gap: 0.5rem;
+  }
+
+  .btn-action {
+    padding: 0.6rem 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+    width: 95%;
+  }
+
+  .modal-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .popup-alert {
+    top: 15px;
+    left: 10px;
+    right: 10px;
+  }
+
+  .alert-popup {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .alert-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .popup-alert,
+  .alert-popup,
+  .btn-action,
+  .filters-section,
+  .btn-clear-filters {
+    display: none !important;
+  }
+
+  .lesson-card {
+    break-inside: avoid;
+  }
+}

@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learn Python for-loop in 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  #lrx-root {
+    /* ColorGuide-inspired */
+    --bg: #FFF8E7;           /* cream */
+    --surface: #FFFFFF;       /* card */
+    --text: #1E1E2F;          /* deep navy */
+    --muted: #5E6C84;
+    --border: #DFE1E6;
+    --primary: #00C2FF;       /* sky blue branding */
+    --action: #FF7B00;        /* orange actions */
+    --hover: #A8E10C;         /* lime hover */
+    --ok: #2EB872;            /* success text */
+    --accent: #00C2FF;        /* code highlight */
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  #lrx-root { height: 100%; min-height: 70vh; background: var(--bg); color: var(--text); font-family: 'Exo 2', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+  #lrx-root .lrx-wrap { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; height: 100%; padding: 16px; }
+  #lrx-root .lrx-scene { position: relative; border-radius: 16px; overflow: hidden; background: radial-gradient(900px 600px at 70% 20%, #0e1530 0%, #0a1022 80%); box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid var(--border); }
+  canvas { display: block; }
+
+  #lrx-root .lrx-hud { position: absolute; inset: 0; pointer-events: none; }
+  #lrx-root .lrx-badge { position: absolute; top: 12px; left: 12px; pointer-events: auto; background: rgba(255,255,255,0.85); border: 1px solid var(--border); border-radius: 999px; padding: 8px 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; color: var(--text); }
+  #lrx-root .lrx-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+
+  #lrx-root .lrx-panel { display: grid; grid-template-rows: auto 1fr auto; gap: 12px; height: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+
+  #lrx-root .lrx-title { font-weight: 800; font-size: 20px; letter-spacing: 0.3px; display: flex; align-items: center; justify-content: space-between; font-family: 'Fredoka', sans-serif; }
+  #lrx-root .lrx-title small { font-weight: 600; color: var(--muted); }
+
+  #lrx-root .lrx-code { background: #F0F2F5; border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 14px; line-height: 1.6; color: var(--text); }
+  #lrx-root pre { margin: 0; white-space: pre; }
+  #lrx-root .lrx-line { display: block; padding: 2px 8px; border-radius: 8px; }
+  #lrx-root .lrx-line.active { background: rgba(0, 194, 255, 0.12); }
+  #lrx-root .hl { color: var(--accent); font-weight: 700; }
+  #lrx-root .var { color: #0076a8; font-weight: 700; }
+  #lrx-root .kw { color: #845EC2; font-weight: 700; }
+  #lrx-root .out { color: var(--ok); white-space: pre-wrap; }
+
+  #lrx-root .lrx-explain { margin-top: 10px; background: #FFFFFF; border: 1px dashed var(--border); border-radius: 12px; padding: 10px; color: var(--text); min-height: 64px; }
+
+  #lrx-root .lrx-controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; padding-top: 6px; border-top: 1px solid var(--border); }
+  #lrx-root .lrx-left, #lrx-root .lrx-right { display: flex; gap: 8px; align-items: center; }
+  #lrx-root .lrx-btn { pointer-events: auto; appearance: none; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 12px; padding: 10px 14px; font-weight: 700; cursor: pointer; transition: transform .06s ease, background .2s ease, border-color .2s ease; font-family: 'Fredoka', sans-serif; }
+  #lrx-root .lrx-btn-primary { background: var(--action); color: #fff; border-color: var(--action); }
+  #lrx-root .lrx-btn-primary:hover { background: var(--hover); color: var(--text); border-color: var(--hover); }
+  #lrx-root .lrx-btn:active { transform: translateY(1px); }
+  #lrx-root .toggle[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: #fff; }
+  label { font-size: 12px; color: var(--muted); }
+
+  #lrx-root .lrx-legend { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-top: 6px; }
+  #lrx-root .lrx-chip { display: flex; gap: 8px; align-items: center; background: #FFFFFF; border: 1px solid var(--border); border-radius: 10px; padding: 6px 8px; font-size: 12px; }
+  #lrx-root .lrx-chip .c { width: 10px; height: 10px; border-radius: 3px; }
+  #lrx-root .c-sun { background: #ffd34d; box-shadow: 0 0 10px #ffd34d; }
+  #lrx-root .c-loop { background: #00C2FF; box-shadow: 0 0 10px #00C2FF; }
+  #lrx-root .c-done { background: #2EB872; box-shadow: 0 0 10px #2EB872; }
+
+  @media (max-width: 1000px) {
+    .wrap { grid-template-columns: 1fr; grid-auto-rows: minmax(0, auto); }
+    #lrx-root .lrx-panel { min-height: 52vh; }
+  }
+</style>
+</head>
+<body>
+  <div id="lrx-root">
+    <div class="lrx-wrap">
+      <section class="lrx-scene" id="lrx-scene">
+        <div class="lrx-hud">
+          <div class="lrx-badge"><span class="dot"></span> 3D Loop Playground</div>
+        </div>
+      </section>
+
+      <aside class="lrx-panel">
+        <div class="lrx-title">
+        <div>Python for-loop, visualized</div>
+        <small>Audience: Grades 6–10</small>
+        </div>
+
+        <div class="lrx-code" id="lrx-codePanel" aria-live="polite" aria-atomic="true">
+        <pre>
+<span class="lrx-line" id="lrx-l1"><span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="hl">range(5)</span>:</span>
+<span class="lrx-line" id="lrx-l2">    <span class="kw">print</span>(<span class="hl">"Hello"</span>, <span class="var">i</span>)</span>
+<span class="lrx-line" id="lrx-l3"># output:</span>
+<span class="lrx-line" id="lrx-output"></span>
+        </pre>
+        </div>
+
+        <div class="lrx-explain" id="lrx-explain">Press Play ▶ to start a narrated, step-by-step tour of how a Python for-loop works.</div>
+
+        <div class="lrx-legend">
+          <div class="lrx-chip"><span class="c c-sun"></span> Sun = program</div>
+          <div class="lrx-chip"><span class="c c-loop"></span> Blue cubes = loop steps</div>
+          <div class="lrx-chip"><span class="c c-done"></span> Green = finished step</div>
+        </div>
+
+        <div class="lrx-controls">
+          <div class="lrx-left">
+            <button id="lrx-btnPlay" class="lrx-btn lrx-btn-primary" title="Play/Pause">▶ Play</button>
+            <button id="lrx-btnReset" class="lrx-btn" title="Replay">↻ Replay</button>
+          </div>
+          <div class="lrx-right">
+            <button id="lrx-btnAR" title="Enter AR" class="lrx-btn toggle" aria-pressed="false">🕶 Enter AR</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- External 3D library from CDN (global build, no modules) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" crossorigin="anonymous"></script>
+  
+  <script>
+  (function() {
+    const sceneEl = document.getElementById('lrx-scene');
+
+    // Sizes
+    let width = sceneEl.clientWidth;
+    let height = sceneEl.clientHeight;
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(width, height);
+    renderer.shadowMap.enabled = true;
+    sceneEl.appendChild(renderer.domElement);
+
+    // Scene & Camera
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x060913, 0.02);
+
+    const camera = new THREE.PerspectiveCamera(55, width/height, 0.1, 200);
+    camera.position.set(6.5, 4.5, 9);
+
+    // Manual orbit controls (mouse/touch + scroll zoom)
+    const orbitTarget = new THREE.Vector3(0, 1, 0);
+    let inputEnabled = true;
+    let camRadius = 10, camMinRadius = 3, camMaxRadius = 30;
+    let theta = Math.PI * 0.25; // around Y axis
+    let phi = Math.PI * 0.35;   // from positive Y
+    let isDragging = false;
+    let lastX = 0, lastY = 0;
+    let touchMode = 0; // 0 none, 1 rotate, 2 pinch
+    let lastDist = 0;
+
+    const el = renderer.domElement;
+    el.addEventListener('mousedown', (e) => { if (!inputEnabled) return; isDragging = true; lastX = e.clientX; lastY = e.clientY; });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+    window.addEventListener('mousemove', (e) => {
+      if (!inputEnabled || !isDragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      theta -= dx * 0.005;
+      phi   -= dy * 0.005;
+      const eps = 0.05; // avoid poles
+      phi = Math.max(eps, Math.min(Math.PI - eps, phi));
+    });
+    el.addEventListener('wheel', (e) => {
+      if (!inputEnabled) return;
+      e.preventDefault();
+      const scale = Math.exp(e.deltaY * 0.001);
+      camRadius = Math.max(camMinRadius, Math.min(camMaxRadius, camRadius * scale));
+    }, { passive: false });
+    el.addEventListener('touchstart', (e) => {
+      if (!inputEnabled) return;
+      if (e.touches.length === 1) {
+        touchMode = 1; isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+      } else if (e.touches.length === 2) {
+        touchMode = 2;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastDist = Math.hypot(dx, dy);
+      }
+    }, { passive: false });
+    el.addEventListener('touchmove', (e) => {
+      if (!inputEnabled) return;
+      if (touchMode === 1 && e.touches.length === 1) {
+        const dx = e.touches[0].clientX - lastX;
+        const dy = e.touches[0].clientY - lastY;
+        lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+        theta -= dx * 0.005;
+        phi   -= dy * 0.005;
+        const eps = 0.05; phi = Math.max(eps, Math.min(Math.PI - eps, phi));
+      } else if (touchMode === 2 && e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.hypot(dx, dy);
+        const scale = lastDist ? (lastDist / dist) : 1;
+        camRadius = Math.max(camMinRadius, Math.min(camMaxRadius, camRadius * scale));
+        lastDist = dist;
+      }
+    }, { passive: false });
+    el.addEventListener('touchend', () => { isDragging = false; touchMode = 0; }, { passive: true });
+
+    // Lights
+    const ambient = new THREE.AmbientLight(0x8da0ff, 0.4);
+    scene.add(ambient);
+
+    const sunLight = new THREE.PointLight(0xffe08a, 2.2, 60, 2);
+    sunLight.position.set(0, 2, 0);
+    sunLight.castShadow = true;
+    scene.add(sunLight);
+
+    // Sun
+    const sunGeo = new THREE.SphereGeometry(1.1, 48, 48);
+    const sunMat = new THREE.MeshStandardMaterial({ color: 0xffd34d, emissive: 0xffa800, emissiveIntensity: 1.5, roughness: 0.35, metalness: 0.1 });
+    const sun = new THREE.Mesh(sunGeo, sunMat);
+    sun.position.set(0, 2, 0);
+    sun.castShadow = true;
+    sun.receiveShadow = true;
+    scene.add(sun);
+
+    // Subtle sun aura
+    const auraGeo = new THREE.SphereGeometry(1.25, 32, 32);
+    const auraMat = new THREE.MeshBasicMaterial({ color: 0xffd34d, transparent: true, opacity: 0.2 });
+    const aura = new THREE.Mesh(auraGeo, auraMat);
+    aura.position.copy(sun.position);
+    scene.add(aura);
+
+    // Ground
+    const groundGeo = new THREE.CircleGeometry(30, 64);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x0b1230, roughness: 1, metalness: 0 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI/2;
+    ground.position.y = 0;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Stars (points)
+    const starGeo = new THREE.BufferGeometry();
+    const starCount = 800;
+    const pos = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      pos[i*3+0] = (Math.random()-0.5) * 120;
+      pos[i*3+1] = Math.random() * 60 + 5;
+      pos[i*3+2] = (Math.random()-0.5) * 120;
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5, sizeAttenuation: true, opacity: 0.7, transparent: true });
+    const stars = new THREE.Points(starGeo, starMat);
+    scene.add(stars);
+
+    // Loop cubes
+    const totalSteps = 5; // range(5)
+    const cubes = [];
+    const radius = 4.5;
+    const cubeGeo = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+    const blue = new THREE.MeshStandardMaterial({ color: 0x6ee7ff, roughness: 0.4, metalness: 0.2 });
+    const green = new THREE.MeshStandardMaterial({ color: 0x85f7a7, roughness: 0.4, metalness: 0.2 });
+
+    for (let i = 0; i < totalSteps; i++) {
+      const cube = new THREE.Mesh(cubeGeo, blue.clone());
+      const angle = (i / totalSteps) * Math.PI * 2 + Math.PI/2;
+      cube.position.set(Math.cos(angle) * radius, 1, Math.sin(angle) * radius);
+      cube.castShadow = true;
+      cube.receiveShadow = true;
+      cube.userData.index = i;
+      scene.add(cube);
+      cubes.push(cube);
+    }
+
+    // Orbit line
+    const orbitGeo = new THREE.RingGeometry(radius-0.02, radius+0.02, 128);
+    const orbitMat = new THREE.MeshBasicMaterial({ color: 0x264d7a, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+    const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+    orbit.rotation.x = -Math.PI/2;
+    orbit.position.y = 1;
+    scene.add(orbit);
+
+    // Simple solar system planets
+    const solarSystem = new THREE.Group();
+    solarSystem.position.set(0, 1, 0);
+    scene.add(solarSystem);
+    const planetDefs = [
+      { name: 'Mercury', color: 0xb1b1b1, r: 0.15, orbit: 2.0, speed: 1.6 },
+      { name: 'Venus',   color: 0xffd1a1, r: 0.22, orbit: 2.6, speed: 1.2 },
+      { name: 'Earth',   color: 0x5db3ff, r: 0.24, orbit: 3.2, speed: 1.0 },
+      { name: 'Mars',    color: 0xff7b63, r: 0.2,  orbit: 3.8, speed: 0.8 },
+      { name: 'Jupiter', color: 0xe1c699, r: 0.6,  orbit: 4.8, speed: 0.4 }
+    ];
+    const planets = planetDefs.map((p) => {
+      const g = new THREE.SphereGeometry(p.r, 32, 32);
+      const m = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.6, metalness: 0.1 });
+      const mesh = new THREE.Mesh(g, m);
+      mesh.position.set(p.orbit, 0, 0);
+      mesh.userData = { ...p, theta: Math.random() * Math.PI * 2 };
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      solarSystem.add(mesh);
+      return mesh;
+    });
+
+    // AR reticle
+    const reticleGeo = new THREE.RingGeometry(0.2, 0.25, 32);
+    reticleGeo.rotateX(-Math.PI/2);
+    const reticleMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.9 });
+    const reticle = new THREE.Mesh(reticleGeo, reticleMat);
+    reticle.visible = false;
+    scene.add(reticle);
+
+    // Floating labels (CSS overlay)
+    const labelEl = document.createElement('div');
+    labelEl.style.position = 'absolute';
+    labelEl.style.pointerEvents = 'none';
+    labelEl.style.padding = '6px 10px';
+    labelEl.style.borderRadius = '10px';
+    labelEl.style.background = 'rgba(14, 26, 60, 0.75)';
+    labelEl.style.border = '1px solid rgba(255,255,255,0.12)';
+    labelEl.style.backdropFilter = 'blur(6px)';
+    labelEl.style.fontWeight = '700';
+    labelEl.style.fontSize = '12px';
+    labelEl.style.color = '#e9eefc';
+    labelEl.style.transform = 'translate(-50%, -120%)';
+    labelEl.style.whiteSpace = 'nowrap';
+    labelEl.textContent = '';
+    sceneEl.appendChild(labelEl);
+
+    function toScreenPosition(obj) {
+      const vector = obj.position.clone();
+      vector.project(camera);
+      const x = (vector.x * 0.5 + 0.5) * width;
+      const y = (-vector.y * 0.5 + 0.5) * height;
+      return { x, y };
+    }
+
+    // Code panel elements
+    const explain = document.getElementById('lrx-explain');
+    const l1 = document.getElementById('lrx-l1');
+    const l2 = document.getElementById('lrx-l2');
+    const output = document.getElementById('lrx-output');
+
+    // Controls
+    const btnPlay = document.getElementById('lrx-btnPlay');
+    const btnReset = document.getElementById('lrx-btnReset');
+    const btnAR = document.getElementById('lrx-btnAR');
+
+    let playing = false;
+    let current = 0; // step index
+    let lastTime = 0;
+    let pulse = 0;
+    let voiceOn = true;
+    let autoTimer = null;
+    let isInAR = false;
+    let xrSession = null;
+    let xrHitTestSource = null;
+    let xrViewerSpace = null;
+    let xrRefSpace = null;
+
+    // Narration helpers
+    function estimateDuration(text) {
+      const rate = 1.0;
+      const base = 700; // ms
+      const perChar = 45; // ms per char
+      return Math.max(1200, (base + (text ? text.length * perChar : 600)) / rate);
+    }
+
+    function stopAuto() {
+      playing = false;
+      btnPlay.textContent = '▶ Play';
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+    }
+
+    function speak(text, onend) {
+      const synth = window.speechSynthesis;
+      if (!voiceOn || !synth) {
+        // Fallback: no speech, just time-based advance
+        if (onend) {
+          if (autoTimer) { clearTimeout(autoTimer); }
+          autoTimer = setTimeout(onend, estimateDuration(text));
+        }
+        return null;
+      }
+      try {
+        synth.cancel();
+      } catch(e) {}
+      const u = new SpeechSynthesisUtterance(text || '');
+      u.rate = 1.0;
+      u.pitch = 1.0;
+      u.volume = 1.0;
+      const voices = synth.getVoices ? synth.getVoices() : [];
+      const preferred = voices && (voices.find(v => /en-/i.test(v.lang) && /female|english/i.test(v.name)) || voices.find(v => /en-/i.test(v.lang)));
+      if (preferred) u.voice = preferred;
+      if (onend) {
+        u.onend = () => { onend(); };
+        u.onerror = () => { onend(); };
+      }
+      synth.speak(u);
+      return u;
+    }
+
+    // Steps definition
+    const steps = [
+      {
+        title: 'What is a loop?',
+        say: 'A loop repeats actions. Our for loop will run five times: zero, one, two, three, and four.',
+        run() {
+          l1.classList.add('active'); l2.classList.remove('active');
+          explain.textContent = 'A loop lets the computer repeat actions several times. We will repeat 5 times: i = 0 to 4.';
+          output.textContent = '';
+          cubes.forEach(c => c.material.color.set(0x6ee7ff));
+          cubes.forEach(c => c.scale.set(1,1,1));
+        }
+      },
+      ...Array.from({length: totalSteps}, (_, i) => ({
+        title: `Iteration ${i}: i = ${i}`,
+        say: `Iteration ${i}. i equals ${i}. We run the print line with i as ${i}.`,
+        run() {
+          l1.classList.remove('active'); l2.classList.add('active');
+          explain.textContent = `Run the block once with i = ${i}.`;
+          // Highlight current cube
+          cubes.forEach((c, idx) => {
+            if (idx < i) {
+              c.material.color.set(0x85f7a7);
+              c.scale.set(1,1,1);
+            } else if (idx === i) {
+              c.material.color.set(0x6ee7ff);
+              c.scale.set(1.2, 1.2, 1.2);
+            } else {
+              c.material.color.set(0x6ee7ff);
+              c.scale.set(1,1,1);
+            }
+          });
+          // Update output line
+          const lines = [];
+          for (let k = 0; k <= i; k++) lines.push(`Hello ${k}`);
+          output.innerHTML = `<span class="out">${lines.join("\n")}</span>`;
+          labelEl.textContent = `i = ${i}`;
+        }
+      })),
+      {
+        title: 'Loop finished',
+        say: 'After i reaches four, we stop. The loop is finished!',
+        run() {
+          l1.classList.remove('active'); l2.classList.remove('active');
+          explain.textContent = 'The loop ends because we have completed 5 runs. Python moves on.';
+          cubes.forEach(c => c.material.color.set(0x85f7a7));
+          labelEl.textContent = 'done';
+        }
+      }
+    ];
+
+    function goToStep(idx, speakNow = true) {
+      current = Math.max(0, Math.min(idx, steps.length - 1));
+      steps[current].run();
+      if (speakNow) speak(steps[current].say);
+      btnPlay.textContent = playing ? '⏸ Pause' : '▶ Play';
+    }
+
+    function startAutoForCurrent() {
+      if (!playing) return;
+      const text = steps[current].say || '';
+      // Chain to next after speech or timeout
+      speak(text, () => {
+        if (!playing) return;
+        if (current < steps.length - 1) {
+          goToStep(current + 1, false);
+          startAutoForCurrent();
+        } else {
+          stopAuto();
+        }
+      });
+    }
+
+    // Buttons
+    btnPlay.addEventListener('click', () => {
+      if (playing) { stopAuto(); return; }
+      // If we are at the end, restart
+      if (current >= steps.length - 1) { goToStep(0, false); }
+      playing = true;
+      btnPlay.textContent = '⏸ Pause';
+      steps[current].run();
+      startAutoForCurrent();
+    });
+
+    btnReset.addEventListener('click', () => {
+      stopAuto();
+      goToStep(0);
+    });
+
+    // WebXR AR setup
+    async function setupXR() {
+      if (!('xr' in navigator)) {
+        btnAR.disabled = true; btnAR.textContent = 'AR not supported';
+        return;
+      }
+      try {
+        const supported = await navigator.xr.isSessionSupported('immersive-ar');
+        if (!supported) { btnAR.disabled = true; btnAR.textContent = 'AR unavailable'; }
+      } catch (e) {
+        btnAR.disabled = true; btnAR.textContent = 'AR unavailable';
+      }
+    }
+
+    async function enterAR() {
+      try {
+        xrSession = await navigator.xr.requestSession('immersive-ar', {
+          requiredFeatures: ['hit-test','local-floor']
+        });
+      } catch (e) {
+        console.error('AR session failed', e);
+        return;
+      }
+      isInAR = true;
+      btnAR.setAttribute('aria-pressed', 'true');
+      btnAR.textContent = 'Exit AR';
+
+      renderer.xr.enabled = true;
+      renderer.xr.setReferenceSpaceType('local-floor');
+      await renderer.xr.setSession(xrSession);
+      xrViewerSpace = await xrSession.requestReferenceSpace('viewer');
+      xrRefSpace = await xrSession.requestReferenceSpace('local-floor');
+      xrHitTestSource = await xrSession.requestHitTestSource({ space: xrViewerSpace });
+
+      inputEnabled = false;
+
+      xrSession.addEventListener('end', () => {
+        isInAR = false;
+        renderer.xr.enabled = false;
+        xrHitTestSource = null; xrViewerSpace = null; xrRefSpace = null; xrSession = null;
+        reticle.visible = false;
+        btnAR.setAttribute('aria-pressed', 'false');
+        btnAR.textContent = '🕶 Enter AR';
+        inputEnabled = true;
+      });
+
+      xrSession.addEventListener('select', () => {
+        if (reticle.visible) {
+          solarSystem.position.copy(reticle.position);
+        }
+      });
+
+      renderer.setAnimationLoop(renderXR);
+    }
+
+    function renderXR(time, frame) {
+      if (!frame) return;
+      const refSpace = xrRefSpace || renderer.xr.getReferenceSpace();
+      if (xrHitTestSource && refSpace) {
+        const hits = frame.getHitTestResults(xrHitTestSource);
+        if (hits.length > 0) {
+          const pose = hits[0].getPose(refSpace);
+          reticle.visible = true;
+          reticle.position.set(pose.transform.position.x, pose.transform.position.y, pose.transform.position.z);
+        } else {
+          reticle.visible = false;
+        }
+      }
+
+      // Minimal per-frame updates while in AR
+      const dt = (time - lastTime) / 1000 || 0; lastTime = time;
+      sun.rotation.y += 0.1 * dt;
+      aura.scale.setScalar(1.25 + Math.sin(time * 0.002) * 0.03);
+      planets.forEach(p => {
+        p.userData.theta += p.userData.speed * dt * 0.6;
+        const rr = p.userData.orbit;
+        p.position.set(Math.cos(p.userData.theta) * rr, 0, Math.sin(p.userData.theta) * rr);
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    btnAR.addEventListener('click', () => {
+      if (!isInAR) enterAR(); else if (xrSession) xrSession.end();
+    });
+
+    // Resize
+    function onResize() {
+      width = sceneEl.clientWidth;
+      height = sceneEl.clientHeight;
+      camera.aspect = width/height; camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+    window.addEventListener('resize', onResize);
+
+    // Animate
+    function animate(t) {
+      const dt = (t - lastTime) / 1000 || 0; lastTime = t;
+      // Camera from spherical
+      const sx = orbitTarget.x + camRadius * Math.sin(phi) * Math.cos(theta);
+      const sy = orbitTarget.y + camRadius * Math.cos(phi);
+      const sz = orbitTarget.z + camRadius * Math.sin(phi) * Math.sin(theta);
+      camera.position.set(sx, sy, sz);
+      camera.lookAt(orbitTarget);
+
+      // Subtle motions
+      sun.rotation.y += 0.1 * dt;
+      aura.scale.setScalar(1.25 + Math.sin(t * 0.002) * 0.03);
+      stars.rotation.y += 0.01 * dt;
+
+      // Planet orbits
+      planets.forEach(p => {
+        p.userData.theta += p.userData.speed * dt * 0.6;
+        const rr = p.userData.orbit;
+        p.position.set(Math.cos(p.userData.theta) * rr, 0, Math.sin(p.userData.theta) * rr);
+      });
+
+      // Pulse active cube
+      const stepIdx = Math.min(current, totalSteps - 1);
+      const active = current > 0 && current <= totalSteps ? cubes[stepIdx] : null;
+      if (active) {
+        pulse += dt * 4;
+        const s = 1.15 + Math.sin(pulse) * 0.08;
+        active.scale.set(s, s, s);
+      }
+
+      // Move label
+      const targetObj = active || sun;
+      const { x, y } = toScreenPosition(targetObj);
+      labelEl.style.left = x + 'px';
+      labelEl.style.top = y + 'px';
+
+      if (!isInAR) renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    // Kickoff
+    goToStep(0, false);
+    requestAnimationFrame(animate);
+    setupXR();
+  })();
+  </script>
+</body>
+</html>

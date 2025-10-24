@@ -1,0 +1,483 @@
+{% extends 'admin/admin-base.html' %}
+{% set active_page = 'categories' %}
+
+{% block title %}Category Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/categories.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+        <div class="categories-header">
+          <h1>
+            <i class="fas fa-tags"></i>
+            Category Management
+          </h1>
+          <div class="header-actions">
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchInput" placeholder="Search categories..." onkeyup="filterCategories()">
+            </div>
+            <button class="btn btn-primary" onclick="openCategoryModal()">
+              <i class="fas fa-plus"></i> Add New Category
+            </button>
+          </div>
+        </div>
+        
+        <!-- Popup Alert Container -->
+        <!-- Alert container now managed globally by alerts.js -->
+        
+        <!-- Statistics Section -->
+        <div class="stats-grid" id="categoryStats">
+          <div class="stat-card">
+            <div class="stat-number" id="totalCategories">-</div>
+            <div class="stat-label">Total Categories</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="totalLessons">-</div>
+            <div class="stat-label">Total Lessons</div>
+          </div>
+        </div>
+        
+        <!-- Categories Content -->
+        <div class="admin-card">
+          <div id="categories-container">
+            <div class="loading-state">
+              <i class="fas fa-spinner"></i>
+              <p>Loading categories...</p>
+            </div>
+          </div>
+        </div>
+<!-- Category Modal -->
+  <div id="categoryModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">
+          <i class="fas fa-plus"></i>
+          Add New Category
+        </h2>
+        <span class="close" onclick="closeCategoryModal()">&times;</span>
+      </div>
+      
+      <form id="categoryForm">
+        <input type="hidden" id="categoryId" name="category_id">
+        
+        <div class="form-group">
+          <label for="categoryName">Category Name *</label>
+          <input type="text" id="categoryName" name="name" required placeholder="Enter category name...">
+        </div>
+        
+        <div class="form-group">
+          <label for="categoryDescription">Description</label>
+          <textarea id="categoryDescription" name="description" placeholder="Describe what this category covers..."></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="categoryColor">Color</label>
+            <div class="color-picker-container">
+              <input type="color" id="categoryColor" name="color" value="#3498db" class="color-picker">
+              <input type="text" id="categoryColorText" placeholder="#3498db" style="flex: 1;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="categoryIcon">Icon</label>
+            <select id="categoryIcon" name="icon">
+              <option value="fas fa-code">Code</option>
+              <option value="fas fa-database">Database</option>
+              <option value="fas fa-globe">Web</option>
+              <option value="fas fa-mobile-alt">Mobile</option>
+              <option value="fas fa-chart-bar">Analytics</option>
+              <option value="fas fa-cog">Tools</option>
+              <option value="fas fa-paint-brush">Design</option>
+              <option value="fas fa-server">Backend</option>
+              <option value="fas fa-desktop">Frontend</option>
+              <option value="fas fa-robot">AI/ML</option>
+            </select>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Save Category
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2><i class="fas fa-exclamation-triangle"></i> Confirm Deletion</h2>
+        <span class="close" onclick="closeDeleteModal()">&times;</span>
+      </div>
+      
+      <div style="margin-bottom: 2rem;">
+        <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1rem;">
+          Are you sure you want to delete this category?
+        </p>
+        <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; border-radius: 8px; padding: 1rem;">
+          <strong style="color: #e74c3c;">Warning:</strong> This action will:
+          <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: rgba(255, 255, 255, 0.7);">
+            <li>Delete the category permanently</li>
+            <li>Move all lessons in this category to "Uncategorized"</li>
+            <li>This action cannot be undone!</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button type="button" class="btn" style="background: #e74c3c; color: white;" onclick="confirmDelete()">
+          <i class="fas fa-trash"></i> Delete Category
+        </button>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentCategoryId = null;
+    let categories = [];
+    let lessons = [];
+    let filteredCategories = [];
+
+    // Check admin status and initialize
+    async function checkAdminAndInit() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showMessage('Please log in first. Use admin credentials: admin@nexqod.com / admin123', 'error');
+        setTimeout(() => {
+          window.location.href = '{{ url_for("auth_page") }}';
+        }, 2000);
+        return;
+      }
+
+      try {
+        const response = await apiFetch('/api/profile');
+
+        if (response.ok) {
+          const profile = await response.json();
+          if (profile.role === 'admin') {
+            // Load categories and lessons first
+            await loadCategories();
+            await loadLessons();
+            // Then display and update stats
+            displayCategories();
+            updateStats();
+          } else {
+            showMessage('You do not have admin permissions. Please log in with admin credentials.', 'error');
+            setTimeout(() => {
+              window.location.href = '{{ url_for("auth_page") }}';
+            }, 2000);
+          }
+        } else if (response.status === 401 || response.status === 422) {
+          showMessage('Session expired. Please log in again with admin credentials: admin@nexqod.com / admin123', 'error');
+          setTimeout(() => {
+            window.location.href = '{{ url_for("auth_page") }}';
+          }, 2000);
+        } else {
+          console.error('Profile API error:', response.status);
+          showMessage('Error loading profile. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Admin check error:', error);
+        if (error.message && error.message.includes('fetch')) {
+          showMessage('Network error. Please check your connection and ensure the server is running.', 'error');
+        } else {
+          showMessage('Authentication error. Please log in with admin credentials: admin@nexqod.com / admin123', 'error');
+          setTimeout(() => {
+            window.location.href = '{{ url_for("auth_page") }}';
+          }, 2000);
+        }
+      }
+    }
+
+    // Load categories
+    async function loadCategories() {
+      try {
+        const response = await apiFetch('/api/categories');
+
+        if (response.ok) {
+          categories = await response.json();
+          filteredCategories = [...categories];
+        } else {
+          showMessage('Error loading categories', 'error');
+        }
+      } catch (error) {
+        console.error('Error loading categories:', error);
+        showMessage('Error loading categories', 'error');
+      }
+    }
+
+    // Load lessons for stats
+    async function loadLessons() {
+      try {
+        const response = await apiFetch('/api/lessons');
+
+        if (response.ok) {
+          lessons = await response.json();
+        }
+      } catch (error) {
+        console.error('Error loading lessons:', error);
+      }
+    }
+
+    // Update statistics
+    function updateStats() {
+      const totalCategories = categories.length;
+      const totalLessons = lessons.length;
+
+      document.getElementById('totalCategories').textContent = totalCategories;
+      document.getElementById('totalLessons').textContent = totalLessons;
+    }
+
+    // Display categories in card grid format
+    function displayCategories() {
+      const container = document.getElementById('categories-container');
+      
+      if (filteredCategories.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-tags"></i>
+            <p>No categories found. Create your first category!</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '<div class="categories-grid">';
+      
+      filteredCategories.forEach(category => {
+        // Count lessons for this category - ensure both IDs are compared as numbers
+        const lessonCount = lessons.filter(lesson => {
+          return Number(lesson.category_id) === Number(category.id);
+        }).length;
+        const categoryColor = category.color || '#00C2FF';
+        const categoryIcon = category.icon || 'fas fa-tag';
+        
+        html += `
+          <div class="category-card">
+            <div class="category-card-header">
+              <div class="category-icon-large" style="background: ${categoryColor};">
+                <i class="${categoryIcon}"></i>
+              </div>
+              <div class="category-card-info">
+                <h3>${category.name}</h3>
+                <p class="category-description">${category.description || 'No description available'}</p>
+              </div>
+            </div>
+            
+            <div class="category-card-stats">
+              <div class="stat-item">
+                <i class="fas fa-cubes"></i>
+                <span>${lessonCount} Lesson${lessonCount !== 1 ? 's' : ''}</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-calendar"></i>
+                <span>${formatDate(category.created_at)}</span>
+              </div>
+            </div>
+            
+            <div class="category-card-actions">
+              <button class="btn-action-cat btn-edit" onclick="editCategory(${category.id})" title="Edit Category">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button class="btn-action-cat btn-delete" onclick="deleteCategory(${category.id})" title="Delete Category">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    // Filter categories based on search input
+    function filterCategories() {
+      const searchInput = document.getElementById('searchInput').value.toLowerCase();
+      
+      filteredCategories = categories.filter(category => 
+        category.name.toLowerCase().includes(searchInput) ||
+        (category.description && category.description.toLowerCase().includes(searchInput))
+      );
+      
+      displayCategories();
+    }
+
+    // Format date
+    function formatDate(dateString) {
+      if (!dateString) return 'Unknown';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+
+    // Modal functions
+    function openCategoryModal(categoryId = null) {
+      currentCategoryId = categoryId;
+      const modal = document.getElementById('categoryModal');
+      const title = document.getElementById('modalTitle');
+      const form = document.getElementById('categoryForm');
+      
+      if (categoryId) {
+        title.innerHTML = '<i class="fas fa-edit"></i> Edit Category';
+        loadCategoryData(categoryId);
+      } else {
+        title.innerHTML = '<i class="fas fa-plus"></i> Add New Category';
+        form.reset();
+        document.getElementById('categoryColor').value = '#3498db';
+        document.getElementById('categoryColorText').value = '#3498db';
+      }
+      
+      modal.style.display = 'block';
+    }
+
+    function closeCategoryModal() {
+      document.getElementById('categoryModal').style.display = 'none';
+      currentCategoryId = null;
+      document.getElementById('categoryForm').reset();
+    }
+
+    // Load category data for editing
+    function loadCategoryData(categoryId) {
+      const category = categories.find(c => c.id === categoryId);
+      if (!category) return;
+
+      document.getElementById('categoryId').value = category.id;
+      document.getElementById('categoryName').value = category.name;
+      document.getElementById('categoryDescription').value = category.description || '';
+      document.getElementById('categoryColor').value = category.color || '#3498db';
+      document.getElementById('categoryColorText').value = category.color || '#3498db';
+      document.getElementById('categoryIcon').value = category.icon || 'fas fa-tag';
+    }
+
+    // Sync color picker with text input
+    document.getElementById('categoryColor').addEventListener('input', function() {
+      document.getElementById('categoryColorText').value = this.value;
+    });
+
+    document.getElementById('categoryColorText').addEventListener('input', function() {
+      if (this.value.match(/^#[0-9A-F]{6}$/i)) {
+        document.getElementById('categoryColor').value = this.value;
+      }
+    });
+
+    // Handle form submission
+    document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const data = {
+        name: formData.get('name'),
+        description: formData.get('description') || '',
+        color: formData.get('color') || '#3498db',
+        icon: formData.get('icon') || 'fas fa-tag'
+      };
+      
+      const isEdit = currentCategoryId !== null;
+      
+      try {
+        let response;
+        if (isEdit) {
+          response = await apiFetch(`/api/admin/categories/${currentCategoryId}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+          });
+        } else {
+          response = await apiFetch('/api/admin/categories', {
+            method: 'POST',
+            body: JSON.stringify(data)
+          });
+        }
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          closeCategoryModal();
+          await loadCategories();
+          await loadLessons();
+          displayCategories();
+          updateStats();
+        } else {
+          showMessage(result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error saving category:', error);
+        showMessage('Error saving category', 'error');
+      }
+    });
+
+    // Delete category
+    function deleteCategory(categoryId) {
+      currentCategoryId = categoryId;
+      document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+      currentCategoryId = null;
+    }
+
+    async function confirmDelete() {
+      try {
+        const response = await apiFetch(`/api/admin/categories/${currentCategoryId}`, {
+          method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          closeDeleteModal();
+          await loadCategories();
+          await loadLessons();
+          displayCategories();
+          updateStats();
+        } else {
+          showMessage(result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error deleting category:', error);
+        showMessage('Error deleting category', 'error');
+      }
+    }
+
+    // Edit category
+    function editCategory(categoryId) {
+      openCategoryModal(categoryId);
+    }
+
+    // Show popup alert message
+    function showMessage(message, type = 'info') {
+      showAlert(message, { type: type });
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const categoryModal = document.getElementById('categoryModal');
+      const deleteModal = document.getElementById('deleteModal');
+      
+      if (event.target === categoryModal) {
+        closeCategoryModal();
+      }
+      if (event.target === deleteModal) {
+        closeDeleteModal();
+      }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', checkAdminAndInit);
+</script>
+{% endblock %}

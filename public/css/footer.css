@@ -1,0 +1,132 @@
+/* Footer Styles for CodeDonki */
+
+.site-footer {
+  background-color: var(--text-primary);
+  color: var(--surface-color);
+  padding: 2rem 0;
+  margin-top: auto;
+  border-top: 1px solid var(--border-color);
+}
+
+.site-footer .container {
+  text-align: left;
+}
+
+.site-footer p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: var(--font-body);
+}
+
+/* Optional: Add some decorative elements */
+.site-footer::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+  margin-bottom: 1rem;
+}
+
+/* Optional: Add social links or additional footer content */
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.footer-section {
+  text-align: left;
+}
+
+.footer-section h3 {
+  color: var(--primary-color);
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-section ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-section ul li a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-section ul li a:hover {
+  color: var(--primary-color);
+}
+
+/* Social Media Icons */
+.footer-section a[title] {
+  transition: all 0.3s ease;
+}
+
+.footer-section a[title]:hover {
+  color: var(--primary-color) !important;
+  transform: translateY(-3px);
+}
+
+/* Bottom Bar Links */
+.site-footer a[href="#"]:hover,
+.site-footer a[href*="privacy"]:hover,
+.site-footer a[href*="terms"]:hover,
+.site-footer a[href*="cookie"]:hover,
+.site-footer a[href*="accessibility"]:hover {
+  color: var(--primary-color) !important;
+}
+
+/* Icon spacing in footer links */
+.footer-section ul li a i {
+  width: 20px;
+  display: inline-block;
+  margin-right: 0.3rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .site-footer {
+    padding: 1.5rem 0;
+  }
+  
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    text-align: left;
+  }
+  
+  .footer-section {
+    text-align: left;
+  }
+  
+  /* Keep social icons on left on mobile */
+  .footer-section > div[style*="display: flex"] {
+    justify-content: flex-start !important;
+  }
+  
+  /* Stack bottom bar on mobile */
+  .site-footer > .container > div[style*="border-top"] > div {
+    flex-direction: column;
+    text-align: left;
+    align-items: flex-start;
+  }
+  
+  .site-footer > .container > div[style*="border-top"] > div > div {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

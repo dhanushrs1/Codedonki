@@ -1,0 +1,577 @@
+{% extends 'admin/admin-base.html' %}
+{% set active_page = 'badges' %}
+
+{% block title %}Badge Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-badges.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="badges-header">
+  <h1>
+    <i class="fas fa-award"></i>
+    Badge Management
+  </h1>
+  <button class="btn-add-badge" onclick="openBadgeModal()">
+    <i class="fas fa-plus"></i> Add New Badge
+  </button>
+</div>
+
+<!-- Popup Alert Container -->
+<!-- Alert container now managed globally by alerts.js -->
+
+<!-- Statistics Section -->
+<div class="badge-stats" id="badgeStats">
+  <div class="stat-item">
+    <div class="stat-number" id="totalBadges">-</div>
+    <div class="stat-label">Total Badges</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-number" id="activeBadges">-</div>
+    <div class="stat-label">Active Badges</div>
+  </div>
+</div>
+
+<!-- Badges Container -->
+<div class="admin-card">
+  <h2>All Badges</h2>
+  <div id="badges-container">
+    <div class="empty-state">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Loading badges...</p>
+    </div>
+  </div>
+</div>
+        
+<!-- Badge Modal -->
+<div id="badgeModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitle">
+        <i class="fas fa-plus"></i>
+        Add New Badge
+      </h2>
+      <span class="close" onclick="closeBadgeModal()">&times;</span>
+    </div>
+    
+    <form id="badgeForm">
+      <input type="hidden" id="badgeId" name="badge_id">
+      <input type="hidden" id="existingIconUrl" name="existing_icon_url">
+      
+      <div class="form-group">
+        <label for="badgeName">Badge Name *</label>
+        <input type="text" id="badgeName" name="name" required placeholder="e.g., Coding Champion">
+      </div>
+      
+      <div class="form-group">
+        <label for="badgeDescription">Description</label>
+        <textarea id="badgeDescription" name="description" placeholder="Describe what this badge represents..."></textarea>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="xpThreshold">XP Threshold *</label>
+          <input type="number" id="xpThreshold" name="xp_threshold" min="0" required placeholder="e.g., 100">
+        </div>
+        
+        <div class="form-group">
+          <label for="badgeColor">Badge Color</label>
+          <div class="color-picker">
+            <input type="color" id="badgeColor" name="color" value="#FFD700">
+            <div class="color-preview" id="colorPreview" style="background-color: #FFD700;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Badge Icon</label>
+        <div class="image-upload-section" id="uploadSection" onclick="document.getElementById('badgeIconInput').click()">
+          <div class="upload-icon">
+            <i class="fas fa-cloud-upload-alt"></i>
+          </div>
+          <div class="upload-text">Click to upload badge icon</div>
+          <div class="upload-hint">PNG, JPG, SVG (Max 2MB, Recommended: 512x512px)</div>
+        </div>
+        <input type="file" id="badgeIconInput" accept="image/png,image/jpeg,image/jpg,image/svg+xml" onchange="handleImageUpload(event)">
+        
+        <div class="image-preview-container" id="imagePreviewContainer">
+          <img id="badgePreviewImage" class="badge-preview-image" alt="Badge Icon Preview">
+          <button type="button" class="remove-image-btn" onclick="removeImage()">
+            <i class="fas fa-trash"></i> Remove Image
+          </button>
+        </div>
+      </div>
+      
+      <div class="form-group" id="activeToggle" style="display: none;">
+        <label class="checkbox-label">
+          <input type="checkbox" id="isActive" name="is_active" checked> Active Badge
+        </label>
+      </div>
+      
+      <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeBadgeModal()">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="submit" class="btn-primary">
+          <i class="fas fa-save"></i> Save Badge
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentBadgeId = null;
+    let badges = [];
+    let selectedBadgeImage = null;
+
+    // Check admin status and initialize
+    async function checkAdminAndInit() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showMessage('Please log in first. Use admin credentials: admin@nexqod.com / admin123', 'error');
+        setTimeout(() => {
+          window.location.href = '{{ url_for("auth_page") }}';
+        }, 2000);
+        return;
+      }
+
+      try {
+        const response = await apiFetch('/api/profile');
+
+        if (response.ok) {
+          const profile = await response.json();
+          if (profile.role === 'admin') {
+            // Load badges first
+            await loadBadges();
+            // Then display and update stats
+            displayBadges();
+            updateStats();
+          } else {
+            showMessage('You do not have admin permissions. Please log in with admin credentials.', 'error');
+            setTimeout(() => {
+              window.location.href = '{{ url_for("auth_page") }}';
+            }, 2000);
+          }
+        } else if (response.status === 401 || response.status === 422) {
+          showMessage('Session expired. Please log in again with admin credentials: admin@nexqod.com / admin123', 'error');
+          setTimeout(() => {
+            window.location.href = '{{ url_for("auth_page") }}';
+          }, 2000);
+        } else {
+          console.error('Profile API error:', response.status);
+          showMessage('Error loading profile. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Admin check error:', error);
+        if (error.message && error.message.includes('fetch')) {
+          showMessage('Network error. Please check your connection and ensure the server is running.', 'error');
+        } else {
+          showMessage('Authentication error. Please log in with admin credentials: admin@nexqod.com / admin123', 'error');
+          setTimeout(() => {
+            window.location.href = '{{ url_for("auth_page") }}';
+          }, 2000);
+        }
+      }
+    }
+
+    // Load badges
+    async function loadBadges() {
+      try {
+        const response = await apiFetch('/api/badges');
+
+        if (response.ok) {
+          badges = await response.json();
+          console.log('Badges loaded successfully:', badges.length);
+        } else {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('Failed to load badges:', response.status, errorData);
+          showMessage('Error loading badges: ' + (errorData.error || 'Server error'), 'error');
+          badges = []; // Initialize empty array on error
+        }
+      } catch (error) {
+        console.error('Error loading badges:', error);
+        showMessage('Error loading badges: ' + error.message, 'error');
+        badges = []; // Initialize empty array on error
+      }
+    }
+
+    // Update statistics
+    function updateStats() {
+      const totalBadges = badges.length;
+      const activeBadges = badges.filter(badge => badge.is_active !== false).length;
+      
+      document.getElementById('totalBadges').textContent = totalBadges;
+      document.getElementById('activeBadges').textContent = activeBadges;
+    }
+
+    // Display badges in grid
+    function displayBadges() {
+      const container = document.getElementById('badges-container');
+      
+      if (!badges || badges.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-award"></i>
+            <p>No badges found. Create your first badge!</p>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        let html = '<div class="badges-grid">';
+      
+      badges.sort((a, b) => a.xp_threshold - b.xp_threshold).forEach(badge => {
+        const isInactive = badge.is_active === false;
+        const badgeColor = badge.color || '#FFD700';
+        
+        // Check if badge has custom image (URL starting with http or /)
+        const iconUrl = badge.icon_url || '';
+        const isImageUrl = iconUrl.startsWith('http') || iconUrl.startsWith('/');
+        const isEmoji = iconUrl && !isImageUrl && iconUrl.trim() !== '';
+        
+        // Debug logging
+        console.log(`Badge: ${badge.name}, Icon URL: ${iconUrl}, Is Image: ${isImageUrl}`);
+        
+        let badgeIconContent = '';
+        let badgeIconStyle = `background: ${badgeColor};`;
+        
+        if (isImageUrl) {
+          // It's an actual image URL
+          badgeIconStyle = `background: ${badgeColor}; background-image: url('${iconUrl}'); background-size: cover; background-position: center; background-repeat: no-repeat;`;
+          badgeIconContent = '';
+        } else if (isEmoji) {
+          // It's an emoji
+          badgeIconStyle = `background: ${badgeColor};`;
+          badgeIconContent = `<span style="font-size: 2rem;">${iconUrl}</span>`;
+        } else {
+          // Default icon
+          badgeIconStyle = `background: ${badgeColor};`;
+          badgeIconContent = '<i class="fas fa-award"></i>';
+        }
+        
+        html += `
+          <div class="badge-card ${isInactive ? 'inactive-badge' : ''}">
+            <div class="badge-header">
+              <div class="badge-icon" style="${badgeIconStyle}">
+                ${badgeIconContent}
+              </div>
+              <div class="badge-info">
+                <h3>${badge.name}</h3>
+                <div class="badge-threshold">
+                  <i class="fas fa-star"></i>
+                  ${badge.xp_threshold} XP Required
+                </div>
+              </div>
+            </div>
+            
+            <div class="badge-description">
+              ${badge.description || 'No description available.'}
+            </div>
+            
+            <div class="badge-actions">
+              <button class="btn-small btn-edit" onclick="editBadge(${badge.id})">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button class="btn-small btn-toggle" onclick="toggleBadge(${badge.id}, ${badge.is_active !== false})">
+                <i class="fas fa-${badge.is_active !== false ? 'eye-slash' : 'eye'}"></i> 
+                ${badge.is_active !== false ? 'Deactivate' : 'Activate'}
+              </button>
+              <button class="btn-small btn-delete" onclick="deleteBadge(${badge.id})">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      container.innerHTML = html;
+      } catch (error) {
+        console.error('Error displaying badges:', error);
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-triangle" style="color: var(--accent-error);"></i>
+            <p>Error displaying badges. Please refresh the page.</p>
+          </div>
+        `;
+        showMessage('Error displaying badges: ' + error.message, 'error');
+      }
+    }
+
+    // Modal functions
+    function openBadgeModal(badgeId = null) {
+      currentBadgeId = badgeId;
+      selectedBadgeImage = null;
+      const modal = document.getElementById('badgeModal');
+      const title = document.getElementById('modalTitle');
+      const form = document.getElementById('badgeForm');
+      const activeToggle = document.getElementById('activeToggle');
+      const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+      const uploadSection = document.getElementById('uploadSection');
+      
+      // Reset image preview
+      imagePreviewContainer.classList.remove('show');
+      uploadSection.classList.remove('has-image');
+      
+      if (badgeId) {
+        title.innerHTML = '<i class="fas fa-edit"></i> Edit Badge';
+        loadBadgeData(badgeId);
+        activeToggle.style.display = 'block';
+      } else {
+        title.innerHTML = '<i class="fas fa-plus"></i> Add New Badge';
+        form.reset();
+        document.getElementById('badgeColor').value = '#FFD700';
+        document.getElementById('colorPreview').style.backgroundColor = '#FFD700';
+        activeToggle.style.display = 'none';
+      }
+      
+      modal.style.display = 'block';
+    }
+
+    function closeBadgeModal() {
+      document.getElementById('badgeModal').style.display = 'none';
+      currentBadgeId = null;
+      selectedBadgeImage = null;
+      document.getElementById('badgeForm').reset();
+      document.getElementById('activeToggle').style.display = 'none';
+      document.getElementById('imagePreviewContainer').classList.remove('show');
+      document.getElementById('uploadSection').classList.remove('has-image');
+    }
+
+    // Load badge data for editing
+    function loadBadgeData(badgeId) {
+      const badge = badges.find(b => b.id === badgeId);
+      if (!badge) return;
+
+      document.getElementById('badgeId').value = badge.id;
+      document.getElementById('badgeName').value = badge.name;
+      document.getElementById('badgeDescription').value = badge.description || '';
+      document.getElementById('xpThreshold').value = badge.xp_threshold;
+      document.getElementById('badgeColor').value = badge.color || '#FFD700';
+      document.getElementById('existingIconUrl').value = badge.icon_url || '';
+      document.getElementById('isActive').checked = badge.is_active !== false;
+      
+      document.getElementById('colorPreview').style.backgroundColor = badge.color || '#FFD700';
+      
+      // Show existing badge image if available (only for actual image URLs, not emojis)
+      if (badge.icon_url && badge.icon_url.trim() !== '') {
+        const iconUrl = badge.icon_url;
+        const isImageUrl = iconUrl.startsWith('http') || iconUrl.startsWith('/');
+        
+        if (isImageUrl) {
+          const imagePreview = document.getElementById('badgePreviewImage');
+          const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+          const uploadSection = document.getElementById('uploadSection');
+          
+          imagePreview.src = badge.icon_url;
+          imagePreviewContainer.classList.add('show');
+          uploadSection.classList.add('has-image');
+        }
+      }
+    }
+
+    // Handle form submission
+    document.getElementById('badgeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData();
+      formData.append('name', document.getElementById('badgeName').value);
+      formData.append('description', document.getElementById('badgeDescription').value || '');
+      formData.append('xp_threshold', document.getElementById('xpThreshold').value);
+      formData.append('color', document.getElementById('badgeColor').value);
+      
+      // Add image if selected
+      if (selectedBadgeImage) {
+        formData.append('badge_icon', selectedBadgeImage);
+      } else if (currentBadgeId) {
+        // Keep existing icon URL if editing and no new image selected
+        const existingIconUrl = document.getElementById('existingIconUrl').value;
+        if (existingIconUrl) {
+          formData.append('existing_icon_url', existingIconUrl);
+        }
+      }
+      
+      // Add is_active for edits
+      if (currentBadgeId) {
+        formData.append('is_active', document.getElementById('isActive').checked);
+      }
+      
+      const isEdit = currentBadgeId !== null;
+      
+      try {
+        const token = localStorage.getItem('token');
+        let response;
+        
+        if (isEdit) {
+          response = await fetch(`/api/admin/badges/${currentBadgeId}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formData
+          });
+        } else {
+          response = await fetch('/api/admin/badges', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formData
+          });
+        }
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          closeBadgeModal();
+          await loadBadges();
+          displayBadges();
+          updateStats();
+        } else {
+          showMessage(result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error saving badge:', error);
+        showMessage('Error saving badge', 'error');
+      }
+    });
+
+    // Delete badge
+    async function deleteBadge(badgeId) {
+      if (!confirm('Are you sure you want to delete this badge? This action cannot be undone.')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/admin/badges/${badgeId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          await loadBadges();
+          displayBadges();
+          updateStats();
+        } else {
+          showMessage(result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error deleting badge:', error);
+        showMessage('Error deleting badge', 'error');
+      }
+    }
+
+    // Toggle badge active status
+    async function toggleBadge(badgeId, currentStatus) {
+      try {
+        const formData = new FormData();
+        formData.append('is_active', !currentStatus);
+        
+        const response = await fetch(`/api/admin/badges/${badgeId}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          await loadBadges();
+          displayBadges();
+          updateStats();
+        } else {
+          showMessage(result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error toggling badge:', error);
+        showMessage('Error toggling badge', 'error');
+      }
+    }
+
+    // Edit badge
+    function editBadge(badgeId) {
+      openBadgeModal(badgeId);
+    }
+
+    // Show popup alert message
+    function showMessage(message, type = 'info') {
+      showAlert(message, { type: type });
+    }
+
+    // Handle image upload
+    function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // Validate file size (2MB max)
+      if (file.size > 2 * 1024 * 1024) {
+        showMessage('Image size must be less than 2MB', 'error');
+        event.target.value = '';
+        return;
+      }
+      
+      // Validate file type
+      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+      if (!validTypes.includes(file.type)) {
+        showMessage('Please upload a PNG, JPG, or SVG image', 'error');
+        event.target.value = '';
+        return;
+      }
+      
+      selectedBadgeImage = file;
+      
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imagePreview = document.getElementById('badgePreviewImage');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const uploadSection = document.getElementById('uploadSection');
+        
+        imagePreview.src = e.target.result;
+        imagePreviewContainer.classList.add('show');
+        uploadSection.classList.add('has-image');
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    // Remove uploaded image
+    function removeImage() {
+      selectedBadgeImage = null;
+      document.getElementById('badgeIconInput').value = '';
+      document.getElementById('imagePreviewContainer').classList.remove('show');
+      document.getElementById('uploadSection').classList.remove('has-image');
+      document.getElementById('existingIconUrl').value = '';
+    }
+
+    // Color picker update
+    document.getElementById('badgeColor').addEventListener('input', (e) => {
+      document.getElementById('colorPreview').style.backgroundColor = e.target.value;
+    });
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('badgeModal');
+      if (event.target === modal) {
+        closeBadgeModal();
+      }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', checkAdminAndInit);
+</script>
+{% endblock %}

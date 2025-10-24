@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard · CodeDonki{% endblock %}
+{% block head_extra %}
+<style>
+  /* Archive Page Specific Styles */
+  .archive-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .archive-header {
+    background: var(--surface-color);
+    padding: 2rem;
+    border-radius: var(--radius-card);
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+  }
+
+  .archive-header h1 {
+    color: var(--primary-color);
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+  }
+
+  .archive-header p {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+
+
+  .archive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .category-card {
+    background: var(--surface-color);
+    border-radius: var(--radius-card);
+    padding: 0;
+    text-decoration: none !important;
+    color: var(--text-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid transparent;
+  }
+
+  .category-card:hover {
+    text-decoration: none !important;
+  }
+
+  .category-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-color);
+  }
+
+  .category-header {
+    padding: 2rem 1.5rem 1.5rem;
+    background: linear-gradient(135deg, var(--card-color) 0%, var(--card-color-dark) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .category-header::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+
+  .category-icon {
+    width: 70px;
+    height: 70px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1;
+  }
+
+  .category-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .category-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: white;
+    position: relative;
+    z-index: 1;
+  }
+
+  .category-description {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
+  }
+
+  .category-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .start-badge {
+    background: var(--accent-orange);
+    color: white;
+    padding: 0.5rem 1.25rem;
+    border-radius: 100px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+  }
+
+  .category-card:hover .start-badge {
+    background: var(--accent-green);
+    transform: translateX(4px);
+  }
+
+  .category-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .loading-state, .error-state, .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    grid-column: 1 / -1;
+  }
+
+  .loading-state {
+    color: var(--text-secondary);
+  }
+
+  .error-state {
+    color: var(--accent-error);
+  }
+
+  .empty-state {
+    color: var(--text-secondary);
+  }
+
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .archive-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .archive-header h1 {
+      font-size: 2rem;
+    }
+
+    .archive-container {
+      padding: 1rem;
+    }
+
+    .archive-header {
+      padding: 1.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .archive-header h1 {
+      font-size: 1.75rem;
+    }
+
+    .archive-header p {
+      font-size: 1rem;
+    }
+
+    .category-header {
+      padding: 1.5rem 1rem 1rem;
+    }
+
+    .category-icon {
+      width: 60px;
+      height: 60px;
+      font-size: 1.5rem;
+    }
+
+    .category-title {
+      font-size: 1.25rem;
+    }
+  }
+</style>
+{% endblock %}
+{% block content %}
+  <div class="archive-container">
+    <div class="archive-header">
+      <h1 id="welcomeMessage">Welcome back, ...</h1>
+      <p>Choose a lesson to start learning and earn XP!</p>
+    </div>
+
+    <div id="lesson-grid" class="archive-grid">
+      <div class="loading-state">
+        <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+        <p style="margin-top: 1rem;">Loading lessons...</p>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+  <script>
+    let totalLessons = 0;
+    let totalXP = 0;
+    let lessonsData = {};
+
+    (async () => {
+      const token = localStorage.getItem('token');
+      const userName = localStorage.getItem('userName');
+      if (!token) { window.location.href = '/auth'; return; }
+      document.getElementById('welcomeMessage').textContent = `Welcome back, ${userName || 'User'}!`;
+      try {
+        await loadLessonsAndCategories();
+      } catch (e) { console.error('Auth check failed:', e); }
+    })();
+    
+    async function loadLessonsAndCategories(){
+      const grid = document.getElementById('lesson-grid');
+      try{
+        // Fetch both categories and lessons
+        const [categoriesResponse, lessonsResponse] = await Promise.all([
+          apiFetch('/api/categories'),
+          apiFetch('/api/lessons')
+        ]);
+        
+        if(!categoriesResponse.ok) throw new Error('Failed to fetch categories.');
+        if(!lessonsResponse.ok) throw new Error('Failed to fetch lessons.');
+        
+        const categories = await categoriesResponse.json();
+        const lessons = await lessonsResponse.json();
+        
+        // Process lessons data to count by category
+        lessonsData = {};
+        totalLessons = 0;
+        totalXP = 0;
+        
+        lessons.forEach(lesson => {
+          const categoryId = lesson.category_id;
+          if (!lessonsData[categoryId]) {
+            lessonsData[categoryId] = {
+              count: 0,
+              totalXP: 0
+            };
+          }
+          lessonsData[categoryId].count++;
+          lessonsData[categoryId].totalXP += (lesson.xp_max || 0);
+          totalLessons++;
+          totalXP += (lesson.xp_max || 0);
+        });
+        
+        if(categories.length === 0){ 
+          grid.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-inbox" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
+              <p style="margin-top: 1rem;">No categories available yet. Check back soon!</p>
+            </div>
+          `; 
+          return; 
+        }
+        
+        grid.innerHTML = '';
+        
+        // Filter categories that have lessons
+        const categoriesWithLessons = categories.filter(cat => {
+          const categoryStats = lessonsData[cat.id] || { count: 0, totalXP: 0 };
+          return categoryStats.count > 0;
+        });
+        
+        if(categoriesWithLessons.length === 0){ 
+          grid.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-inbox" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
+              <p style="margin-top: 1rem;">No lessons available yet. Check back soon!</p>
+            </div>
+          `; 
+          return; 
+        }
+        
+        categoriesWithLessons.forEach(cat => {
+          const card = document.createElement('a');
+          card.href = `/lessons?category_id=${encodeURIComponent(cat.id)}&category=${encodeURIComponent(cat.name)}`;
+          
+          // Use category color from admin panel, fallback to primary color
+          const categoryColor = cat.color || 'var(--primary-color)';
+          const categoryIcon = cat.icon || 'fas fa-folder';
+          
+          // Create dynamic CSS for this category's gradient
+          const gradientId = `gradient-${cat.id}`;
+          if (!document.getElementById(gradientId)) {
+            const style = document.createElement('style');
+            style.id = gradientId;
+            style.textContent = `
+              .category-card-${cat.id} .category-header {
+                background: linear-gradient(135deg, ${categoryColor} 0%, ${adjustColor(categoryColor, -20)} 100%);
+              }
+            `;
+            document.head.appendChild(style);
+          }
+          
+          card.className = `category-card category-card-${cat.id}`;
+          
+          // Get lesson count and XP for this category
+          const categoryStats = lessonsData[cat.id] || { count: 0, totalXP: 0 };
+          
+          card.innerHTML = `
+            <div class="category-header">
+              <div class="category-icon" style="color: ${categoryColor};">
+                <i class="${categoryIcon}"></i>
+              </div>
+              <div class="category-title">${cat.name}</div>
+            </div>
+            <div class="category-body">
+              <div class="category-description">${cat.description || 'Start your learning journey with this category'}</div>
+              <div class="category-footer">
+                <div class="category-stats">
+                  <div class="stat-item">
+                    <i class="fas fa-book"></i>
+                    <span>${categoryStats.count} lessons</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fas fa-star"></i>
+                    <span>${categoryStats.totalXP} XP</span>
+                  </div>
+                </div>
+                <div class="start-badge">
+                  Start <i class="fas fa-arrow-right"></i>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          grid.appendChild(card);
+        });
+        
+        console.log(`Total Lessons: ${totalLessons}, Total XP: ${totalXP}`);
+        
+      }catch(e){
+        console.error('Error loading data:', e);
+        grid.innerHTML = `
+          <div class="error-state">
+            <i class="fas fa-exclamation-triangle" style="font-size: 3rem;"></i>
+            <p style="margin-top: 1rem;">Could not load categories. Please try again later.</p>
+          </div>
+        `;
+      }
+    }
+
+    // Helper function to adjust color brightness
+    function adjustColor(color, amount) {
+      // Remove # if present
+      color = color.replace('#', '');
+      
+      // Convert to RGB
+      const num = parseInt(color, 16);
+      const r = Math.max(0, Math.min(255, ((num >> 16) & 255) + amount));
+      const g = Math.max(0, Math.min(255, ((num >> 8) & 255) + amount));
+      const b = Math.max(0, Math.min(255, (num & 255) + amount));
+      
+      // Convert back to hex
+      return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+    }
+  </script>
+{% endblock %}

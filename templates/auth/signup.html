@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Signup · CodeDonki{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Signup</h2>
+    <form id="signup-form">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required>
+      </div>
+      <button class="btn btn-primary" type="submit">Create account</button>
+    </form>
+  </div>
+{% endblock %}
+

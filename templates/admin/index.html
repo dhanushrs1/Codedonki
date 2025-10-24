@@ -1,0 +1,510 @@
+{% extends 'admin/admin-base.html' %}
+{% set active_page = 'dashboard' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Admin Dashboard</h1>
+    <p class="dashboard-subtitle">Welcome back! Here's what's happening with your learning platform.</p>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card" style="cursor: pointer;" data-url="{{ url_for('admin_users') }}">
+      <div class="stat-icon users">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="stat-number" id="total-users">
+        <div class="loading-skeleton" style="height: 40px; width: 80px; border-radius: 8px;"></div>
+      </div>
+      <div class="stat-label">Total Users</div>
+      <div class="stat-change positive" id="usersChange">+12% this month</div>
+    </div>
+
+    <div class="stat-card" style="cursor: pointer;" data-url="{{ url_for('admin_lessons') }}">
+      <div class="stat-icon lessons">
+        <i class="fas fa-graduation-cap"></i>
+      </div>
+      <div class="stat-number" id="total-lessons">
+        <div class="loading-skeleton" style="height: 40px; width: 60px; border-radius: 8px;"></div>
+      </div>
+      <div class="stat-label">Total Lessons</div>
+      <div class="stat-change positive" id="lessonsChange">+3 new</div>
+    </div>
+
+    <div class="stat-card" style="cursor: pointer;" data-url="{{ url_for('admin_quiz') }}">
+      <div class="stat-icon quizzes">
+        <i class="fas fa-question-circle"></i>
+      </div>
+      <div class="stat-number" id="total-quizzes">
+        <div class="loading-skeleton" style="height: 40px; width: 70px; border-radius: 8px;"></div>
+      </div>
+      <div class="stat-label">Quiz Questions</div>
+      <div class="stat-change positive" id="quizzesChange">+15 new</div>
+    </div>
+
+    <div class="stat-card" style="cursor: pointer;" data-url="{{ url_for('admin_badges') }}">
+      <div class="stat-icon badges">
+        <i class="fas fa-award"></i>
+      </div>
+      <div class="stat-number" id="total-badges">
+        <div class="loading-skeleton" style="height: 40px; width: 50px; border-radius: 8px;"></div>
+      </div>
+      <div class="stat-label">Available Badges</div>
+      <div class="stat-change positive" id="badgesChange">+2 new</div>
+    </div>
+
+    <div class="stat-card" style="cursor: pointer;" data-url="{{ url_for('admin_categories') }}">
+      <div class="stat-icon categories">
+        <i class="fas fa-tags"></i>
+      </div>
+      <div class="stat-number" id="total-categories">
+        <div class="loading-skeleton" style="height: 40px; width: 60px; border-radius: 8px;"></div>
+      </div>
+      <div class="stat-label">Categories</div>
+      <div class="stat-change positive" id="categoriesChange">+1 new</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon completed">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="stat-number" id="completed-lessons">
+        <div class="loading-skeleton" style="height: 40px; width: 90px; border-radius: 8px;"></div>
+      </div>
+      <div class="stat-label">Completed Lessons</div>
+      <div class="stat-change positive" id="completedChange">+25 this week</div>
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="charts-section">
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">User Activity Over Time</h3>
+      </div>
+      <div class="chart-container">
+        <canvas id="activityChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">Lesson Completion Rate</h3>
+      </div>
+      <div class="chart-container">
+        <canvas id="completionChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <h2 class="section-title">
+      <i class="fas fa-bolt"></i>
+      Quick Actions
+    </h2>
+    <div class="actions-grid">
+      <a href="{{ url_for('admin_lessons') }}" class="action-card">
+        <div class="action-icon lesson">
+          <i class="fas fa-plus"></i>
+        </div>
+        <h3 class="action-title">Create New Lesson</h3>
+        <p class="action-description">Add a new lesson with AR content and quiz questions</p>
+      </a>
+
+      <a href="{{ url_for('admin_quiz') }}" class="action-card">
+        <div class="action-icon quiz">
+          <i class="fas fa-question-circle"></i>
+        </div>
+        <h3 class="action-title">Manage Quizzes</h3>
+        <p class="action-description">Create and edit quiz questions for your lessons</p>
+      </a>
+
+      <a href="{{ url_for('admin_categories') }}" class="action-card">
+        <div class="action-icon category">
+          <i class="fas fa-folder-plus"></i>
+        </div>
+        <h3 class="action-title">Add Category</h3>
+        <p class="action-description">Organize lessons into categories for better structure</p>
+      </a>
+
+      <a href="{{ url_for('admin_badges') }}" class="action-card">
+        <div class="action-icon badge">
+          <i class="fas fa-award"></i>
+        </div>
+        <h3 class="action-title">Create Badge</h3>
+        <p class="action-description">Design new badges to reward student achievements</p>
+      </a>
+
+      <a href="{{ url_for('admin_users') }}" class="action-card">
+        <div class="action-icon user">
+          <i class="fas fa-user-cog"></i>
+        </div>
+        <h3 class="action-title">User Management</h3>
+        <p class="action-description">View user stats and manage user accounts</p>
+      </a>
+
+      <a href="#" class="action-card" onclick="exportData()">
+        <div class="action-icon analytics">
+          <i class="fas fa-download"></i>
+        </div>
+        <h3 class="action-title">Export Data</h3>
+        <p class="action-description">Download user progress and analytics reports</p>
+      </a>
+    </div>
+  </div>
+
+  <!-- Top Users Section -->
+  <div class="top-users-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="fas fa-trophy"></i>
+        Top Performers
+      </h2>
+    </div>
+    <div class="top-users-container">
+      <div id="top-users-list">
+        <div class="loading-skeleton" style="height: 300px; border-radius: 12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup Alert Container -->
+  <!-- Alert container now managed globally by alerts.js -->
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Load dashboard statistics
+  async function loadDashboardStats() {
+    try {
+      // Load dashboard stats, analytics, and leaderboard
+      const [statsResponse, analyticsResponse, leaderboardResponse] = await Promise.all([
+        apiFetch('/api/admin/dashboard/stats'),
+        apiFetch('/api/admin/dashboard/analytics'),
+        apiFetch('/api/leaderboard')
+      ]);
+
+      if (statsResponse.ok) {
+        const stats = await statsResponse.json();
+        
+        // Update all statistics with real data
+        document.getElementById('total-users').textContent = stats.total_users;
+        document.getElementById('total-lessons').textContent = stats.total_lessons;
+        document.getElementById('total-quizzes').textContent = stats.total_quiz_questions;
+        document.getElementById('total-badges').textContent = stats.total_badges;
+        document.getElementById('total-categories').textContent = stats.total_categories;
+        document.getElementById('completed-lessons').textContent = stats.completed_lessons;
+
+        // Update change indicators with real data
+        document.getElementById('usersChange').textContent = `+${stats.recent_users} this week`;
+        document.getElementById('lessonsChange').textContent = `${stats.total_lessons} total`;
+        document.getElementById('quizzesChange').textContent = `${stats.total_quiz_questions} questions`;
+        document.getElementById('badgesChange').textContent = `${stats.total_badges} available`;
+        document.getElementById('categoriesChange').textContent = `${stats.total_categories} categories`;
+        document.getElementById('completedChange').textContent = `+${stats.recent_completions} this week`;
+      }
+
+      // Load analytics for charts
+      if (analyticsResponse.ok) {
+        const analytics = await analyticsResponse.json();
+        initializeCharts(analytics);
+      }
+
+      // Load top users
+      if (leaderboardResponse.ok) {
+        const leaderboard = await leaderboardResponse.json();
+        displayTopUsers(leaderboard.slice(0, 8));
+      }
+
+    } catch (error) {
+      console.error('Error loading dashboard stats:', error);
+      // Show error message in dashboard
+      showDashboardError();
+    }
+  }
+
+  // Show dashboard error
+  function showDashboardError() {
+    const stats = ['total-users', 'total-lessons', 'total-quizzes', 'total-badges', 'total-categories', 'completed-lessons'];
+    stats.forEach(id => {
+      document.getElementById(id).textContent = 'Error';
+    });
+  }
+
+  // Display top users
+  function displayTopUsers(users) {
+    const topUsersList = document.getElementById('top-users-list');
+    if (users.length > 0) {
+      topUsersList.innerHTML = users.map((user, index) => {
+        const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+        return `
+          <div class="user-item">
+            <div class="user-rank ${rankClass}">
+              ${index < 3 ? '<i class="fas fa-crown"></i>' : ''}
+              <span>${index + 1}</span>
+            </div>
+            <div class="user-avatar" style="background: linear-gradient(135deg, ${getGradientColors(index)})">
+              ${user.name.charAt(0).toUpperCase()}
+            </div>
+            <div class="user-info">
+              <div class="user-name">${user.name}</div>
+              <div class="user-xp">
+                <i class="fas fa-star"></i> ${user.xp || 0} XP
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      topUsersList.innerHTML = '<p class="empty-state"><i class="fas fa-users"></i><br>No users found.</p>';
+    }
+  }
+
+  // Get gradient colors for avatars
+  function getGradientColors(index) {
+    const gradients = [
+      '#667eea, #764ba2',
+      '#f093fb, #f5576c',
+      '#4facfe, #00f2fe',
+      '#43e97b, #38f9d7',
+      '#fa709a, #fee140',
+      '#a8edea, #fed6e3',
+      '#ffecd2, #fcb69f',
+      '#667eea, #764ba2'
+    ];
+    return gradients[index % gradients.length];
+  }
+
+  // Initialize charts with real data
+  function initializeCharts(analytics) {
+    // User Activity Chart
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    
+    // Prepare user activity data
+    const userActivityData = analytics.user_activity || [];
+    const labels = [];
+    const data = [];
+    
+    // Generate last 7 days labels and fill with data
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      labels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+      
+      const activityData = userActivityData.find(item => item.date === dateStr);
+      data.push(activityData ? activityData.count : 0);
+    }
+    
+    new Chart(activityCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'New Users',
+          data: data,
+          borderColor: '#667eea',
+          backgroundColor: 'rgba(102, 126, 234, 0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'var(--text-secondary)'
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: 'var(--text-secondary)'
+            }
+          }
+        }
+      }
+    });
+
+    // Completion Rate Chart
+    const completionCtx = document.getElementById('completionChart').getContext('2d');
+    const completionStats = analytics.completion_stats || { completed: 0, in_progress: 0, total: 0 };
+    
+    const completed = completionStats.completed || 0;
+    const inProgress = completionStats.in_progress || 0;
+    const notStarted = Math.max(0, completionStats.total - completed - inProgress);
+    
+    new Chart(completionCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Completed', 'In Progress', 'Not Started'],
+        datasets: [{
+          data: [completed, inProgress, notStarted],
+          backgroundColor: [
+            '#43e97b',
+            '#4facfe',
+            '#fa709a'
+          ],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: 'var(--text-secondary)',
+              padding: 20
+            }
+          }
+        }
+      }
+    });
+  }
+
+
+  // Export data function
+  async function exportData() {
+    try {
+      // Show loading state
+      const exportBtn = event.target.closest('.action-card');
+      const originalContent = exportBtn.innerHTML;
+      exportBtn.innerHTML = '<div class="action-icon analytics"><i class="fas fa-spinner fa-spin"></i></div><h3 class="action-title">Exporting...</h3><p class="action-description">Please wait...</p>';
+      
+      // Fetch all data
+      const [statsResponse, usersResponse, lessonsResponse] = await Promise.all([
+        apiFetch('/api/admin/dashboard/stats'),
+        apiFetch('/api/admin/users'),
+        apiFetch('/api/lessons')
+      ]);
+      
+      if (statsResponse.ok && usersResponse.ok && lessonsResponse.ok) {
+        const stats = await statsResponse.json();
+        const users = await usersResponse.json();
+        const lessons = await lessonsResponse.json();
+        
+        // Create CSV content
+        let csvContent = "Dashboard Statistics\n";
+        csvContent += `Total Users,${stats.total_users}\n`;
+        csvContent += `Total Lessons,${stats.total_lessons}\n`;
+        csvContent += `Total Categories,${stats.total_categories}\n`;
+        csvContent += `Total Quiz Questions,${stats.total_quiz_questions}\n`;
+        csvContent += `Total Badges,${stats.total_badges}\n`;
+        csvContent += `Completed Lessons,${stats.completed_lessons}\n`;
+        csvContent += `Recent Users (7 days),${stats.recent_users}\n`;
+        csvContent += `Recent Completions (7 days),${stats.recent_completions}\n\n`;
+        
+        csvContent += "User Data\n";
+        csvContent += "Name,Email,XP,Created At\n";
+        users.forEach(user => {
+          csvContent += `${user.name},${user.email},${user.xp || 0},${user.created_at || 'N/A'}\n`;
+        });
+        
+        csvContent += "\nLesson Data\n";
+        csvContent += "Title,Description,Category,XP Range,Order\n";
+        lessons.forEach(lesson => {
+          csvContent += `${lesson.title},${lesson.description || 'N/A'},${lesson.category || 'N/A'},${lesson.xp_min || 0}-${lesson.xp_max || 0},${lesson.order_in_category || 1}\n`;
+        });
+        
+        // Download CSV
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `nexqod_dashboard_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Show success message
+        showMessage('Data exported successfully!', 'success');
+      } else {
+        throw new Error('Failed to fetch data for export');
+      }
+      
+      // Restore button
+      exportBtn.innerHTML = originalContent;
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      showMessage('Failed to export data. Please try again.', 'error');
+      
+      // Restore button
+      const exportBtn = event.target.closest('.action-card');
+      exportBtn.innerHTML = '<div class="action-icon analytics"><i class="fas fa-download"></i></div><h3 class="action-title">Export Data</h3><p class="action-description">Download user progress and analytics reports</p>';
+    }
+  }
+
+  // Show popup alert message
+  function showMessage(message, type) {
+    showAlert(message, { type: type });
+  }
+
+  // Check if user is admin before loading
+  async function checkAdminAndLoad() {
+    try {
+      const response = await apiFetch('/api/profile');
+
+      if (response.ok) {
+        const profile = await response.json();
+        if (profile.role === 'admin') {
+          loadDashboardStats();
+        } else {
+          alert('You do not have permission to access this page.');
+          window.location.href = '{{ url_for("home_page") }}';
+        }
+      } else {
+        window.location.href = '{{ url_for("auth_page") }}';
+      }
+    } catch (error) {
+      console.error('Admin check error:', error);
+      window.location.href = '{{ url_for("auth_page") }}';
+    }
+  }
+
+  // Add click handlers to stat cards
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.stat-card[data-url]').forEach(card => {
+      card.addEventListener('click', function() {
+        const url = this.getAttribute('data-url');
+        if (url) {
+          window.location.href = url;
+        }
+      });
+    });
+  });
+
+  // Initialize dashboard
+  checkAdminAndLoad();
+</script>
+{% endblock %}

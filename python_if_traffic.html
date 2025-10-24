@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Python If Statements - Traffic Light Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Exo+2:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Exo 2', sans-serif;
+            background: #1E1E2F;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .tl-split-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .tl-canvas-container {
+            flex: 1;
+            position: relative;
+            background: #87CEEB;
+            min-width: 0;
+        }
+        
+        .tl-canvas-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .tl-story-bubble {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 3px solid #FF9500;
+            border-radius: 20px;
+            padding: clamp(15px, 4vw, 30px);
+            max-width: min(90%, 600px);
+            text-align: center;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: tl-bounceIn 0.5s ease;
+        }
+        
+        @keyframes tl-bounceIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .tl-story-bubble h2 {
+            font-family: 'Fredoka', sans-serif;
+            color: #FF9500;
+            font-size: clamp(18px, 4vw, 26px);
+            margin-bottom: 10px;
+        }
+        
+        .tl-story-bubble p {
+            font-size: clamp(13px, 2.5vw, 16px);
+            color: #1E1E2F;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .tl-code-example {
+            background: #1E1E2F;
+            color: #A8E10C;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(11px, 2vw, 14px);
+            margin: 8px 0;
+            text-align: left;
+        }
+        
+        .tl-start-btn {
+            background: linear-gradient(135deg, #FF9500, #FFB700);
+            color: white;
+            border: none;
+            padding: clamp(10px, 2vw, 14px) clamp(20px, 4vw, 35px);
+            border-radius: 10px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(14px, 2.5vw, 18px);
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,149,0,0.4);
+            transition: all 0.3s;
+        }
+        
+        .tl-start-btn:hover {
+            background: linear-gradient(135deg, #A8E10C, #B8F01C);
+            color: #1E1E2F;
+            transform: translateY(-2px);
+        }
+        
+        .tl-speech-bubble {
+            position: absolute;
+            background: white;
+            border: 3px solid #FF69B4;
+            border-radius: 15px;
+            padding: clamp(10px, 2vw, 15px) clamp(12px, 2.5vw, 22px);
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(12px, 2vw, 16px);
+            font-weight: 600;
+            z-index: 12;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: none;
+            animation: tl-popIn 0.3s ease;
+            max-width: 280px;
+        }
+        
+        .tl-speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid white;
+        }
+        
+        .tl-speech-bubble.tl-show {
+            display: block;
+        }
+        
+        #tl-ria-speech {
+            top: 8%;
+            right: 8%;
+            color: #FF69B4;
+        }
+        
+        #tl-signal-speech {
+            top: 35%;
+            left: 12%;
+            color: #FF9500;
+            background: #FFF3E0;
+            border-color: #FF9500;
+        }
+        
+        @media (max-width: 768px) {
+            #tl-ria-speech {
+                top: 5%;
+                right: 5%;
+            }
+            #tl-signal-speech {
+                top: 30%;
+                left: 5%;
+            }
+        }
+        
+        #tl-ui-overlay {
+            flex: 1;
+            position: relative;
+            z-index: 10;
+            pointer-events: all;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            min-width: 0;
+            border-left: 3px solid #FF9500;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .tl-lesson-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #FFFFFF;
+            padding: clamp(20px, 3vw, 30px);
+            overflow-y: auto;
+        }
+        
+        .tl-lesson-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #E8E8E8;
+        }
+        
+        .tl-lesson-title {
+            font-family: 'Fredoka', sans-serif;
+            color: #1E1E2F;
+            font-size: clamp(16px, 2.5vw, 20px);
+            font-weight: 700;
+        }
+        
+        .tl-lesson-title .tl-highlight {
+            color: #FF9500;
+        }
+        
+        .tl-lesson-subtitle {
+            font-size: clamp(11px, 2vw, 13px);
+            color: #5E6C84;
+            margin-top: 2px;
+        }
+        
+        .tl-xp-badge {
+            background: linear-gradient(135deg, #FF9500, #FFB700);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: clamp(10px, 2vw, 12px);
+            font-weight: 700;
+            display: none;
+            white-space: nowrap;
+        }
+        
+        .tl-xp-badge.tl-show {
+            display: inline-block;
+            animation: tl-popIn 0.3s ease;
+        }
+        
+        @keyframes tl-popIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .tl-challenge-card {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            border-left: 4px solid #FF9500;
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2.5vw, 16px);
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: clamp(13px, 2vw, 15px);
+            color: #1E1E2F;
+            transition: all 0.3s ease;
+        }
+        
+        .tl-challenge-number {
+            display: inline-block;
+            background: #FF9500;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            margin-right: 6px;
+        }
+        
+        .tl-challenge-card.tl-completed {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-left-color: #A8E10C;
+        }
+        
+        .tl-challenge-card.tl-completed .tl-challenge-number {
+            background: #A8E10C;
+        }
+        
+        #tl-code-input {
+            width: 100%;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(14px, 2.5vw, 16px);
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px);
+            border: 2px solid #DFE1E6;
+            border-radius: 8px;
+            margin: 12px 0 8px 0;
+            transition: all 0.3s;
+            background: #1E1E2F;
+            color: #A8E10C;
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        #tl-code-input:focus {
+            outline: none;
+            border-color: #FF9500;
+            box-shadow: 0 0 0 3px rgba(255,149,0,0.2);
+        }
+        
+        .tl-hint-text {
+            color: #5E6C84;
+            font-size: clamp(10px, 2vw, 12px);
+            margin: 4px 0;
+            line-height: 1.4;
+        }
+        
+        .tl-choice-btn {
+            font-family: 'Courier New', monospace;
+            padding: clamp(12px, 2vw, 16px);
+            border: 2px solid #DFE1E6;
+            border-radius: 8px;
+            font-size: clamp(13px, 2vw, 15px);
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            color: #1E1E2F;
+            text-align: left;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .tl-choice-btn:hover {
+            border-color: #FF9500;
+            background: #FFF3E0;
+            transform: translateX(5px);
+        }
+        
+        .tl-choice-btn.tl-correct {
+            border-color: #A8E10C;
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            cursor: default;
+            animation: tl-correctPulse 0.6s ease;
+        }
+        
+        .tl-choice-btn.tl-wrong {
+            border-color: #FF5555;
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            animation: tl-shake 0.5s ease;
+        }
+        
+        @keyframes tl-correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes tl-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .tl-status-message {
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px);
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: clamp(12px, 2vw, 14px);
+            font-weight: 600;
+            display: none;
+            line-height: 1.5;
+        }
+        
+        .tl-status-message.tl-success {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            color: #2E7D32;
+            border: 2px solid #A8E10C;
+        }
+        
+        .tl-status-message.tl-error {
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            color: #C62828;
+            border: 2px solid #FF5555;
+        }
+        
+        .tl-status-message.tl-hint {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            color: #E65100;
+            border: 2px solid #FF9500;
+        }
+        
+        .tl-status-message.tl-show {
+            display: block;
+            animation: tl-slideUp 0.3s ease;
+        }
+        
+        @keyframes tl-slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tl-interaction-hint {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,149,0,0.9);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: clamp(10px, 2vw, 12px);
+            color: white;
+            z-index: 11;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 968px) {
+            .tl-split-container {
+                flex-direction: column;
+            }
+            .tl-canvas-container {
+                height: 40%;
+                min-height: 300px;
+            }
+            #tl-ui-overlay {
+                height: 60%;
+                border-left: none;
+                border-top: 3px solid #FF9500;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            }
+            .tl-speech-bubble {
+                font-size: 11px;
+                max-width: 200px;
+                padding: 8px 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .tl-story-bubble {
+                padding: 15px 20px;
+            }
+            .tl-code-example {
+                font-size: 11px;
+            }
+            .tl-interaction-hint {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tl-split-container">
+        <div id="tl-canvas-container" class="tl-canvas-container">
+            <div class="tl-interaction-hint" style="display:none;" id="tl-interaction-hint">
+                🖱️ Drag • Scroll zoom
+            </div>
+            
+            <div id="tl-ria-speech" class="tl-speech-bubble">Let's control traffic! 🚦</div>
+            <div id="tl-signal-speech" class="tl-speech-bubble">...</div>
+        </div>
+        
+        <div id="tl-ui-overlay" style="display:none;">
+            <div class="tl-lesson-panel">
+                <div class="tl-lesson-header">
+                    <div>
+                        <div class="tl-lesson-title">Challenge: <span class="tl-highlight" id="tl-challenge-title">Ask for Light Color</span></div>
+                        <div class="tl-lesson-subtitle">Make smart decisions!</div>
+                    </div>
+                    <div class="tl-xp-badge" id="tl-xp-badge">+150 XP! 🎉</div>
+                </div>
+                
+                <div id="tl-challenge1" class="tl-challenge-card">
+                    <span class="tl-challenge-number">1</span>
+                    <strong>Red Light - STOP:</strong> Cars must stop completely! 🔴🚗⛔
+                </div>
+                
+                <div id="tl-challenge2" class="tl-challenge-card" style="opacity: 0.5;">
+                    <span class="tl-challenge-number">2</span>
+                    <strong>Yellow Light - GET READY:</strong> Cars should slow down! 🟡⚠️
+                </div>
+                
+                <div id="tl-challenge3" class="tl-challenge-card" style="opacity: 0.5;">
+                    <span class="tl-challenge-number">3</span>
+                    <strong>Green Light - GO:</strong> Cars can move forward! 🟢✅
+                </div>
+                
+                <div id="tl-question-panel" style="margin: 15px 0; padding: 15px; background: linear-gradient(135deg, #E3F2FD, #BBDEFB); border-radius: 10px; border-left: 4px solid #00C2FF;">
+                    <div style="font-weight: 600; margin-bottom: 10px; font-size: clamp(14px, 2vw, 16px);" id="tl-question-text">
+                        If the light is <strong style="color: #FF0000;">RED</strong>, what should the car do?
+                    </div>
+                    <div id="tl-statement-hint" style="font-size: clamp(11px, 2vw, 13px); color: #5E6C84; margin-bottom: 10px;">
+                        💡 Choose the correct <strong>if</strong> statement:
+                    </div>
+                </div>
+                
+                <div id="tl-choice-container" style="display: flex; flex-direction: column; gap: 8px; margin: 10px 0;"></div>
+                
+                <div class="tl-hint-text" id="tl-live-hint">💡 Select the correct Python statement!</div>
+                
+                <div class="tl-status-message" id="tl-status"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="tl-story-intro" class="tl-story-bubble">
+        <h2>🚦 Ria's Traffic Light Game</h2>
+        <p><strong style="color: #FF69B4;">Ria</strong> wants to control traffic and teach cars what to do!</p>
+        <p><strong>Traffic Light Rules:</strong></p>
+        <div style="background: linear-gradient(135deg, #FFE5E5, #FFB3B3); padding: 8px; border-radius: 6px; margin: 8px 0; border-left: 4px solid #FF0000;">
+            🔴 <strong>RED</strong> = Cars must <strong>STOP</strong>
+        </div>
+        <div style="background: linear-gradient(135deg, #FFF9E5, #FFE5B3); padding: 8px; border-radius: 6px; margin: 8px 0; border-left: 4px solid #FFD700;">
+            🟡 <strong>YELLOW</strong> = Cars should <strong>GET READY</strong> (slow down)
+        </div>
+        <div style="background: linear-gradient(135deg, #E5FFE5, #B3FFB3); padding: 8px; border-radius: 6px; margin: 8px 0; border-left: 4px solid #00FF00;">
+            🟢 <strong>GREEN</strong> = Cars can <strong>GO</strong> (move forward)
+        </div>
+        <p>Learn Python <strong>if statements</strong> to control the traffic:</p>
+        <div class="tl-code-example">
+            <div style="color: #FFD700;">if light == "red":</div>
+            <div style="color: #FFD700; padding-left: 20px;">print("Stop!")</div>
+            <div style="color: #FFD700;">elif light == "yellow":</div>
+            <div style="color: #FFD700; padding-left: 20px;">print("Get ready!")</div>
+            <div style="color: #FFD700;">elif light == "green":</div>
+            <div style="color: #FFD700; padding-left: 20px;">print("Go!")</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2); padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #FF9500;">
+            <strong>🐴 Donki is here to help!</strong><br>
+            <small style="color: #666;">If you make a mistake, Donki will automatically give you smart hints!</small>
+        </div>
+        <button class="tl-start-btn" onclick="window.tlStartLesson()">Start Game! 🚦</button>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        const container = document.getElementById('tl-canvas-container');
+        const scene = new THREE.Scene();
+        
+        // Bright daytime city
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.Fog(0xB0E0E6, 30, 80);
+        
+        const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 5, 18);
+        
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: true,
+            alpha: false,
+            preserveDrawingBuffer: true
+        });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+        
+        console.log('✅ 3D Traffic Scene created');
+        
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.target.set(0, 2, 0);
+        controls.maxPolarAngle = Math.PI / 2.2;
+        controls.minDistance = 8;
+        controls.maxDistance = 30;
+        
+        // Lighting - bright sunny day
+        scene.add(new THREE.AmbientLight(0xFFFAF0, 0.7));
+        const sunLight = new THREE.DirectionalLight(0xFFE4B5, 1.3);
+        sunLight.position.set(20, 30, 15);
+        sunLight.castShadow = true;
+        sunLight.shadow.camera.left = sunLight.shadow.camera.bottom = -30;
+        sunLight.shadow.camera.right = sunLight.shadow.camera.top = 30;
+        sunLight.shadow.mapSize.width = sunLight.shadow.mapSize.height = 2048;
+        scene.add(sunLight);
+        
+        // Ground - asphalt/grass
+        const groundGeometry = new THREE.PlaneGeometry(100, 100, 30, 30);
+        const vertices = groundGeometry.attributes.position.array;
+        for (let i = 0; i < vertices.length; i += 3) {
+            vertices[i + 2] = Math.random() * 0.2;
+        }
+        groundGeometry.attributes.position.needsUpdate = true;
+        groundGeometry.computeVertexNormals();
+        
+        const ground = new THREE.Mesh(
+            groundGeometry,
+            new THREE.MeshStandardMaterial({ 
+                color: 0x4A7C2C,
+                roughness: 0.95,
+                metalness: 0.1
+            })
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+        
+        // Road - dark gray asphalt
+        const road = new THREE.Mesh(
+            new THREE.PlaneGeometry(10, 60),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x3A3A3A,
+                roughness: 0.9
+            })
+        );
+        road.rotation.x = -Math.PI / 2;
+        road.position.y = 0.02;
+        road.receiveShadow = true;
+        scene.add(road);
+        
+        // Road lines (white dashes)
+        for (let i = -25; i < 25; i += 4) {
+            const line = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.3, 2),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xFFFFFF,
+                    emissive: 0xFFFFFF,
+                    emissiveIntensity: 0.3
+                })
+            );
+            line.rotation.x = -Math.PI / 2;
+            line.position.set(0, 0.03, i);
+            scene.add(line);
+        }
+        
+        // Sidewalks
+        [-6, 6].forEach(x => {
+            const sidewalk = new THREE.Mesh(
+                new THREE.PlaneGeometry(2, 60),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xC8C8C8,
+                    roughness: 0.85
+                })
+            );
+            sidewalk.rotation.x = -Math.PI / 2;
+            sidewalk.position.set(x, 0.04, 0);
+            sidewalk.receiveShadow = true;
+            scene.add(sidewalk);
+        });
+        
+        // Traffic Light Pole & Signal
+        const trafficLightGroup = new THREE.Group();
+        
+        // Pole
+        const pole = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.15, 0.18, 5, 12),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x4A4A4A,
+                metalness: 0.6,
+                roughness: 0.4
+            })
+        );
+        pole.position.set(-7, 2.5, 0);
+        pole.castShadow = true;
+        trafficLightGroup.add(pole);
+        
+        // Signal box
+        const signalBox = new THREE.Mesh(
+            new THREE.BoxGeometry(0.6, 2, 0.4),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x2C2C2C,
+                metalness: 0.5,
+                roughness: 0.5
+            })
+        );
+        signalBox.position.set(-7, 5.5, 0);
+        signalBox.castShadow = true;
+        trafficLightGroup.add(signalBox);
+        
+        // Traffic light circles (Red, Yellow, Green)
+        const redLight = new THREE.Mesh(
+            new THREE.CircleGeometry(0.22, 16),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x8B0000,
+                emissive: 0xFF0000,
+                emissiveIntensity: 0.2
+            })
+        );
+        redLight.position.set(-6.79, 6.2, 0);
+        redLight.rotation.y = Math.PI / 2;
+        trafficLightGroup.add(redLight);
+        trafficLightGroup.userData.redLight = redLight;
+        
+        const yellowLight = new THREE.Mesh(
+            new THREE.CircleGeometry(0.22, 16),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x8B8B00,
+                emissive: 0xFFFF00,
+                emissiveIntensity: 0.2
+            })
+        );
+        yellowLight.position.set(-6.79, 5.5, 0);
+        yellowLight.rotation.y = Math.PI / 2;
+        trafficLightGroup.add(yellowLight);
+        trafficLightGroup.userData.yellowLight = yellowLight;
+        
+        const greenLight = new THREE.Mesh(
+            new THREE.CircleGeometry(0.22, 16),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x006400,
+                emissive: 0x00FF00,
+                emissiveIntensity: 0.2
+            })
+        );
+        greenLight.position.set(-6.79, 4.8, 0);
+        greenLight.rotation.y = Math.PI / 2;
+        trafficLightGroup.add(greenLight);
+        trafficLightGroup.userData.greenLight = greenLight;
+        
+        scene.add(trafficLightGroup);
+        
+        // Car (simple)
+        const car = new THREE.Group();
+        
+        // Car body
+        const carBody = new THREE.Mesh(
+            new THREE.BoxGeometry(1.8, 0.8, 3.5),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xFF3333,
+                metalness: 0.6,
+                roughness: 0.3
+            })
+        );
+        carBody.position.y = 0.8;
+        carBody.castShadow = true;
+        car.add(carBody);
+        
+        // Car roof
+        const carRoof = new THREE.Mesh(
+            new THREE.BoxGeometry(1.6, 0.7, 2),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xFF3333,
+                metalness: 0.6,
+                roughness: 0.3
+            })
+        );
+        carRoof.position.set(0, 1.5, -0.3);
+        carRoof.castShadow = true;
+        car.add(carRoof);
+        
+        // Windows
+        const windowMat = new THREE.MeshStandardMaterial({ 
+            color: 0x4FC3F7,
+            transparent: true,
+            opacity: 0.6,
+            metalness: 0.9,
+            roughness: 0.1
+        });
+        
+        const frontWindow = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.4, 0.6),
+            windowMat
+        );
+        frontWindow.position.set(0, 1.5, 0.71);
+        frontWindow.rotation.x = -0.2;
+        car.add(frontWindow);
+        
+        const backWindow = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.4, 0.6),
+            windowMat
+        );
+        backWindow.position.set(0, 1.5, -1.31);
+        backWindow.rotation.x = 0.2;
+        backWindow.rotation.y = Math.PI;
+        car.add(backWindow);
+        
+        // Wheels
+        const wheelGeometry = new THREE.CylinderGeometry(0.35, 0.35, 0.3, 16);
+        const wheelMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x1A1A1A,
+            roughness: 0.8
+        });
+        
+        const wheelPositions = [
+            [-1, 0.35, 1.2],
+            [1, 0.35, 1.2],
+            [-1, 0.35, -1.2],
+            [1, 0.35, -1.2]
+        ];
+        
+        wheelPositions.forEach(([x, y, z]) => {
+            const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(x, y, z);
+            wheel.castShadow = true;
+            car.add(wheel);
+        });
+        
+        car.position.set(2, 0, 8);
+        car.rotation.y = Math.PI;
+        car.userData.speed = 0;
+        car.userData.targetZ = 8;
+        scene.add(car);
+        
+        // Additional vehicles
+        const car2 = car.clone();
+        car2.traverse(child => {
+            if (child.isMesh) {
+                child.material = child.material.clone();
+                if (child.material.color) {
+                    child.material.color.setHex(0x4169E1); // Blue car
+                }
+            }
+        });
+        car2.position.set(-2, 0, 15);
+        car2.rotation.y = Math.PI;
+        car2.userData.speed = 0;
+        car2.userData.targetZ = 15;
+        scene.add(car2);
+        
+        const car3 = car.clone();
+        car3.traverse(child => {
+            if (child.isMesh) {
+                child.material = child.material.clone();
+                if (child.material.color) {
+                    child.material.color.setHex(0xFFD700); // Gold car
+                }
+            }
+        });
+        car3.position.set(2, 0, 22);
+        car3.rotation.y = Math.PI;
+        car3.userData.speed = 0;
+        car3.userData.targetZ = 22;
+        scene.add(car3);
+        
+        const allCars = [car, car2, car3];
+        
+        // Ria Character (standing on sidewalk)
+        function createRia() {
+            const ria = new THREE.Group();
+            
+            // Legs
+            const leftLeg = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.12, 1.1, 8, 12),
+                new THREE.MeshStandardMaterial({ color: 0x4169E1 })
+            );
+            leftLeg.position.set(-0.18, 0.55, 0);
+            leftLeg.castShadow = true;
+            ria.add(leftLeg);
+            
+            const rightLeg = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.12, 1.1, 8, 12),
+                new THREE.MeshStandardMaterial({ color: 0x4169E1 })
+            );
+            rightLeg.position.set(0.18, 0.55, 0);
+            rightLeg.castShadow = true;
+            ria.add(rightLeg);
+            
+            // Torso
+            const torso = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.35, 0.38, 0.9, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFF69B4, roughness: 0.7 })
+            );
+            torso.position.y = 1.6;
+            torso.castShadow = true;
+            ria.add(torso);
+            
+            // Neck
+            const neck = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.12, 0.15, 0.2, 12),
+                new THREE.MeshStandardMaterial({ color: 0xFFDBAC })
+            );
+            neck.position.y = 2.15;
+            ria.add(neck);
+            
+            // Head
+            const head = new THREE.Mesh(
+                new THREE.SphereGeometry(0.32, 16, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFFDBAC, roughness: 0.75 })
+            );
+            head.scale.set(0.9, 1.05, 0.95);
+            head.castShadow = true;
+            head.position.y = 2.45;
+            ria.add(head);
+            
+            // Hair (long with ponytail)
+            const hair = new THREE.Mesh(
+                new THREE.SphereGeometry(0.34, 16, 16),
+                new THREE.MeshStandardMaterial({ color: 0x4A2511, roughness: 0.9 })
+            );
+            hair.scale.set(1, 0.9, 1);
+            hair.position.y = 2.6;
+            ria.add(hair);
+            
+            const ponytail = new THREE.Mesh(
+                new THREE.SphereGeometry(0.2, 10, 10),
+                new THREE.MeshStandardMaterial({ color: 0x4A2511, roughness: 0.9 })
+            );
+            ponytail.scale.set(0.7, 1.3, 0.7);
+            ponytail.position.set(0, 2.45, -0.35);
+            ria.add(ponytail);
+            
+            // Eyes
+            const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+            const leftEyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 10), eyeWhiteMat);
+            leftEyeWhite.position.set(-0.13, 2.48, 0.28);
+            ria.add(leftEyeWhite);
+            
+            const rightEyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 10), eyeWhiteMat);
+            rightEyeWhite.position.set(0.13, 2.48, 0.28);
+            ria.add(rightEyeWhite);
+            
+            // Pupils
+            const pupilMat = new THREE.MeshBasicMaterial({ color: 0x1E1E2F });
+            const leftPupil = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), pupilMat);
+            leftPupil.position.set(-0.13, 2.48, 0.34);
+            ria.add(leftPupil);
+            ria.userData.leftEye = leftPupil;
+            
+            const rightPupil = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), pupilMat);
+            rightPupil.position.set(0.13, 2.48, 0.34);
+            ria.add(rightPupil);
+            ria.userData.rightEye = rightPupil;
+            
+            // Smiling mouth
+            const mouth = new THREE.Mesh(
+                new THREE.TorusGeometry(0.12, 0.02, 8, 16, Math.PI),
+                new THREE.MeshStandardMaterial({ color: 0xE67E80 })
+            );
+            mouth.position.set(0, 2.3, 0.28);
+            mouth.rotation.x = Math.PI;
+            ria.add(mouth);
+            ria.userData.mouth = mouth;
+            
+            // Arms
+            const armMat = new THREE.MeshStandardMaterial({ color: 0xFFDBAC, roughness: 0.8 });
+            
+            const leftArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.7, 6, 10), armMat);
+            leftArm.position.set(-0.48, 1.5, 0);
+            leftArm.rotation.z = 0.5;
+            leftArm.castShadow = true;
+            ria.add(leftArm);
+            ria.userData.leftArm = leftArm;
+            
+            const rightArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.7, 6, 10), armMat);
+            rightArm.position.set(0.48, 1.5, 0);
+            rightArm.rotation.z = -0.5;
+            rightArm.castShadow = true;
+            ria.add(rightArm);
+            ria.userData.rightArm = rightArm;
+            
+            return ria;
+        }
+        
+        const ria = createRia();
+        ria.position.set(6.5, 0, 2);
+        ria.rotation.y = -Math.PI / 4;
+        scene.add(ria);
+        
+        // Buildings (simple city backdrop)
+        function createBuilding(x, z, width, height, depth, color) {
+            const building = new THREE.Mesh(
+                new THREE.BoxGeometry(width, height, depth),
+                new THREE.MeshStandardMaterial({ 
+                    color: color,
+                    roughness: 0.8
+                })
+            );
+            building.position.set(x, height / 2, z);
+            building.castShadow = true;
+            building.receiveShadow = true;
+            scene.add(building);
+            
+            // Windows
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < Math.floor(height / 2); j++) {
+                    const window = new THREE.Mesh(
+                        new THREE.PlaneGeometry(0.4, 0.5),
+                        new THREE.MeshStandardMaterial({ 
+                            color: 0x4FC3F7,
+                            emissive: 0x2196F3,
+                            emissiveIntensity: 0.3
+                        })
+                    );
+                    window.position.set(
+                        x + (i - 1.5) * 1.5,
+                        1 + j * 1.8,
+                        z > 0 ? z - depth/2 - 0.01 : z + depth/2 + 0.01
+                    );
+                    window.rotation.y = z > 0 ? 0 : Math.PI;
+                    scene.add(window);
+                }
+            }
+        }
+        
+        createBuilding(-15, -20, 8, 12, 6, 0xB0B0B0);
+        createBuilding(15, -20, 6, 15, 5, 0x9E9E9E);
+        createBuilding(-18, -35, 7, 18, 8, 0x8C8C8C);
+        createBuilding(18, -35, 9, 14, 7, 0xA5A5A5);
+        
+        // Trees on sidewalks
+        function createTree(x, z) {
+            const tree = new THREE.Group();
+            
+            const trunk = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.15, 0.2, 1.5, 8),
+                new THREE.MeshStandardMaterial({ color: 0x4A3728, roughness: 0.95 })
+            );
+            trunk.position.y = 0.75;
+            trunk.castShadow = true;
+            tree.add(trunk);
+            
+            const foliage = new THREE.Mesh(
+                new THREE.SphereGeometry(0.8, 8, 8),
+                new THREE.MeshStandardMaterial({ color: 0x2D5016, roughness: 0.9 })
+            );
+            foliage.position.y = 1.8;
+            foliage.castShadow = true;
+            tree.add(foliage);
+            
+            tree.position.set(x, 0, z);
+            return tree;
+        }
+        
+        scene.add(createTree(-6.5, -8));
+        scene.add(createTree(-6.5, 8));
+        scene.add(createTree(6.5, -8));
+        scene.add(createTree(6.5, 8));
+        
+        // Clouds
+        const clouds = [];
+        for (let i = 0; i < 6; i++) {
+            const cloud = new THREE.Group();
+            for (let j = 0; j < 5; j++) {
+                const puff = new THREE.Mesh(
+                    new THREE.SphereGeometry(1, 8, 8),
+                    new THREE.MeshBasicMaterial({ 
+                        color: 0xFFFFFF,
+                        transparent: true,
+                        opacity: 0.8
+                    })
+                );
+                puff.position.set((j - 2) * 1.2, Math.random() * 0.5, 0);
+                puff.scale.set(1 + Math.random() * 0.4, 0.7 + Math.random() * 0.3, 0.8);
+                cloud.add(puff);
+            }
+            cloud.position.set(
+                (Math.random() - 0.5) * 60,
+                15 + Math.random() * 10,
+                -30 - Math.random() * 20
+            );
+            cloud.userData.speed = 0.01 + Math.random() * 0.015;
+            clouds.push(cloud);
+            scene.add(cloud);
+        }
+        
+        // Celebration stars
+        const stars = new THREE.Group();
+        scene.add(stars);
+        
+        function createStarCelebration() {
+            stars.clear();
+            for (let i = 0; i < 40; i++) {
+                const star = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.15, 6, 6),
+                    new THREE.MeshBasicMaterial({ 
+                        color: [0xFFD700, 0xFF9500, 0xFF69B4, 0xA8E10C][i % 4]
+                    })
+                );
+                star.position.set(
+                    (Math.random() - 0.5) * 12,
+                    1 + Math.random() * 3,
+                    (Math.random() - 0.5) * 8
+                );
+                star.userData.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.05,
+                    0.05 + Math.random() * 0.06,
+                    (Math.random() - 0.5) * 0.05
+                );
+                stars.add(star);
+            }
+            setTimeout(() => stars.clear(), 3500);
+        }
+        
+        // Animation
+        let time = 0;
+        let currentChallenge = 1;
+        let blinkTimer = 0;
+        let trafficLightState = 'red'; // red, yellow, green
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+            blinkTimer += 0.016;
+            
+            // Ria waving
+            ria.userData.leftArm.rotation.z = 0.5 + Math.sin(time * 4) * 0.5;
+            ria.position.y = Math.sin(time * 1.5) * 0.05;
+            
+            // Car movement based on traffic light
+            allCars.forEach(car => {
+                if (trafficLightState === 'green') {
+                    car.userData.speed = -0.12; // Move forward
+                } else if (trafficLightState === 'yellow') {
+                    car.userData.speed = -0.04; // Slow down
+                } else if (trafficLightState === 'red') {
+                    car.userData.speed = 0; // Stop
+                }
+                
+                // Apply movement
+                car.position.z += car.userData.speed;
+                
+                // Reset if too far
+                if (car.position.z < -30) {
+                    car.position.z = car.userData.targetZ + 20;
+                }
+                
+                // Rotate wheels when moving
+                if (car.userData.speed !== 0) {
+                    car.children.forEach(child => {
+                        if (child.geometry && child.geometry.type === 'CylinderGeometry') {
+                            child.rotation.y += Math.abs(car.userData.speed) * 0.5;
+                        }
+                    });
+                }
+            });
+            
+            // Blinking
+            if (blinkTimer > 3 && Math.random() < 0.015) {
+                ria.userData.leftEye.scale.y = 0.1;
+                ria.userData.rightEye.scale.y = 0.1;
+                setTimeout(() => {
+                    ria.userData.leftEye.scale.y = 1;
+                    ria.userData.rightEye.scale.y = 1;
+                }, 120);
+                blinkTimer = 0;
+            }
+            
+            // Clouds moving
+            clouds.forEach(cloud => {
+                cloud.position.x += cloud.userData.speed;
+                if (cloud.position.x > 40) cloud.position.x = -40;
+            });
+            
+            // Stars animation
+            stars.children.forEach(star => {
+                star.position.add(star.userData.velocity);
+                star.rotation.x += 0.1;
+                star.rotation.y += 0.1;
+            });
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // Light control function
+        function setTrafficLight(color) {
+            trafficLightState = color; // Update global state
+            
+            // Reset all lights
+            trafficLightGroup.userData.redLight.material.emissiveIntensity = 0.2;
+            trafficLightGroup.userData.yellowLight.material.emissiveIntensity = 0.2;
+            trafficLightGroup.userData.greenLight.material.emissiveIntensity = 0.2;
+            
+            // Brighten the active light
+            if (color === 'red') {
+                trafficLightGroup.userData.redLight.material.emissiveIntensity = 1.5;
+            } else if (color === 'yellow') {
+                trafficLightGroup.userData.yellowLight.material.emissiveIntensity = 1.5;
+            } else if (color === 'green') {
+                trafficLightGroup.userData.greenLight.material.emissiveIntensity = 1.5;
+            }
+        }
+        
+        // Responsive resize
+        function handleResize() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+        
+        window.addEventListener('resize', handleResize);
+        new ResizeObserver(handleResize).observe(container);
+        
+        // UI Logic
+        const storyIntro = document.getElementById('tl-story-intro');
+        const uiOverlay = document.getElementById('tl-ui-overlay');
+        const riaSpeech = document.getElementById('tl-ria-speech');
+        const signalSpeech = document.getElementById('tl-signal-speech');
+        const interactionHint = document.getElementById('tl-interaction-hint');
+        const status = document.getElementById('tl-status');
+        const liveHint = document.getElementById('tl-live-hint');
+        const xpBadge = document.getElementById('tl-xp-badge');
+        const challengeTitle = document.getElementById('tl-challenge-title');
+        const challenge1 = document.getElementById('tl-challenge1');
+        const challenge2 = document.getElementById('tl-challenge2');
+        const challenge3 = document.getElementById('tl-challenge3');
+        const questionText = document.getElementById('tl-question-text');
+        const statementHint = document.getElementById('tl-statement-hint');
+        const choiceContainer = document.getElementById('tl-choice-container');
+        
+        // Enhanced API_BASE detection for iframe context
+        function getAPIBase() {
+            if (window.parent && window.parent !== window) {
+                try {
+                    const parentOrigin = window.parent.location.origin;
+                    console.log('✅ Iframe detected, using parent origin:', parentOrigin);
+                    return parentOrigin;
+                } catch (e) {
+                    console.log('⚠️ Cross-origin iframe, using document referrer');
+                    if (document.referrer) {
+                        const url = new URL(document.referrer);
+                        return url.origin;
+                    }
+                }
+            }
+            
+            if (location.port === '5500') {
+                console.log('🔧 Live Server detected, using localhost:5000');
+                return 'http://127.0.0.1:5000';
+            }
+            
+            console.log('📍 Using same origin for API calls');
+            return '';
+        }
+        
+        const API_BASE = getAPIBase();
+        console.log('🌐 API_BASE set to:', API_BASE || 'same-origin');
+        
+        let studentName = sessionStorage.getItem('studentName') || 'Student';
+        
+        async function fetchStudentName() {
+            try {
+                const response = await fetch(`${API_BASE}/api/user-info`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.name) {
+                        studentName = data.name;
+                        sessionStorage.setItem('studentName', studentName);
+                    }
+                }
+            } catch (e) {
+                console.log('No user session found');
+            }
+        }
+        
+        fetchStudentName();
+        
+        function speak(text, pitch = 1, useFemaleVoice = false) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = pitch;
+                
+                if (useFemaleVoice) {
+                    const voices = window.speechSynthesis.getVoices();
+                    const femaleVoice = voices.find(voice => 
+                        voice.name.includes('Female') || 
+                        voice.name.includes('Zira')
+                    );
+                    if (femaleVoice) {
+                        utterance.voice = femaleVoice;
+                    }
+                    utterance.pitch = 1.2;
+                }
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        
+        window.tlStartLesson = function() {
+            storyIntro.style.display = 'none';
+            uiOverlay.style.display = 'flex';
+            interactionHint.style.display = 'block';
+            
+            // Start with red light
+            setTrafficLight('red');
+            
+            setTimeout(() => {
+                riaSpeech.classList.add('tl-show');
+                riaSpeech.textContent = `Hi ${studentName}! Let's control traffic! 🚦`;
+                speak(`Hi ${studentName}! Let's control traffic lights!`, 1.2, true);
+            }, 500);
+            
+            setTimeout(() => {
+                signalSpeech.classList.add('tl-show');
+                signalSpeech.textContent = "Red light ON = STOP! 🔴";
+                speak("Red light is on! Red means cars must stop completely!", 1);
+            }, 2000);
+            
+            setTimeout(() => {
+                riaSpeech.textContent = "Choose the IF statement! 📝";
+                speak(`${studentName}, red light means stop. Choose the correct if statement!`, 1.2, true);
+                loadChallenge1();
+            }, 3500);
+        };
+        
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            try {
+                if (type === 'success') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        setTimeout(() => {
+                            const osc = audioContext.createOscillator();
+                            const gain = audioContext.createGain();
+                            osc.connect(gain).connect(audioContext.destination);
+                            osc.frequency.value = freq;
+                            osc.type = 'sine';
+                            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                            osc.start();
+                            osc.stop(audioContext.currentTime + 0.4);
+                        }, i * 150);
+                    });
+                } else {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain).connect(audioContext.destination);
+                    osc.frequency.value = 200;
+                    osc.type = 'square';
+                    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(audioContext.currentTime + 0.15);
+                }
+            } catch (e) {}
+        }
+        
+        // Challenge Loading Functions
+        function loadChallenge1() {
+            currentChallenge = 1;
+            challengeTitle.textContent = "Red Light - Stop the Car!";
+            questionText.innerHTML = '🔴 <strong style="color: #FF0000;">RED</strong> light means cars must <strong>STOP</strong>!<br>Choose the correct Python statement:';
+            statementHint.innerHTML = '💡 Use <strong>if</strong> for the first condition:';
+            
+            const choices = [
+                { text: 'if light == "red":<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Stop! 🚗⛔")', correct: true },
+                { text: 'if light = "red":<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Stop! 🚗⛔")', correct: false },
+                { text: 'elif light == "red":<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Stop! 🚗⛔")', correct: false },
+                { text: 'if light == red:<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Stop! 🚗⛔")', correct: false }
+            ];
+            
+            renderChoices(choices, handleChallenge1Answer);
+            liveHint.innerHTML = '💡 Red light = Car STOPS completely! Use <strong>if</strong> with <strong>==</strong>';
+        }
+        
+        function loadChallenge2() {
+            currentChallenge = 2;
+            setTrafficLight('yellow');
+            challengeTitle.textContent = "Yellow Light - Get Ready!";
+            questionText.innerHTML = '🟡 <strong style="color: #FFD700;">YELLOW</strong> light means cars should <strong>GET READY</strong> (slow down)!<br>Choose the correct Python statement:';
+            statementHint.innerHTML = '💡 Use <strong>elif</strong> for the second condition:';
+            
+            const choices = [
+                { text: 'elif light == "yellow":<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Get ready! ⚠️")', correct: true },
+                { text: 'if light == "yellow":<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Get ready! ⚠️")', correct: false },
+                { text: 'elif light = "yellow":<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Get ready! ⚠️")', correct: false },
+                { text: 'else light == "yellow":<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Get ready! ⚠️")', correct: false }
+            ];
+            
+            renderChoices(choices, handleChallenge2Answer);
+            liveHint.innerHTML = '💡 Yellow light = Car SLOWS DOWN! Use <strong>elif</strong> (else-if)';
+        }
+        
+        function loadChallenge3() {
+            currentChallenge = 3;
+            setTrafficLight('green');
+            challengeTitle.textContent = "Green Light - Go!";
+            questionText.innerHTML = '🟢 <strong style="color: #00FF00;">GREEN</strong> light means cars can <strong>GO</strong> (move forward)!<br>Choose the correct Python statement:';
+            statementHint.innerHTML = '💡 Use another <strong>elif</strong> for the third condition:';
+            
+            const choices = [
+                { text: 'elif light == "green":<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Go! 🟢")', correct: true },
+                { text: 'else:<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Go! 🟢")', correct: false },
+                { text: 'if light == "green":<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Go! 🟢")', correct: false },
+                { text: 'elif light = "green":<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Go! 🟢")', correct: false }
+            ];
+            
+            renderChoices(choices, handleChallenge3Answer);
+            liveHint.innerHTML = '💡 Green light = Car MOVES! Use another <strong>elif</strong>';
+        }
+        
+        function renderChoices(choices, callback) {
+            choiceContainer.innerHTML = '';
+            choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'tl-choice-btn';
+                btn.innerHTML = choice.text;
+                btn.onclick = () => callback(choice.correct, btn);
+                choiceContainer.appendChild(btn);
+            });
+        }
+        
+        function handleChallenge1Answer(isCorrect, button) {
+            if (isCorrect) {
+                button.classList.add('tl-correct');
+                playSound('success');
+                
+                challenge1.classList.add('tl-completed');
+                challenge1.innerHTML = '<span class="tl-challenge-number">✓</span><strong>Red = STOP!</strong> Cars stopped completely! 🚗⛔';
+                
+                status.className = 'tl-status-message tl-success tl-show';
+                status.style.display = 'block';
+                status.innerHTML = '🎉 <strong>Perfect!</strong> RED light = Cars STOP!<br>You used <strong>if</strong> for the first condition correctly!<br>Notice: Cars are now stopped! 🚗';
+                
+                signalSpeech.textContent = "Cars STOPPED! Perfect! ✅";
+                speak("Perfect! Red light means stop. All cars stopped completely!", 1);
+                
+                riaSpeech.textContent = "Great! Now yellow light! 🟡";
+                
+                // Disable all buttons
+                document.querySelectorAll('.tl-choice-btn').forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.cursor = 'default';
+                });
+                
+                setTimeout(() => {
+                    challenge2.style.opacity = '1';
+                    speak(`${studentName}, now let's try the yellow light that means get ready!`, 1.2, true);
+                    loadChallenge2();
+                    status.style.display = 'none';
+                }, 3500);
+            } else {
+                button.classList.add('tl-wrong');
+                playSound('error');
+                
+                status.className = 'tl-status-message tl-error tl-show';
+                status.style.display = 'block';
+                status.innerHTML = '❌ Not quite! Remember:<br>• Use <strong>if</strong> for first condition<br>• Use <strong>==</strong> to compare (not just =)<br>• Put "red" in quotes<br>• RED light = Cars must STOP 🛑';
+                
+                setTimeout(() => {
+                    button.classList.remove('tl-wrong');
+                }, 1000);
+                
+                requestAIHint('if light = "red"');
+            }
+        }
+        
+        function handleChallenge2Answer(isCorrect, button) {
+            if (isCorrect) {
+                button.classList.add('tl-correct');
+                playSound('success');
+                
+                challenge2.classList.add('tl-completed');
+                challenge2.innerHTML = '<span class="tl-challenge-number">✓</span><strong>Yellow = GET READY!</strong> Cars slowing down! ⚠️';
+                
+                status.className = 'tl-status-message tl-success tl-show';
+                status.style.display = 'block';
+                status.innerHTML = '🎉 <strong>Excellent!</strong> YELLOW light = Cars GET READY (slow down)!<br>You used <strong>elif</strong> for the second condition!<br>Notice: Cars are slowing down now! 🚗💨';
+                
+                signalSpeech.textContent = "Slowing down! Great! 🚶";
+                speak("Excellent! Yellow light means get ready. Cars are slowing down!", 1);
+                
+                riaSpeech.textContent = "Perfect! Now green! 🟢";
+                
+                document.querySelectorAll('.tl-choice-btn').forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.cursor = 'default';
+                });
+                
+                setTimeout(() => {
+                    challenge3.style.opacity = '1';
+                    speak(`${studentName}, now the green light that means go!`, 1.2, true);
+                    loadChallenge3();
+                    status.style.display = 'none';
+                }, 3500);
+            } else {
+                button.classList.add('tl-wrong');
+                playSound('error');
+                
+                status.className = 'tl-status-message tl-error tl-show';
+                status.style.display = 'block';
+                status.innerHTML = '❌ Try again! Remember:<br>• Use <strong>elif</strong> for second condition<br>• Still need <strong>==</strong> to compare<br>• Put "yellow" in quotes<br>• YELLOW light = Cars GET READY ⚠️';
+                
+                setTimeout(() => {
+                    button.classList.remove('tl-wrong');
+                }, 1000);
+                
+                requestAIHint('elif light = "yellow"');
+            }
+        }
+        
+        function handleChallenge3Answer(isCorrect, button) {
+            if (isCorrect) {
+                button.classList.add('tl-correct');
+                playSound('success');
+                
+                challenge3.classList.add('tl-completed');
+                challenge3.innerHTML = '<span class="tl-challenge-number">✓</span><strong>Green = GO!</strong> Cars moving fast! 🟢';
+                
+                status.className = 'tl-status-message tl-success tl-show';
+                status.style.display = 'block';
+                status.innerHTML = `🎉 <strong>Amazing ${studentName}!</strong> GREEN light = Cars GO (move)!<br><br>You mastered traffic lights:<br>🔴 <strong>RED</strong> = STOP<br>🟡 <strong>YELLOW</strong> = GET READY<br>🟢 <strong>GREEN</strong> = GO<br><br>And Python statements:<br>• <strong>if</strong> for first condition<br>• <strong>elif</strong> for more options<br>• <strong>==</strong> to compare values!`;
+                xpBadge.classList.add('tl-show');
+                
+                signalSpeech.textContent = "All cars moving! Perfect! 🚗💨";
+                speak("Perfect! Green light means go. All cars are moving!", 1);
+                
+                riaSpeech.textContent = "You're a traffic master! 🌟";
+                
+                createStarCelebration();
+                
+                document.querySelectorAll('.tl-choice-btn').forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.cursor = 'default';
+                });
+                
+                setTimeout(() => {
+                    speak(`Congratulations ${studentName}! You mastered if statements and traffic lights!`, 1.2, true);
+                    signalLessonComplete();
+                }, 3500);
+            } else {
+                button.classList.add('tl-wrong');
+                playSound('error');
+                
+                status.className = 'tl-status-message tl-error tl-show';
+                status.style.display = 'block';
+                status.innerHTML = '❌ Not quite! Remember:<br>• Use <strong>elif</strong> for another condition<br>• NOT <strong>else</strong> (that comes last!)<br>• Put "green" in quotes<br>• GREEN light = Cars GO 🟢';
+                
+                setTimeout(() => {
+                    button.classList.remove('tl-wrong');
+                }, 1000);
+                
+                requestAIHint('else: print("Go!")');
+            }
+        }
+        
+        async function requestAIHint(userCode) {
+            // Show Donki is thinking
+            status.className = 'tl-status-message tl-hint tl-show';
+            status.innerHTML = '🐴 Donki is thinking...';
+            status.style.display = 'block'; // Force display
+            
+            console.log('🐴 Requesting Donki hint...', {
+                api: `${API_BASE}/api/hint`,
+                challenge: currentChallenge,
+                code: userCode,
+                topic: 'if_statements'
+            });
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/hint`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ 
+                        code: userCode,
+                        student_name: studentName,
+                        challenge: currentChallenge,
+                        topic: 'if_statements'
+                    })
+                });
+                
+                console.log('📡 Donki API response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Donki hint received:', data);
+                    if (data.hint) {
+                        status.className = 'tl-status-message tl-hint tl-show';
+                        status.style.display = 'block';
+                        status.innerHTML = `🐴 <strong>Donki says:</strong> ${data.hint}`;
+                        const cleanHint = data.hint.replace(studentName + ',', '').replace(studentName + '!', '');
+                        speak(cleanHint, 1.1, true);
+                        return;
+                    }
+                } else {
+                    console.error('❌ Donki API error:', response.status, response.statusText);
+                }
+            } catch (e) {
+                console.error('❌ Donki hint fetch error:', e);
+            }
+            
+            // Fallback hints - topic-specific
+            console.log('⚠️ Using fallback hint (Donki API unavailable)');
+            let hint = '';
+            if (currentChallenge === 1) {
+                hint = `Hey ${studentName}! For RED light, use <strong>if light == "red":</strong> with <strong>==</strong> to compare and quotes around "red"!`;
+            } else if (currentChallenge === 2) {
+                hint = `${studentName}, for YELLOW light, use <strong>elif light == "yellow":</strong> - <strong>elif</strong> means "else if" for another condition!`;
+            } else {
+                hint = `${studentName}, for GREEN light, use <strong>elif light == "green":</strong> - another <strong>elif</strong> for the third condition!`;
+            }
+            
+            status.className = 'tl-status-message tl-hint tl-show';
+            status.style.display = 'block';
+            status.innerHTML = `🐴 <strong>Donki says:</strong> ${hint}`;
+            const cleanText = hint.replace(/<[^>]*>/g, '').replace(studentName + ',', '').replace(studentName + '!', '');
+            speak(cleanText, 1.1, true);
+        }
+        
+        // Universal lesson completion signal
+        function signalLessonComplete() {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'LESSON_COMPLETE',
+                    studentName: studentName,
+                    timestamp: new Date().toISOString()
+                }, '*');
+                console.log('✅ Lesson completion signal sent to parent page');
+            } else {
+                console.log('⚠️ Not in iframe, cannot signal parent');
+            }
+        }
+        
+        window.signalLessonComplete = signalLessonComplete;
+    </script>
+</body>
+</html>
+

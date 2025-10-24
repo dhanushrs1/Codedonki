@@ -1,0 +1,569 @@
+{% extends 'admin/admin-base.html' %}
+{% set active_page = 'users' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-users.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="users-header">
+  <h1>
+    <i class="fas fa-users"></i>
+    User Management
+  </h1>
+  <div class="header-actions">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="searchInput" placeholder="Search users by name or email..." onkeyup="filterUsers()">
+    </div>
+  </div>
+</div>
+
+<!-- Alert container now managed globally by alerts.js -->
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon users"><i class="fas fa-users"></i></div>
+    <div class="stat-number" id="totalUsers">-</div>
+    <div class="stat-label">Total Users</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon xp"><i class="fas fa-trophy"></i></div>
+    <div class="stat-number" id="totalXP">-</div>
+    <div class="stat-label">Total XP Earned</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon lessons"><i class="fas fa-graduation-cap"></i></div>
+    <div class="stat-number" id="avgLessons">-</div>
+    <div class="stat-label">Avg Lessons/User</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon badges"><i class="fas fa-award"></i></div>
+    <div class="stat-number" id="totalBadges">-</div>
+    <div class="stat-label">Total Badges Earned</div>
+  </div>
+</div>
+
+<div class="admin-card">
+          <h2>All Users</h2>
+          <div class="table-responsive">
+            <div id="users-container">
+              <div class="loading-state">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <p>Loading users...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- User Activity Modal -->
+        <div id="userActivityModal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>
+                <i class="fas fa-user-clock"></i>
+                Recent activity - <span id="activityUserName"></span>
+              </h2>
+              <span class="close" onclick="closeActivityModal()">&times;</span>
+            </div>
+            <div id="userActivityBody" class="activity-body">
+              <div class="loading-state">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <p>Loading activity...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let allUsers = [];
+    let filteredUsers = [];
+
+    // Check admin status and initialize
+    async function checkAdminAndInit() {
+      try {
+        const response = await apiFetch('/api/profile');
+
+        if (response.ok) {
+          const profile = await response.json();
+          if (profile.role === 'admin') {
+            await loadUsers();
+          } else {
+            alert('You do not have permission to access this page.');
+            window.location.href = '{{ url_for("archive_page") }}';
+          }
+        } else {
+          window.location.href = '{{ url_for("auth_page") }}';
+        }
+      } catch (error) {
+        console.error('Admin check error:', error);
+        window.location.href = '{{ url_for("auth_page") }}';
+      }
+    }
+
+    // Load users
+    async function loadUsers() {
+      try {
+        const response = await apiFetch('/api/admin/users');
+
+        if (response.ok) {
+          allUsers = await response.json();
+          filteredUsers = [...allUsers];
+          displayUsers();
+          updateStats();
+        } else {
+          showMessage('Error loading users', 'error');
+        }
+      } catch (error) {
+        console.error('Error loading users:', error);
+        showMessage('Error loading users', 'error');
+      }
+    }
+
+    // Update statistics
+    function updateStats() {
+      const totalUsers = allUsers.length;
+      const totalXP = allUsers.reduce((sum, user) => sum + (user.xp || 0), 0);
+      const totalLessons = allUsers.reduce((sum, user) => sum + (user.completed_lessons || 0), 0);
+      const totalBadges = allUsers.reduce((sum, user) => sum + (user.badges_earned || 0), 0);
+      const avgLessons = totalUsers > 0 ? Math.round(totalLessons / totalUsers * 10) / 10 : 0;
+      
+      document.getElementById('totalUsers').textContent = totalUsers;
+      document.getElementById('totalXP').textContent = totalXP.toLocaleString();
+      document.getElementById('avgLessons').textContent = avgLessons;
+      document.getElementById('totalBadges').textContent = totalBadges;
+    }
+
+    // Filter users based on search input
+    function filterUsers() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      
+      if (searchTerm === '') {
+        filteredUsers = [...allUsers];
+      } else {
+        filteredUsers = allUsers.filter(user => 
+          user.name.toLowerCase().includes(searchTerm) ||
+          user.email.toLowerCase().includes(searchTerm)
+        );
+      }
+      
+      displayUsers();
+    }
+
+    // Display users in table or card layout
+    function displayUsers() {
+      const container = document.getElementById('users-container');
+      const isMobile = window.innerWidth <= 600;
+      
+      if (filteredUsers.length === 0) {
+        container.innerHTML = `
+          <div class="no-users">
+            <i class="fas fa-users"></i>
+            <h3>No Users Found</h3>
+            <p>No users match your search criteria.</p>
+          </div>
+        `;
+        container.classList.remove('has-users');
+        return;
+      }
+
+      if (isMobile) {
+        // Mobile card layout
+        container.classList.add('has-users');
+        let html = '';
+        
+        filteredUsers.forEach(user => {
+          const avatarUrl = user.avatar_url || '{{ url_for("static", filename="uploads/profile.png") }}';
+          const joinedDate = new Date(user.created_at).toLocaleDateString();
+          
+          html += `
+            <div class="user-card">
+              <div class="user-card-header">
+                <img src="${avatarUrl}" alt="${user.name}" class="user-card-avatar">
+                <div class="user-card-info">
+                  <div class="user-card-name">${user.name}</div>
+                  <div class="user-card-email">${user.email}</div>
+                  <div class="user-card-role">
+                    <span class="role-badge ${user.role === 'admin' ? 'admin' : 'user'}">${user.role || 'user'}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="user-card-stats">
+                <div class="user-card-stat">
+                  <div class="user-card-stat-value">${user.xp || 0}</div>
+                  <div class="user-card-stat-label">XP</div>
+                </div>
+                <div class="user-card-stat">
+                  <div class="user-card-stat-value">${user.completed_lessons || 0}</div>
+                  <div class="user-card-stat-label">Lessons</div>
+                </div>
+                <div class="user-card-stat">
+                  <div class="user-card-stat-value">${user.badges_earned || 0}</div>
+                  <div class="user-card-stat-label">Badges</div>
+                </div>
+                <div class="user-card-stat">
+                  <div class="user-card-stat-value">${joinedDate}</div>
+                  <div class="user-card-stat-label">Joined</div>
+                </div>
+              </div>
+              
+              <div class="user-card-actions">
+                <div class="action-menu" style="flex: 1;">
+                  <button class="btn-small btn-actions" onclick="toggleActionsMenu(event, ${user.id})">
+                    <i class="fas fa-ellipsis-h"></i> Actions
+                  </button>
+                  <div class="actions-dropdown" id="actions-menu-${user.id}">
+                    <button class="dropdown-item" onclick="viewUserProgress(${user.id}, '${user.name}')">
+                      <i class="fas fa-eye"></i> View Details
+                    </button>
+                    ${user.role !== 'admin' ? `
+                    <button class="dropdown-item" onclick="promoteUser(${user.id}, '${user.name}')">
+                      <i class=\"fas fa-user-plus\"></i> Promote
+                    </button>
+                    ` : ''}
+                    <button class="dropdown-item" onclick="resetUserProgress(${user.id}, '${user.name}')">
+                      <i class="fas fa-undo"></i> Reset progress
+                    </button>
+                    <button class="dropdown-item" onclick="awardBadges(${user.id}, '${user.name}')">
+                      <i class="fas fa-trophy"></i> Award badges
+                    </button>
+                    <button class="dropdown-item danger" onclick="deleteUser(${user.id}, '${user.name}')">
+                      <i class="fas fa-trash"></i> Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        container.innerHTML = html;
+      } else {
+        // Desktop/Tablet table layout
+        container.classList.remove('has-users');
+        let html = `
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>XP</th>
+                <th>Lessons</th>
+                <th>Badges</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        filteredUsers.forEach(user => {
+          const avatarUrl = user.avatar_url || '{{ url_for("static", filename="uploads/profile.png") }}';
+          const joinedDate = new Date(user.created_at).toLocaleDateString();
+          
+          html += `
+            <tr>
+              <td>
+                <div class="user-info">
+                  <img src="${avatarUrl}" alt="${user.name}" class="user-avatar">
+                  <div class="user-details">
+                    <h4>${user.name}</h4>
+                    <p>${user.email}</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge ${user.role === 'admin' ? 'admin' : 'user'}">${user.role || 'user'}</span>
+              </td>
+              <td>
+                <span class="xp-badge">${user.xp || 0} XP</span>
+              </td>
+              <td>${user.completed_lessons || 0}</td>
+              <td>${user.badges_earned || 0}</td>
+              <td>${joinedDate}</td>
+              <td class="user-actions">
+                <div class="action-menu">
+                  <button class="btn-small btn-actions" onclick="toggleActionsMenu(event, ${user.id})">
+                    <i class="fas fa-ellipsis-h"></i> View actions
+                  </button>
+                  <div class="actions-dropdown" id="actions-menu-${user.id}">
+                    <button class="dropdown-item" onclick="viewUserProgress(${user.id}, '${user.name}')">
+                      <i class="fas fa-eye"></i> View
+                    </button>
+                    ${user.role !== 'admin' ? `
+                    <button class="dropdown-item" onclick="promoteUser(${user.id}, '${user.name}')">
+                      <i class=\"fas fa-user-plus\"></i> Promote
+                    </button>
+                    ` : ''}
+                    <button class="dropdown-item" onclick="resetUserProgress(${user.id}, '${user.name}')">
+                      <i class="fas fa-undo"></i> Reset progress
+                    </button>
+                    <button class="dropdown-item" onclick="awardBadges(${user.id}, '${user.name}')">
+                      <i class="fas fa-trophy"></i> Award badges
+                    </button>
+                    <button class="dropdown-item danger" onclick="deleteUser(${user.id}, '${user.name}')">
+                      <i class="fas fa-trash"></i> Delete
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+        
+        html += `
+            </tbody>
+          </table>
+        `;
+
+        container.innerHTML = html;
+      }
+    }
+
+    // Reset user progress
+    async function resetUserProgress(userId, userName) {
+      if (!confirm(`Are you sure you want to reset all progress for ${userName}? This will:\n\n• Reset XP to 0\n• Clear all completed lessons\n• Remove all earned badges\n• Delete all quiz attempts\n\nThis action cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        const response = await apiFetch(`/api/admin/users/${userId}/reset-progress`, {
+          method: 'PUT'
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          await loadUsers();
+        } else {
+          showMessage(result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error resetting user progress:', error);
+        showMessage('Error resetting user progress', 'error');
+      }
+    }
+
+    // View user recent activity in a modal
+    async function viewUserProgress(userId, userName) {
+      openActivityModal(userName);
+      try {
+        const response = await apiFetch(`/api/admin/users/${userId}/activity`);
+        if (!response.ok) {
+          throw new Error('Failed to load activity');
+        }
+        const activities = await response.json();
+        renderUserActivity(activities);
+      } catch (err) {
+        renderUserActivity([], 'Error loading activity');
+      }
+    }
+
+    function openActivityModal(userName) {
+      document.getElementById('activityUserName').textContent = userName || '';
+      const body = document.getElementById('userActivityBody');
+      body.innerHTML = `
+        <div class="loading-state">
+          <i class="fas fa-circle-notch fa-spin"></i>
+          <p>Loading activity...</p>
+        </div>
+      `;
+      document.getElementById('userActivityModal').style.display = 'block';
+    }
+
+    function closeActivityModal() {
+      document.getElementById('userActivityModal').style.display = 'none';
+    }
+
+    function renderUserActivity(activities, errorMsg = '') {
+      const body = document.getElementById('userActivityBody');
+      if (errorMsg) {
+        body.innerHTML = `<div class="empty-state"><i class=\"fas fa-exclamation-circle\"></i><p>${errorMsg}</p></div>`;
+        return;
+      }
+      if (!activities || activities.length === 0) {
+        body.innerHTML = `<div class="empty-state"><i class=\"fas fa-user-clock\"></i><p>No recent activity found.</p></div>`;
+        return;
+      }
+
+      const iconFor = (type) => {
+        switch(type){
+          case 'registration': return 'fas fa-user-plus';
+          case 'completion': return 'fas fa-check-circle';
+          case 'quiz': return 'fas fa-question-circle';
+          case 'badge': return 'fas fa-award';
+          default: return 'fas fa-info-circle';
+        }
+      };
+
+      const formatMeta = (item) => {
+        if (item.type === 'completion' && (item.xp || item.xp === 0)) return `+${item.xp} XP`;
+        if (item.type === 'quiz') return `${item.score}% • ${item.passed ? 'Passed' : 'Failed'}`;
+        return '';
+      };
+
+      const formatTime = (ts) => {
+        if (!ts) return '';
+        try {
+          const d = new Date(ts);
+          return d.toLocaleString();
+        } catch { return ts; }
+      };
+
+      let html = '<div class="activity-list">';
+      activities.forEach(a => {
+        html += `
+          <div class="activity-item">
+            <div class="activity-icon"><i class="${iconFor(a.type)}"></i></div>
+            <div class="activity-content">
+              <div class="activity-title">${a.title}${a.details ? `: <span>${a.details}</span>` : ''}</div>
+              <div class="activity-meta">
+                <span>${formatMeta(a)}</span>
+                <span>${formatTime(a.timestamp)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      body.innerHTML = html;
+    }
+
+    // Promote user to admin
+    async function promoteUser(userId, userName) {
+      if (!confirm(`Are you sure you want to promote ${userName} to admin role?\n\nThis will give them full administrative access to the system.`)) {
+        return;
+      }
+
+      try {
+        const response = await apiFetch(`/api/admin/users/${userId}/promote`, {
+          method: 'PUT'
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          await loadUsers(); // Reload users to show updated role
+        } else {
+          showMessage(result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error promoting user:', error);
+        showMessage('Error promoting user', 'error');
+      }
+    }
+
+    // Award missing badges to user
+    async function awardBadges(userId, userName) {
+      if (!confirm(`Award missing badges to ${userName}?\n\nThis will check their current XP and award any badges they should have earned but don't have yet.`)) {
+        return;
+      }
+
+      try {
+        const response = await apiFetch(`/api/admin/users/${userId}/award-badges`, {
+          method: 'POST'
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          if (result.awarded_badges && result.awarded_badges.length > 0) {
+            const badgeNames = result.awarded_badges.map(b => b.name).join(', ');
+            showMessage(`Awarded ${result.awarded_badges.length} badges to ${userName}: ${badgeNames}`, 'success');
+          } else {
+            showMessage(result.message, 'success');
+          }
+          await loadUsers(); // Reload users to show updated badge count
+        } else {
+          showMessage(result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error awarding badges:', error);
+        showMessage('Error awarding badges', 'error');
+      }
+    }
+
+    // Delete user
+    async function deleteUser(userId, userName) {
+      if (!confirm(`⚠️ DANGER: Are you sure you want to permanently delete ${userName}?\n\nThis will:\n• Permanently delete the user account\n• Delete all user data (progress, badges, quiz attempts)\n• This action CANNOT be undone\n\nType "DELETE" to confirm:`)) {
+        return;
+      }
+
+      const confirmation = prompt(`Type "DELETE" to confirm permanent deletion of ${userName}:`);
+      if (confirmation !== 'DELETE') {
+        showMessage('Deletion cancelled - confirmation text did not match', 'error');
+        return;
+      }
+
+      try {
+        const response = await apiFetch(`/api/admin/users/${userId}/delete`, {
+          method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          await loadUsers(); // Reload users to show updated list
+        } else {
+          showMessage(result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        showMessage('Error deleting user', 'error');
+      }
+    }
+
+    // Use global showAlert from alerts.js
+    function showMessage(message, type = 'info') {
+      showAlert(message, { type: type });
+    }
+
+    // Actions dropdown helpers
+    function toggleActionsMenu(event, userId) {
+      event.stopPropagation();
+      closeAllActionMenus();
+      const menu = document.getElementById(`actions-menu-${userId}`);
+      if (menu) {
+        menu.classList.toggle('open');
+      }
+    }
+
+    function closeAllActionMenus() {
+      document.querySelectorAll('.actions-dropdown.open').forEach(menu => menu.classList.remove('open'));
+    }
+
+    // Close menus when clicking outside or pressing Escape
+    document.addEventListener('click', closeAllActionMenus);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAllActionMenus();
+        closeActivityModal();
+      }
+    });
+    window.addEventListener('click', (e) => {
+      const modal = document.getElementById('userActivityModal');
+      if (e.target === modal) closeActivityModal();
+    });
+
+    // Handle window resize for responsive layout
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        displayUsers();
+      }, 250);
+    });
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', checkAdminAndInit);
+</script>
+{% endblock %}

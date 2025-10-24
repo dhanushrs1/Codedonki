@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Lesson · CodeDonki{% endblock %}
+{% block head_extra %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/lesson.css') }}">
+{% endblock %}
+{% block content %}
+  <div class="container lesson-page">
+    <div class="lesson-header">
+      <a href="javascript:history.back()" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back
+      </a>
+      <h1 id="lesson-title">Loading...</h1>
+    </div>
+
+    <div class="lesson-content">
+      <div class="lesson-iframe-container">
+        <iframe id="lesson-iframe" src="" frameborder="0"></iframe>
+      </div>
+      
+      <div class="lesson-actions">
+        <div id="quizPrompt" style="display: none;">
+          <p>🎉 Great job! You've completed the lesson!</p>
+          <a id="quizLink" href="#" class="btn btn-primary">
+            Take Quiz <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/lesson.js') }}"></script>
+{% endblock %}

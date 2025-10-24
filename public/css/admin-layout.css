@@ -1,0 +1,214 @@
+/* --- Codedonki Admin Layout --- */
+/*
+  This file creates the WordPress-style admin layout.
+  It uses variables from main.css for the theme.
+*/
+
+:root {
+    --admin-sidebar-width: 240px;
+    --admin-topbar-height: 70px;
+  }
+  
+  body {
+    background-color: var(--bg-color);
+  }
+  
+  /* --- 1. Main Layout Wrapper --- */
+  .admin-wrapper {
+    display: grid;
+    grid-template-columns: 1fr; /* Mobile-first: single column */
+    grid-template-rows: var(--admin-topbar-height) 1fr;
+    min-height: 100vh;
+  }
+  
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--admin-sidebar-width);
+    height: 100vh;
+    background-color: var(--text-primary); /* Dark Navy */
+    color: var(--bg-color);
+    padding: 1rem;
+    z-index: 100;
+    transform: translateX(-100%); /* Hidden on mobile */
+    transition: transform 0.3s ease;
+  }
+  
+  .admin-sidebar.active {
+    transform: translateX(0);
+  }
+  
+  .admin-main {
+    grid-row: 2;
+    grid-column: 1;
+    background-color: var(--bg-color);
+    padding: 1rem;
+  }
+  
+  .admin-topbar {
+    grid-row: 1;
+    grid-column: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    background-color: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    z-index: 50;
+  }
+  
+  /* --- 2. Desktop Layout (for screens > 768px) --- */
+  @media (min-width: 768px) {
+    .admin-wrapper {
+      /* 2 columns: Sidebar | Main Content */
+      grid-template-columns: var(--admin-sidebar-width) 1fr;
+      grid-template-rows: 1fr; /* Full height */
+    }
+    
+    .admin-sidebar {
+      grid-column: 1;
+      position: static; /* Dock it */
+      transform: translateX(0); /* Always visible */
+      height: auto;
+    }
+  
+    .admin-main {
+      grid-column: 2;
+      grid-row: 1;
+      display: grid;
+      /* 2 rows: Topbar | Content */
+      grid-template-rows: var(--admin-topbar-height) 1fr;
+      padding: 0;
+    }
+    
+    .admin-topbar {
+      grid-row: 1;
+    }
+    
+    .admin-main-content {
+      grid-row: 2;
+      padding: 2.5rem;
+      overflow-y: auto; /* Allow content to scroll */
+    }
+    
+    /* Hide mobile menu button on desktop */
+    .mobile-menu-btn {
+      display: none !important;
+    }
+  }
+
+  /* --- Responsive Padding Breakpoints --- */
+  
+  /* Tablet (768px - 1024px) */
+  @media (max-width: 1024px) and (min-width: 768px) {
+    .admin-main-content {
+      padding: 2rem;
+    }
+  }
+  
+  /* Mobile Large (480px - 768px) */
+  @media (max-width: 768px) {
+    .admin-main {
+      padding: 1.5rem;
+    }
+  }
+  
+  /* Mobile Small (320px - 480px) */
+  @media (max-width: 480px) {
+    .admin-main {
+      padding: 1rem;
+    }
+  }
+  
+  /* Mobile Extra Small (up to 320px) */
+  @media (max-width: 320px) {
+    .admin-main {
+      padding: 0.75rem;
+    }
+  }
+  
+  /* --- 3. Sidebar Styling --- */
+  .sidebar-logo {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .sidebar-logo img {
+    max-width: 150px;
+  }
+  .sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .sidebar-nav-item {
+    margin: 0.5rem 0;
+  }
+  .sidebar-nav-item a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-btn);
+    color: #FFF8E7; /* Cream White text */
+    text-decoration: none;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    transition: background-color 0.2s;
+  }
+  .sidebar-nav-item a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  .sidebar-nav-item a.active {
+    background-color: var(--primary-color);
+    color: var(--surface-color);
+    box-shadow: var(--shadow-md);
+  }
+  .sidebar-nav-item a i {
+    width: 20px; /* Aligns icons */
+    text-align: center;
+  }
+  
+  /* --- 4. Topbar Styling --- */
+  .mobile-menu-btn {
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .topbar-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .topbar-profile-name {
+    font-weight: 600;
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+  }
+  .topbar-profile-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-color);
+  }
+  
+  /* --- 5. Admin Content Styling --- */
+  .admin-card {
+    background-color: var(--surface-color);
+    padding: 2rem;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+  }
+  .admin-card h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+  }

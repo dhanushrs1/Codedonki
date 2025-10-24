@@ -1,0 +1,518 @@
+{% extends 'base.html' %}
+{% block title %}Welcome to CodeDonki! Fun AR Coding Adventures{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="hero-section">
+  <div class="hero-bg-elements">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
+  <div class="container hero-content">
+    <div class="hero-text">
+      <h1>Play, Learn, Code & Laugh!</h1>
+      <p>Dive into coding with CodeDonki's fun, interactive AR adventures designed for young minds.</p>
+      <a href="{{ url_for('auth_page') }}" class="btn btn-primary hero-cta">Start Your Adventure!</a>
+    </div>
+    <div class="hero-image-container">
+      <img src="/uploads/sleeping_hero.svg" alt="CodeDonki Mascot Sleeping" class="hero-image" />
+    </div>
+  </div>
+  <div class="hero-curve"></div>
+</section>
+
+<section class="values-section">
+  <div class="container">
+    <h2>Why Choose CodeDonki?</h2>
+    <div class="values-grid">
+      <div class="value-card">
+        <img src="/uploads/Interactive_Learning.svg" alt="Interactive Learning" class="value-card-image">
+        <div class="value-card-body">
+          <h3>Hands-On Learning</h3>
+          <p>Don't just watch, DO! Build code concepts step-by-step with engaging activities.</p>
+        </div>
+      </div>
+      <div class="value-card">
+        <img src="/uploads/Gamified_Experience.svg" alt="Gamified Experience" class="value-card-image">
+        <div class="value-card-body">
+          <h3>Level Up Your Skills</h3>
+          <p>Earn XP, unlock cool badges, and climb the leaderboard as you master challenges.</p>
+        </div>
+      </div>
+      <div class="value-card">
+        <img src="/uploads/AR_Integration.svg" alt="AR Integration" class="value-card-image">
+        <div class="value-card-body">
+          <h3>Code in Your World</h3>
+          <p>Bring coding concepts to life right in your room with amazing 3D lessons.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Coding Challenge Section -->
+<section class="coding-challenge-section">
+  <div class="container">
+    <div class="challenge-header">
+      <h2>CodeDonki Terminal Time!</h2>
+      <p>Test your coding skills with our interactive challenge system</p>
+    </div>
+    
+    <div class="terminal-container">
+      <div class="cmd-window">
+        <div class="cmd-header">
+          <div class="cmd-title">
+            <span class="cmd-text">Code Console</span>
+          </div>
+          <div class="cmd-controls">
+            <div class="cmd-btn minimize">_</div>
+            <div class="cmd-btn maximize">□</div>
+            <div class="cmd-btn close">×</div>
+          </div>
+        </div>
+        
+        <div class="cmd-content">
+          <div class="cmd-prompt">
+            <span class="prompt-text">CodeDonki OS [Version 1.0.FunBuild]</span>
+          </div>
+          <div class="cmd-prompt">
+            <span class="prompt-text">(c) CodeDonki Studios. Ready to play!</span>
+          </div>
+          <div class="cmd-prompt">
+            <span class="prompt-text">C:\CodeMaster\Challenge></span>
+            <span class="prompt-command" id="currentCommand">python.exe</span>
+          </div>
+          
+          <div class="terminal-grid">
+            <div class="terminal-panel code-panel">
+              <div class="panel-content">
+                <pre><code id="codeSnippet">print("Hello" + " " + "World")</code></pre>
+              </div>
+            </div>
+            
+            <div class="terminal-panel question-panel">
+              <div class="panel-content">
+                <span class="question-prompt">></span>
+                <span id="questionText">What will be the output of this code?</span>
+              </div>
+            </div>
+            
+            <div class="terminal-panel options-panel">
+              <div class="panel-content" id="optionsContainer">
+                <button class="cmd-option" data-index="0">
+                  <span class="option-letter">A)</span>
+                  <span class="option-text">Hello World</span>
+                </button>
+                <button class="cmd-option" data-index="1">
+                  <span class="option-letter">B)</span>
+                  <span class="option-text">HelloWorld</span>
+                </button>
+                <button class="cmd-option" data-index="2">
+                  <span class="option-letter">C)</span>
+                  <span class="option-text">Error</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="terminal-panel feedback-panel">
+              <div class="panel-content" id="feedbackContent">
+                <span class="cursor-blink">_</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="cmd-actions">
+            <button class="cmd-button" id="newChallengeBtn">
+              <span class="btn-text">New Challenge</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="faq-section">
+  <div class="container">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-accordion">
+      <details class="faq-item">
+        <summary class="faq-question">
+          What age is CodeDonki for?
+          <i class="fas fa-chevron-down faq-icon"></i>
+        </summary>
+        <p class="faq-answer">CodeDonki is designed primarily for higher primary school students (ages 8-12), but younger kids with an interest and older beginners can enjoy it too!</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-question">
+          Do I need any coding experience?
+          <i class="fas fa-chevron-down faq-icon"></i>
+        </summary>
+        <p class="faq-answer">Not at all! Our lessons start from the very basics and build up gradually. It's perfect for complete beginners.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-question">
+          What devices support the AR features?
+          <i class="fas fa-chevron-down faq-icon"></i>
+        </summary>
+        <p class="faq-answer">The Augmented Reality features work best on modern smartphones and tablets (iOS and Android) that support ARKit or ARCore. You can still enjoy the 3D lessons on any computer.</p>
+      </details>
+       <details class="faq-item">
+        <summary class="faq-question">
+          Is CodeDonki free?
+          <i class="fas fa-chevron-down faq-icon"></i>
+        </summary>
+        <p class="faq-answer">We offer a range of introductory lessons for free! Advanced courses and features may require a subscription plan. Check out our Plans page for details.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="{{ url_for('static', filename='js/questions.js') }}"></script>
+<script>
+// Coding Challenge Game Logic
+class CodingChallenge {
+  constructor() {
+    this.puzzles = [];
+    this.currentPuzzle = null;
+    this.selectedAnswer = null;
+    this.isAnswered = false;
+    
+    this.loadQuestions();
+  }
+  
+  loadQuestions() {
+    try {
+      console.log('🔄 Loading questions from internal file...');
+      
+      if (typeof externalQuestions !== 'undefined') {
+        this.puzzles = externalQuestions;
+        console.log('✅ Successfully loaded', this.puzzles.length, 'questions from internal file');
+        console.log('📋 Questions:', this.puzzles);
+      } else {
+        throw new Error('Questions not found in externalQuestions variable');
+      }
+      
+    } catch (error) {
+      console.warn('⚠️ Failed to load internal questions:', error.message);
+      console.log('🔄 Using fallback questions...');
+      this.puzzles = this.getDefaultQuestions();
+    }
+    
+    this.init();
+  }
+  
+  
+  getDefaultQuestions() {
+    return [
+      {
+        language: "Python",
+        question: "What will be the output of this code?",
+        code: 'print("Hello" + " " + "World")',
+        options: ["Hello World", "HelloWorld", "Error"],
+        correctIndex: 0
+      },
+      {
+        language: "JavaScript",
+        question: "What will be the output of this code?",
+        code: 'let x = 5;\nlet y = 3;\nconsole.log(x + y);',
+        options: ["8", "53", "undefined"],
+        correctIndex: 0
+      },
+      {
+        language: "Python",
+        question: "What will be the output of this code?",
+        code: 'for i in range(3):\n    print(i)',
+        options: ["0 1 2", "1 2 3", "Error"],
+        correctIndex: 0
+      }
+    ];
+  }
+  
+  init() {
+    this.loadRandomPuzzle();
+    this.bindEvents();
+  }
+  
+  loadRandomPuzzle() {
+    // Better randomization using Fisher-Yates shuffle
+    const shuffledPuzzles = [...this.puzzles];
+    for (let i = shuffledPuzzles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledPuzzles[i], shuffledPuzzles[j]] = [shuffledPuzzles[j], shuffledPuzzles[i]];
+    }
+    
+    // Pick the first one from shuffled array
+    this.currentPuzzle = shuffledPuzzles[0];
+    this.selectedAnswer = null;
+    this.isAnswered = false;
+    
+    console.log('🎲 Random question selected:', this.currentPuzzle.language, '-', this.currentPuzzle.question.substring(0, 50) + '...');
+    
+    // Randomize the options order
+    this.randomizeOptions();
+    
+    this.updateUI();
+  }
+  
+  randomizeOptions() {
+    // Filter out empty options first
+    const validOptions = this.currentPuzzle.options.filter(option => option && option.trim() !== '');
+    const correctAnswer = validOptions[this.currentPuzzle.correctIndex];
+    const wrongAnswers = validOptions.filter((_, index) => index !== this.currentPuzzle.correctIndex);
+    
+    // Create new randomized options array
+    const allOptions = [correctAnswer, ...wrongAnswers];
+    
+    // Shuffle the array
+    for (let i = allOptions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
+    }
+    
+    // Update the puzzle with randomized options
+    this.currentPuzzle.options = allOptions;
+    this.currentPuzzle.correctIndex = allOptions.indexOf(correctAnswer);
+  }
+  
+  updateUI() {
+    const codeSnippet = document.getElementById('codeSnippet');
+    const questionText = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const feedbackContent = document.getElementById('feedbackContent');
+    const currentCommand = document.getElementById('currentCommand');
+    
+    // Update code snippet with syntax highlighting or placeholder
+    if (this.currentPuzzle.code && this.currentPuzzle.code.trim() !== '') {
+      codeSnippet.innerHTML = this.highlightSyntax(this.currentPuzzle.code);
+    } else {
+      // Show placeholder for empty code
+      const language = this.currentPuzzle.language.toLowerCase();
+      const placeholder = this.getCodePlaceholder(language);
+      codeSnippet.innerHTML = `<span class="comment">${placeholder}</span>`;
+    }
+    
+    // Update current command based on language
+    const language = this.currentPuzzle.language.toLowerCase().trim();
+    console.log('🔍 Detected language:', language, 'from:', this.currentPuzzle.language);
+    
+    if (language === 'python') {
+      currentCommand.textContent = 'python.exe';
+    } else if (language === 'javascript' || language === 'js') {
+      currentCommand.textContent = 'node.exe';
+    } else if (language === 'css') {
+      currentCommand.textContent = 'css.exe';
+    } else if (language === 'html') {
+      currentCommand.textContent = 'html.exe';
+    } else if (language === 'c') {
+      currentCommand.textContent = 'gcc.exe';
+    } else if (language === 'java') {
+      currentCommand.textContent = 'javac.exe';
+    } else {
+      currentCommand.textContent = 'code.exe';
+    }
+    
+    console.log('💻 Set command to:', currentCommand.textContent);
+    
+    // Update question
+    questionText.textContent = this.currentPuzzle.question;
+    
+    // Update options with CMD style - filter out empty options
+    optionsContainer.innerHTML = '';
+    const optionLetters = ['A', 'B', 'C'];
+    const validOptions = this.currentPuzzle.options.filter(option => option && option.trim() !== '');
+    
+    console.log('📋 Valid options:', validOptions);
+    
+    validOptions.forEach((option, index) => {
+      const button = document.createElement('button');
+      button.className = 'cmd-option';
+      button.setAttribute('data-index', index);
+      
+      // Escape HTML characters in option text to prevent them from being treated as HTML
+      const escapedOption = option
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+      
+      button.innerHTML = `
+        <span class="option-letter">${optionLetters[index]})</span>
+        <span class="option-text">${escapedOption}</span>
+      `;
+      optionsContainer.appendChild(button);
+    });
+    
+    // Clear feedback and show cursor
+    feedbackContent.innerHTML = '<span class="cursor-blink">_</span>';
+    feedbackContent.className = 'panel-content';
+  }
+  
+  getCodePlaceholder(language) {
+    const placeholders = {
+      'html': '// No code example available for this HTML question',
+      'css': '/* No code example available for this CSS question */',
+      'javascript': '// No code example available for this JavaScript question',
+      'python': '# No code example available for this Python question',
+      'c': '// No code example available for this C question',
+      'java': '// No code example available for this Java question'
+    };
+    return placeholders[language] || '// No code example available for this question';
+  }
+
+  highlightSyntax(code) {
+    const language = this.currentPuzzle.language.toLowerCase();
+    let highlightedCode = code;
+    
+    // First escape HTML characters to prevent them from being treated as HTML
+    highlightedCode = highlightedCode
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+    
+    // Common highlighting for all languages
+    highlightedCode = highlightedCode
+      // Strings (double quotes) - need to handle escaped quotes
+      .replace(/&quot;([^&]*)&quot;/g, '<span class="string">&quot;$1&quot;</span>')
+      // Strings (single quotes) - need to handle escaped quotes
+      .replace(/&#39;([^&]*)&#39;/g, '<span class="string">&#39;$1&#39;</span>')
+      // Numbers
+      .replace(/\b(\d+)\b/g, '<span class="number">$1</span>');
+    
+    // Language-specific highlighting
+    if (language === 'python') {
+      highlightedCode = highlightedCode
+        .replace(/\b(print|def|if|else|for|while|len|upper|lower|range)\b/g, '<span class="keyword">$1</span>')
+        .replace(/#.*$/gm, '<span class="comment">$&</span>');
+    } else if (language === 'javascript') {
+      highlightedCode = highlightedCode
+        .replace(/\b(console\.log|let|const|var|if|else|for|while|length|toUpperCase|toLowerCase)\b/g, '<span class="keyword">$1</span>')
+        .replace(/\/\/.*$/gm, '<span class="comment">$&</span>');
+    } else if (language === 'html') {
+      highlightedCode = highlightedCode
+        .replace(/&lt;([^&]+)&gt;/g, '<span class="tag">&lt;$1&gt;</span>');
+    } else if (language === 'css') {
+      highlightedCode = highlightedCode
+        .replace(/([a-zA-Z-]+):/g, '<span class="property">$1:</span>')
+        .replace(/:\s*([^;]+);/g, ': <span class="value">$1</span>;');
+    } else if (language === 'c') {
+      highlightedCode = highlightedCode
+        .replace(/\b(int|char|printf|main|include|#include)\b/g, '<span class="keyword">$1</span>')
+        .replace(/\/\/.*$/gm, '<span class="comment">$&</span>');
+    } else if (language === 'java') {
+      highlightedCode = highlightedCode
+        .replace(/\b(String|int|System\.out\.println|main|public|static|void)\b/g, '<span class="keyword">$1</span>')
+        .replace(/\/\/.*$/gm, '<span class="comment">$&</span>');
+    }
+    
+    return highlightedCode;
+  }
+  
+  bindEvents() {
+    const optionsContainer = document.getElementById('optionsContainer');
+    const newChallengeBtn = document.getElementById('newChallengeBtn');
+    
+    optionsContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('cmd-option') && !this.isAnswered) {
+        this.selectAnswer(parseInt(e.target.getAttribute('data-index')));
+      }
+    });
+    
+    newChallengeBtn.addEventListener('click', () => {
+      this.loadRandomPuzzle();
+    });
+  }
+  
+  selectAnswer(selectedIndex) {
+    if (this.isAnswered) return;
+    
+    this.selectedAnswer = selectedIndex;
+    this.isAnswered = true;
+    
+    const buttons = document.querySelectorAll('.cmd-option');
+    const feedbackContent = document.getElementById('feedbackContent');
+    
+    // Update button styles
+    buttons.forEach((btn, index) => {
+      btn.classList.remove('selected');
+      if (index === selectedIndex) {
+        btn.classList.add('selected');
+      }
+      
+      if (index === this.currentPuzzle.correctIndex) {
+        btn.classList.add('correct');
+      } else if (index === selectedIndex && selectedIndex !== this.currentPuzzle.correctIndex) {
+        btn.classList.add('incorrect');
+      }
+    });
+    
+    // Show CMD-style feedback
+    setTimeout(() => {
+      if (selectedIndex === this.currentPuzzle.correctIndex) {
+        feedbackContent.innerHTML = '<span class="success">✓ ACCESS GRANTED! You\'re a coding master!</span>';
+        feedbackContent.className = 'panel-content show correct';
+      } else {
+        feedbackContent.innerHTML = '<span class="error">✗ ACCESS DENIED! Try again, hacker!</span>';
+        feedbackContent.className = 'panel-content show incorrect';
+      }
+    }, 500);
+    
+    // Add some celebration animation
+    this.celebrateAnswer(selectedIndex === this.currentPuzzle.correctIndex);
+  }
+  
+  celebrateAnswer(isCorrect) {
+    const cmdWindow = document.querySelector('.cmd-window');
+    
+    if (isCorrect) {
+      cmdWindow.style.animation = 'none';
+      setTimeout(() => {
+        cmdWindow.style.animation = 'cmdGlow 0.8s ease-in-out';
+      }, 10);
+    }
+  }
+}
+
+// Add CMD-themed animations
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes cmdGlow {
+    0%, 100% { 
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    50% { 
+      box-shadow: 2px 2px 20px rgba(0, 255, 0, 0.5), 0 0 30px rgba(0, 255, 0, 0.3);
+    }
+  }
+  
+  .success {
+    color: #00FF00;
+    font-weight: 600;
+  }
+  
+  .error {
+    color: #FF0000;
+    font-weight: 600;
+  }
+`;
+document.head.appendChild(style);
+
+// Initialize the game when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+  new CodingChallenge();
+});
+</script>
+{% endblock %}

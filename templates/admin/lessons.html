@@ -1,0 +1,978 @@
+{% extends 'admin/admin-base.html' %}
+{% set active_page = 'lessons' %}
+
+{% block title %}Lesson Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-lessons.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="lessons-page-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title"><i class="fas fa-cubes"></i> Lesson Management</h1>
+      <p class="page-subtitle">Create and manage AR learning experiences</p>
+    </div>
+    <button class="btn btn-primary" onclick="openLessonModal()">
+      <i class="fas fa-plus"></i> Add New Lesson
+    </button>
+  </div>
+  
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filters-header">
+      <h3 class="filters-title"><i class="fas fa-filter"></i> Filters & Search</h3>
+      <button class="btn-clear-filters" onclick="clearFilters()">
+        <i class="fas fa-times"></i> Clear All
+      </button>
+    </div>
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="categoryFilter"><i class="fas fa-tag"></i> Category</label>
+        <select id="categoryFilter" onchange="filterLessons()">
+          <option value="">All Categories</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="levelFilter"><i class="fas fa-layer-group"></i> Level</label>
+        <select id="levelFilter" onchange="filterLessons()">
+          <option value="">All Levels</option>
+          <option value="1">Level 1</option>
+          <option value="2">Level 2</option>
+          <option value="3">Level 3</option>
+          <option value="4">Level 4</option>
+          <option value="5">Level 5+</option>
+        </select>
+      </div>
+      <div class="filter-group filter-search">
+        <label for="searchInput"><i class="fas fa-search"></i> Search</label>
+        <input type="text" id="searchInput" placeholder="Search by title or description..." onkeyup="filterLessons()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Lessons Display -->
+  <div class="lessons-display">
+    <div id="lessons-container">
+      <div class="empty-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Loading lessons...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup Alert Container -->
+  <!-- Alert container now managed globally by alerts.js -->
+</div>
+<!-- Lesson Modal -->
+  <div id="lessonModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Add New Lesson</h2>
+        <span class="close" onclick="closeLessonModal()">&times;</span>
+      </div>
+      
+      <form id="lessonForm" enctype="multipart/form-data">
+        <input type="hidden" id="lessonId" name="lesson_id">
+        
+        <div class="form-group">
+          <label for="lessonTitle">Lesson Title *</label>
+          <input type="text" id="lessonTitle" name="title" required placeholder="Enter lesson title...">
+        </div>
+        
+        <div class="form-group">
+          <label for="lessonDescription">Description</label>
+          <textarea id="lessonDescription" name="description" placeholder="Describe what this lesson teaches..."></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="lessonCategory">Category *</label>
+            <select id="lessonCategory" name="category_id" required onchange="updateAutoLevel()">
+              <option value="">Select a category...</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="lessonOrder">Level in Category</label>
+            <input type="number" id="lessonOrder" name="order_in_category" min="1" value="1" readonly>
+            <div class="level-auto-info">
+              <i class="fas fa-info-circle"></i>
+              Level is automatically assigned based on existing lessons in the category
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="xpMin">Min XP Reward</label>
+            <input type="number" id="xpMin" name="xp_min" min="1" value="50">
+          </div>
+          
+          <div class="form-group">
+            <label for="xpMax">Max XP Reward</label>
+            <input type="number" id="xpMax" name="xp_max" min="1" value="100">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="passThreshold">Quiz Pass Threshold (%)</label>
+          <input type="number" id="passThreshold" name="pass_threshold" min="0" max="100" value="70">
+        </div>
+        
+        <div class="form-group">
+          <label for="arCode">AR Model Source Code</label>
+          <textarea id="arCode" name="ar_code" class="code-editor" placeholder="Paste your AR model/animation source code here..."></textarea>
+          <small style="color: rgba(255, 255, 255, 0.6); margin-top: 0.5rem; display: block;">
+            This will be saved as a file and linked to the lesson
+          </small>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeLessonModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Save Lesson
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2><i class="fas fa-exclamation-triangle"></i> Confirm Deletion</h2>
+        <span class="close" onclick="closeDeleteModal()">&times;</span>
+      </div>
+      
+      <div class="delete-warning">
+        <strong>Warning:</strong> Deleting this lesson will:
+        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+          <li>Remove all associated quiz questions</li>
+          <li>Reset user progress for this lesson</li>
+          <li>Automatically reorder remaining lessons in the category</li>
+          <li>This action cannot be undone!</li>
+        </ul>
+      </div>
+      
+      <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button type="button" class="btn" style="background: #e53e3e; color: white;" onclick="confirmDelete()">
+          <i class="fas fa-trash"></i> Delete Lesson
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code Editor Modal -->
+  <div id="codeModal" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-header">
+        <h2 id="codeModalTitle">Edit AR Code</h2>
+        <span class="close" onclick="closeCodeModal()">&times;</span>
+      </div>
+      
+      <form id="codeForm">
+        <input type="hidden" id="codeLessonId" name="lesson_id">
+        
+        <div class="form-group">
+          <label for="arCodeEditor">
+            <i class="fas fa-code"></i> AR/VR Code Editor
+            <small style="color: var(--text-secondary); font-weight: normal; display: block; margin-top: 0.25rem;">Write your AR/VR code here (HTML, JavaScript, etc.)</small>
+          </label>
+          <textarea id="arCodeEditor" name="ar_code" class="code-editor" placeholder="Enter your AR/VR code here...&#10;&#10;Example:&#10;&lt;!DOCTYPE html&gt;&#10;&lt;html&gt;&#10;&lt;head&gt;&#10;  &lt;title&gt;AR Lesson&lt;/title&gt;&#10;&lt;/head&gt;&#10;&lt;body&gt;&#10;  &lt;!-- Your AR/VR content here --&gt;&#10;&lt;/body&gt;&#10;&lt;/html&gt;"></textarea>
+        </div>
+        
+        <div style="text-align: right; margin-top: 1.5rem;">
+          <button type="button" class="btn" onclick="closeCodeModal()" style="margin-right: 1rem;">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Save Code
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentLessonId = null;
+    let categories = [];
+    let allLessons = [];
+    let filteredLessons = [];
+
+    // Test function to verify API is working
+    async function testAPI() {
+      try {
+        console.log('Testing API connection...');
+        const response = await apiFetch('/api/lessons');
+        if (response.ok) {
+          const lessons = await response.json();
+          console.log('API test successful, found', lessons.length, 'lessons');
+          return true;
+        } else {
+          console.error('API test failed:', response.status);
+          return false;
+        }
+      } catch (error) {
+        console.error('API test error:', error);
+        return false;
+      }
+    }
+
+    // Check admin status and initialize
+    async function checkAdminAndInit() {
+      // Check if user has a token first
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showMessage('Please log in first. Use admin credentials: admin@nexqod.com / admin123', 'error');
+        setTimeout(() => {
+          window.location.href = '{{ url_for("auth_page") }}';
+        }, 2000);
+        return;
+      }
+
+      try {
+        const response = await apiFetch('/api/profile');
+
+        if (response.ok) {
+          const profile = await response.json();
+            if (profile.role === 'admin') {
+              // Test API connection first
+              const apiWorking = await testAPI();
+              if (!apiWorking) {
+                showMessage('API connection failed. Please check server status.', 'error');
+                return;
+              }
+              
+              await loadCategories();
+              await loadLessons();
+            } else {
+            showMessage('You do not have admin permissions. Please log in with admin credentials.', 'error');
+            setTimeout(() => {
+              window.location.href = '{{ url_for("auth_page") }}';
+            }, 2000);
+          }
+        } else if (response.status === 401 || response.status === 422) {
+          // Token expired or invalid
+          showMessage('Session expired. Please log in again with admin credentials: admin@nexqod.com / admin123', 'error');
+          setTimeout(() => {
+            window.location.href = '{{ url_for("auth_page") }}';
+          }, 2000);
+        } else {
+          console.error('Profile API error:', response.status);
+          showMessage('Error loading profile. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Admin check error:', error);
+        // Check if it's a network error or authentication error
+        if (error.message && error.message.includes('fetch')) {
+          showMessage('Network error. Please check your connection and ensure the server is running.', 'error');
+        } else {
+          showMessage('Authentication error. Please log in with admin credentials: admin@nexqod.com / admin123', 'error');
+          setTimeout(() => {
+            window.location.href = '{{ url_for("auth_page") }}';
+          }, 2000);
+        }
+      }
+    }
+
+    // Load categories
+    async function loadCategories() {
+      try {
+        const response = await apiFetch('/api/categories');
+
+        if (response.ok) {
+          const rawCategories = await response.json();
+          // Remove duplicates based on category ID
+          const uniqueMap = new Map();
+          rawCategories.forEach(cat => {
+            if (!uniqueMap.has(cat.id)) {
+              uniqueMap.set(cat.id, cat);
+            }
+          });
+          categories = Array.from(uniqueMap.values());
+          populateCategorySelects();
+        }
+      } catch (error) {
+        console.error('Error loading categories:', error);
+      }
+    }
+
+    // Populate category selects
+    function populateCategorySelects() {
+      const categorySelects = ['lessonCategory', 'categoryFilter'];
+      
+      categorySelects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        select.innerHTML = selectId === 'lessonCategory' ? 
+          '<option value="">Select a category...</option>' : 
+          '<option value="">All Categories</option>';
+        
+        categories.forEach(category => {
+          const option = document.createElement('option');
+          option.value = category.id;
+          option.textContent = category.name;
+          select.appendChild(option);
+        });
+      });
+    }
+
+    // Load lessons
+    async function loadLessons() {
+      try {
+        const response = await apiFetch('/api/lessons');
+
+        if (response.ok) {
+          const rawLessons = await response.json();
+          // Remove duplicates based on lesson ID
+          const uniqueMap = new Map();
+          rawLessons.forEach(lesson => {
+            if (!uniqueMap.has(lesson.id)) {
+              uniqueMap.set(lesson.id, lesson);
+            }
+          });
+          allLessons = Array.from(uniqueMap.values());
+          filteredLessons = [...allLessons];
+          displayLessons();
+        } else {
+          showMessage('Error loading lessons', 'error');
+        }
+      } catch (error) {
+        console.error('Error loading lessons:', error);
+        showMessage('Error loading lessons', 'error');
+      }
+    }
+
+    // Display lessons in card grid layout
+    function displayLessons() {
+      const container = document.getElementById('lessons-container');
+      
+      if (filteredLessons.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-cube"></i>
+            <p>No lessons found. Create your first lesson!</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Sort lessons by category and order
+      const sortedLessons = [...filteredLessons].sort((a, b) => {
+        if (a.category_id !== b.category_id) {
+          return (a.category_id || 0) - (b.category_id || 0);
+        }
+        return (a.order_in_category || 1) - (b.order_in_category || 1);
+      });
+
+      let html = '<div class="lessons-grid">';
+      
+      sortedLessons.forEach(lesson => {
+        html += `
+          <div class="lesson-card">
+            <div class="lesson-card-header">
+              <h4 class="lesson-title">${lesson.title}</h4>
+              <div class="lesson-level-badge">Level ${lesson.order_in_category || 1}</div>
+            </div>
+            
+            <div class="lesson-card-body">
+              ${lesson.description ? `<p class="lesson-description">${lesson.description}</p>` : ''}
+              
+              <div class="lesson-meta">
+                <div class="lesson-category">
+                  <i class="fas fa-tag"></i>
+                  ${lesson.category || 'Uncategorized'}
+                </div>
+                
+                <div class="lesson-stats">
+                  <div class="stat-item">
+                    <i class="fas fa-star"></i>
+                    <span>${lesson.xp_min || 50}-${lesson.xp_max || 100} XP</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fas fa-percentage"></i>
+                    <span>${lesson.pass_threshold || 70}% Pass</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fas fa-code"></i>
+                    <span>${lesson.ar_model_url ? 'AR Model' : 'No Model'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="lesson-card-actions">
+              <button class="btn-action btn-edit" onclick="editLesson(${lesson.id})" title="Edit Lesson">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-action btn-code" onclick="editCode(${lesson.id})" title="Edit AR Code">
+                <i class="fas fa-code"></i>
+              </button>
+              <button class="btn-action btn-quiz" onclick="manageQuiz(${lesson.id})" title="Manage Quiz">
+                <i class="fas fa-question-circle"></i>
+              </button>
+              <button class="btn-action btn-delete" onclick="deleteLesson(${lesson.id})" title="Delete Lesson">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    // Filter lessons
+    function filterLessons() {
+      const categoryFilter = document.getElementById('categoryFilter').value;
+      const levelFilter = document.getElementById('levelFilter').value;
+      const searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+      filteredLessons = allLessons.filter(lesson => {
+        const matchesCategory = !categoryFilter || lesson.category_id == categoryFilter;
+        const matchesLevel = !levelFilter || lesson.order_in_category == levelFilter;
+        const matchesSearch = !searchInput || 
+          lesson.title.toLowerCase().includes(searchInput) ||
+          (lesson.description && lesson.description.toLowerCase().includes(searchInput));
+
+        return matchesCategory && matchesLevel && matchesSearch;
+      });
+
+      displayLessons();
+    }
+
+    // Clear filters
+    function clearFilters() {
+      document.getElementById('categoryFilter').value = '';
+      document.getElementById('levelFilter').value = '';
+      document.getElementById('searchInput').value = '';
+      filteredLessons = [...allLessons];
+      displayLessons();
+    }
+
+    // Update auto level when category changes
+    async function updateAutoLevel() {
+      const categoryId = document.getElementById('lessonCategory').value;
+      if (!categoryId) return;
+
+      try {
+        const response = await apiFetch(`/api/admin/lessons/next-level?category_id=${categoryId}`);
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('lessonOrder').value = data.next_level;
+        }
+      } catch (error) {
+        console.error('Error getting next level:', error);
+      }
+    }
+
+    // Modal functions
+    async function openLessonModal(lessonId = null) {
+      currentLessonId = lessonId;
+      const modal = document.getElementById('lessonModal');
+      const title = document.getElementById('modalTitle');
+      const form = document.getElementById('lessonForm');
+      
+      if (lessonId) {
+        title.textContent = 'Edit Lesson';
+        try {
+          await loadLessonData(lessonId);
+        } catch (error) {
+          console.error('Error loading lesson data:', error);
+          showMessage('Error loading lesson data', 'error');
+          return;
+        }
+      } else {
+        title.textContent = 'Add New Lesson';
+        form.reset();
+        document.getElementById('lessonOrder').value = 1;
+        // Set default AR code template for new lessons
+        document.getElementById('arCode').value = getDefaultARCodeTemplate('New Lesson');
+      }
+      
+      modal.style.display = 'block';
+    }
+
+    function closeLessonModal() {
+      document.getElementById('lessonModal').style.display = 'none';
+      currentLessonId = null;
+      document.getElementById('lessonForm').reset();
+    }
+
+    // Load lesson data for editing
+    async function loadLessonData(lessonId) {
+      try {
+        console.log('Loading lesson data for ID:', lessonId);
+        const response = await apiFetch(`/api/admin/lessons/${lessonId}`);
+
+        if (response.ok) {
+          const lesson = await response.json();
+          console.log('Lesson data loaded:', lesson);
+          
+          // Populate form fields with lesson data
+          document.getElementById('lessonId').value = lesson.id;
+          document.getElementById('lessonTitle').value = lesson.title || '';
+          document.getElementById('lessonDescription').value = lesson.description || '';
+          document.getElementById('lessonCategory').value = lesson.category_id || '';
+          document.getElementById('lessonOrder').value = lesson.order_in_category || 1;
+          document.getElementById('xpMin').value = lesson.xp_min || 50;
+          document.getElementById('xpMax').value = lesson.xp_max || 100;
+          document.getElementById('passThreshold').value = lesson.pass_threshold || 70;
+          
+          // Load AR code if available
+          if (lesson.ar_model_url) {
+            try {
+              const codeResponse = await fetch(lesson.ar_model_url);
+              if (codeResponse.ok) {
+                const code = await codeResponse.text();
+                const arCode = code.trim();
+                // If empty or no code, use default template
+                if (!arCode || arCode.length === 0) {
+                  document.getElementById('arCode').value = getDefaultARCodeTemplate(lesson.title || 'Untitled Lesson');
+                } else {
+                  document.getElementById('arCode').value = arCode;
+                }
+              } else {
+                // If fetch fails, use default template
+                document.getElementById('arCode').value = getDefaultARCodeTemplate(lesson.title || 'Untitled Lesson');
+              }
+            } catch (error) {
+              console.error('Error loading AR code:', error);
+              document.getElementById('arCode').value = getDefaultARCodeTemplate(lesson.title || 'Untitled Lesson');
+            }
+          } else {
+            // No AR model URL, use default template
+            document.getElementById('arCode').value = getDefaultARCodeTemplate(lesson.title || 'Untitled Lesson');
+          }
+          
+          console.log('Form fields populated successfully');
+        } else {
+          const errorText = await response.text();
+          console.error('API Error:', response.status, errorText);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Error loading lesson data:', error);
+        showMessage('Error loading lesson data', 'error');
+        throw error; // Re-throw to be caught by calling function
+      }
+    }
+
+    // Handle code form submission
+    document.getElementById('codeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const lessonId = document.getElementById('codeLessonId').value;
+      const arCode = document.getElementById('arCodeEditor').value;
+      
+      try {
+        const response = await apiFetch(`/api/admin/lessons/${lessonId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            ar_code: arCode
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage('AR code updated successfully!', 'success');
+          closeCodeModal();
+          loadLessons(); // Refresh the lessons list
+        } else {
+          showMessage(result.error || 'Error updating AR code', 'error');
+        }
+      } catch (error) {
+        console.error('Error updating AR code:', error);
+        showMessage('Error updating AR code', 'error');
+      }
+    });
+
+    // Handle form submission
+    document.getElementById('lessonForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const isEdit = currentLessonId !== null;
+      
+      try {
+        let response;
+        if (isEdit) {
+          // Convert FormData to JSON for PUT request
+          const data = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            category_id: parseInt(formData.get('category_id')),
+            xp_min: parseInt(formData.get('xp_min')),
+            xp_max: parseInt(formData.get('xp_max')),
+            order_in_category: parseInt(formData.get('order_in_category')),
+            pass_threshold: parseInt(formData.get('pass_threshold')),
+            ar_code: formData.get('ar_code')
+          };
+          
+          response = await apiFetch(`/api/admin/lessons/${currentLessonId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+        } else {
+          // For new lessons, include AR code in form data
+          const data = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            category_id: parseInt(formData.get('category_id')),
+            xp_min: parseInt(formData.get('xp_min')),
+            xp_max: parseInt(formData.get('xp_max')),
+            order_in_category: parseInt(formData.get('order_in_category')),
+            pass_threshold: parseInt(formData.get('pass_threshold')),
+            ar_code: formData.get('ar_code')
+          };
+          
+          response = await apiFetch('/api/admin/lessons', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+        }
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          closeLessonModal();
+          loadLessons();
+        } else {
+          showMessage(result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error saving lesson:', error);
+        showMessage('Error saving lesson', 'error');
+      }
+    });
+
+    // Delete lesson
+    function deleteLesson(lessonId) {
+      currentLessonId = lessonId;
+      document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+      currentLessonId = null;
+    }
+
+    // Code Modal Functions
+    function closeCodeModal() {
+      document.getElementById('codeModal').style.display = 'none';
+      document.getElementById('codeForm').reset();
+    }
+
+    async function confirmDelete() {
+      try {
+        const response = await apiFetch(`/api/admin/lessons/${currentLessonId}`, {
+          method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          closeDeleteModal();
+          loadLessons();
+        } else {
+          showMessage(result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error deleting lesson:', error);
+        showMessage('Error deleting lesson', 'error');
+      }
+    }
+
+    // Edit lesson
+    async function editLesson(lessonId) {
+      await openLessonModal(lessonId);
+    }
+
+    // Get default AR code template
+    function getDefaultARCodeTemplate(lessonTitle) {
+      return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${lessonTitle} - AR Preview</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    
+    .preview-container {
+      background: white;
+      border-radius: 20px;
+      padding: 3rem 2rem;
+      text-align: center;
+      max-width: 600px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .preview-icon {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #00C2FF, #667eea);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .preview-icon svg {
+      width: 60px;
+      height: 60px;
+      fill: white;
+    }
+    
+    h1 {
+      color: #1E1E2F;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+    
+    .preview-message {
+      color: #5E6C84;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    
+    .coming-soon {
+      display: inline-block;
+      background: linear-gradient(135deg, #FF7B00, #00C2FF);
+      color: white;
+      padding: 0.75rem 2rem;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 1rem;
+      box-shadow: 0 4px 15px rgba(255, 123, 0, 0.3);
+    }
+    
+    .lesson-title {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 2px solid #DFE1E6;
+      color: #5E6C84;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-container">
+    <div class="preview-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44C3.21 17.21 3 16.88 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9z"/>
+      </svg>
+    </div>
+    
+    <h1>3D AR Preview</h1>
+    
+    <p class="preview-message">
+      The 3D augmented reality experience for this lesson will be added soon. 
+      Our team is working on creating an immersive learning experience for you!
+    </p>
+    
+    <div class="coming-soon">Coming Soon</div>
+    
+    <div class="lesson-title">
+      Lesson: ${lessonTitle}
+    </div>
+  </div>
+</body>
+</html>`;
+    }
+    
+    // Edit code
+    async function editCode(lessonId) {
+      try {
+        console.log('Loading lesson for code editing, ID:', lessonId);
+        
+        // Load lesson data for code editing
+        const response = await apiFetch(`/api/admin/lessons/${lessonId}`);
+        
+        if (response.ok) {
+          const lesson = await response.json();
+          console.log('Lesson data for code editing:', lesson);
+          
+          // Populate code modal with lesson data
+          document.getElementById('codeLessonId').value = lesson.id;
+          document.getElementById('codeModalTitle').textContent = `Edit AR Code - ${lesson.title || 'Untitled Lesson'}`;
+          
+          let arCode = '';
+          
+          // Load existing AR code if available
+          if (lesson.ar_model_url) {
+            console.log('Loading AR code from:', lesson.ar_model_url);
+            try {
+              const codeResponse = await fetch(lesson.ar_model_url);
+              if (codeResponse.ok) {
+                const code = await codeResponse.text();
+                arCode = code.trim();
+                console.log('AR code loaded successfully, length:', code.length);
+              } else {
+                console.error('Failed to load AR code, status:', codeResponse.status);
+              }
+            } catch (error) {
+              console.error('Error loading AR code:', error);
+            }
+          } else {
+            console.log('No AR model URL found');
+          }
+          
+          // If no code exists or it's empty, use default template
+          if (!arCode || arCode.length === 0) {
+            arCode = getDefaultARCodeTemplate(lesson.title || 'Untitled Lesson');
+            console.log('Using default AR code template');
+          }
+          
+          document.getElementById('arCodeEditor').value = arCode;
+          
+          // Show code modal
+          document.getElementById('codeModal').style.display = 'block';
+          console.log('Code modal displayed');
+          
+        } else {
+          const errorText = await response.text();
+          console.error('API Error for code editing:', response.status, errorText);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Error loading lesson for code editing:', error);
+        showMessage('Error loading lesson data for code editing', 'error');
+      }
+    }
+
+    // Manage quiz
+    async function manageQuiz(lessonId) {
+      try {
+        // First check if this lesson has any quiz questions
+        const response = await apiFetch(`/api/admin/quiz?lesson_id=${lessonId}`);
+        
+        if (response.ok) {
+          const questions = await response.json();
+          
+          if (questions.length === 0) {
+            // No quiz questions exist for this lesson
+            showQuizSetupPrompt(lessonId);
+          } else {
+            // Redirect to quiz management page
+            window.location.href = `{{ url_for('admin_quiz') }}?lesson_id=${lessonId}`;
+          }
+        } else {
+          // If API fails, just redirect to quiz page
+          window.location.href = `{{ url_for('admin_quiz') }}?lesson_id=${lessonId}`;
+        }
+      } catch (error) {
+        console.error('Error checking quiz:', error);
+        // On error, redirect to quiz page
+        window.location.href = `{{ url_for('admin_quiz') }}?lesson_id=${lessonId}`;
+      }
+    }
+    
+    // Show quiz setup prompt for lessons without quizzes
+    function showQuizSetupPrompt(lessonId) {
+      const alertContainer = document.getElementById('popup-alert');
+      
+      const alert = document.createElement('div');
+      alert.className = 'alert-popup info show quiz-prompt';
+      
+      const lesson = allLessons.find(l => l.id === lessonId);
+      const lessonTitle = lesson ? lesson.title : 'this lesson';
+      
+      alert.innerHTML = `
+        <div class="alert-icon">
+          <i class="fas fa-info-circle"></i>
+        </div>
+        <div class="alert-content">
+          <div class="alert-title">No Quiz Questions Yet</div>
+          <div class="alert-message">This lesson doesn't have any quiz questions. Would you like to create some now?</div>
+        </div>
+        <button class="alert-close" onclick="this.parentElement.remove()">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      
+      // Add action buttons
+      const actions = document.createElement('div');
+      actions.className = 'alert-actions';
+      actions.innerHTML = `
+        <button class="btn btn-secondary btn-sm" onclick="this.closest('.alert-popup').remove()">
+          Cancel
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="window.location.href='{{ url_for('admin_quiz') }}?lesson_id=${lessonId}'">
+          <i class="fas fa-plus"></i> Set Up Quiz
+        </button>
+      `;
+      
+      alert.appendChild(actions);
+      alertContainer.appendChild(alert);
+      
+      // Don't auto-remove this one - user needs to take action
+    }
+
+    // Show popup alert message
+    function showMessage(message, type) {
+      showAlert(message, { type: type });
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const lessonModal = document.getElementById('lessonModal');
+      const deleteModal = document.getElementById('deleteModal');
+      
+      if (event.target === lessonModal) {
+        closeLessonModal();
+      }
+      if (event.target === deleteModal) {
+        closeDeleteModal();
+      }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', checkAdminAndInit);
+</script>
+{% endblock %}

@@ -1,0 +1,462 @@
+/* Codedonki "Balanced" Theme (v7)
+   Based on demo.html schema with a clearer hierarchy.
+   - Primary: Sky Blue
+   - Action: Donki Orange
+   - Hover: Lime Green
+*/
+
+/* --- 1. FONTS (Import from Google Fonts) --- */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&family=Comic+Neue:wght@300;400;700&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+@import url('./leaderboard.css');
+
+/* --- 2. COLOR & FONT VARIABLES --- */
+:root {
+  /* Base */
+  --bg-color: #FFF8E7;           /* Cream White */
+  --surface-color: #FFFFFF;       /* Pure White for cards */
+  --text-primary: #1E1E2F;        /* Deep Navy */
+  --text-secondary: #5E6C84;
+  --border-color: #DFE1E6;
+  
+  /* New Hierarchy */
+  --primary-color: #00C2FF;    /* Sky Blue (Main Brand) */
+  --accent-orange: #FF7B00;    /* Donki Orange (Actions) */
+  --accent-green: #A8E10C;     /* Lime Green (Hover/Success) */
+  --accent-purple: #845EC2;     /* (Available for other accents) */
+  --accent-error: #FF5555;      /* (Added a standard error) */
+  --accent-color: var(--primary-color);  /* Legacy support */
+  --text-color: var(--text-primary);     /* Legacy support */
+  --success-color: var(--accent-green);  /* Success state */
+  --secondary-color: #5E6C84;           /* Secondary actions */
+
+  /* Typography */
+  --font-heading: 'Exo 2', sans-serif;
+  --font-body: 'Poppins', sans-serif;
+  --font-mono: 'Poppins', monospace;
+  
+  /* Shapes */
+  --radius-card: 16px;
+  --radius-btn: 12px;
+  --radius-pill: 99px;
+  
+  /* Shadows */
+  --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 8px 25px rgba(0, 194, 255, 0.15);
+  --shadow-lg: 0 8px 20px -5px rgba(0, 194, 255, 0.4);
+}
+
+/* --- 3. BASE STYLES --- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* --- 4. TYPOGRAPHY --- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+}
+
+h1 { 
+  color: var(--primary-color); 
+  font-size: 2.5rem; 
+  font-weight: 800;
+}
+
+h2 { 
+  color: var(--accent-orange); 
+  font-size: 2rem; 
+}
+
+h3 { 
+  color: var(--text-primary); 
+  font-size: 1.5rem; 
+  margin-top: 2.5rem; 
+}
+
+p {
+  color: var(--text-primary);
+  line-height: 1.6;
+  font-size: 1.1rem;
+  margin: 0 0 1rem 0;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  color: var(--accent-green);
+  text-decoration: underline;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 2rem 0;
+}
+
+/* --- 5. HERO SECTION --- */
+.hero-section {
+  text-align: center;
+  padding: 3rem 0;
+  margin-bottom: 3rem;
+}
+
+.hero-section h1 {
+  font-family: var(--font-body);
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  position: relative;
+}
+
+.hero-section h1 .highlight {
+  color: var(--primary-color);
+  position: relative;
+}
+
+.hero-section h1 .highlight::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-color);
+  border-radius: 2px;
+}
+
+.hero-section p {
+  font-size: 1.3rem;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  color: var(--text-secondary);
+}
+
+/* --- 6. GRID LAYOUT STYLES --- */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 3rem 0;
+}
+
+.feature-card {
+  background: var(--surface-color);
+  border-radius: var(--radius-card);
+  padding: 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
+  position: relative;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+}
+
+.feature-image {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  background: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 194, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-image {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 194, 255, 0.4);
+}
+
+.feature-card h3 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.feature-card p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+/* --- 7. FORM & BUTTON STYLES --- */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.form-group input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-btn);
+  box-sizing: border-box;
+  font-size: 1rem;
+  font-family: var(--font-body);
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.2);
+}
+
+.form-group input:disabled {
+  background-color: #F0F2F5;
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* Button: Orange background (Action) */
+.btn {
+  display: inline-block;
+  width: auto;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn,
+.btn-primary {
+  background-color: var(--accent-orange);
+  color: #FFFFFF;
+  box-shadow: 0 4px 15px -5px rgba(255, 123, 0, 0.5);
+}
+
+/* Hover: Lime Green */
+.btn:hover,
+.btn-primary:hover {
+  background-color: var(--accent-green);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px -5px rgba(168, 225, 12, 0.7);
+}
+
+.btn-secondary {
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  font-size: 1rem;
+}
+
+.btn-secondary:hover {
+  background-color: #F0F2F5;
+}
+
+/* --- 8. LESSON CARD --- */
+.lesson-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  background-color: var(--surface-color);
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.lesson-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.lesson-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+/* XP tag: Using the Purple accent */
+.lesson-xp-tag {
+  background-color: var(--accent-purple);
+  color: #FFFFFF;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.9rem;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+}
+
+/* --- 9. LESSON GRID & CARD (UPDATED) --- */
+.lesson-grid {
+  display: grid;
+  /* 1 column on mobile, 3 on desktop */
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+/* This is the 3-column grid for desktop */
+@media (min-width: 768px) {
+  .lesson-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.lesson-card-image {
+  width: 100%;
+  height: 180px; /* Fixed height for all images */
+  object-fit: cover;
+  /* Match the card's top radius */
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+}
+
+.lesson-card-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* This makes all cards the same height */
+}
+
+.lesson-card-body h3 {
+  font-size: 1.25rem;
+  margin: 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.lesson-card-body p {
+  font-size: 1rem;
+  flex-grow: 1; /* Pushes the button to the bottom */
+  margin-bottom: 1.5rem;
+  color: var(--text-secondary);
+}
+
+/* Footer is gone, button is just at the bottom */
+.lesson-card-body .btn-primary {
+  width: 100%; /* Button now fills the card width */
+}
+
+/* --- 10. DEMO SECTION --- */
+.demo-section {
+  background: var(--surface-color);
+  border-radius: var(--radius-card);
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+}
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.demo-item {
+  background: var(--bg-color);
+  border-radius: var(--radius-btn);
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.demo-item:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+/* --- 11. UTILITY STYLES --- */
+#status-message {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid;
+  border-radius: var(--radius-btn);
+  display: block;
+  margin-top: 1rem;
+  font-weight: 700;
+}
+
+#status-message.success {
+  background-color: rgba(168, 225, 12, 0.1);
+  border-color: var(--accent-green);
+  color: #5A7007;
+}
+
+#status-message.error {
+  background-color: rgba(255, 85, 85, 0.1);
+  border-color: var(--accent-error);
+  color: var(--accent-error);
+}
+
+/* --- 12. CODE BLOCK --- */
+pre {
+  background-color: #F0F2F5;
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  border-radius: var(--radius-btn);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  overflow-x: auto;
+  color: var(--text-primary);
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+
+

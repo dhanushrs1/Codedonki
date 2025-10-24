@@ -1,0 +1,79 @@
+/* Extracted from colorGuide/main.css token names */
+:root {
+  /* Base */
+  --bg-color: #FFF8E7;
+  --surface-color: #FFFFFF;
+  --text-primary: #1E1E2F;
+  --text-secondary: #5E6C84;
+  --border-color: #DFE1E6;
+
+  /* Brand */
+  --primary-color: #00C2FF;
+  --accent-orange: #FF7B00;
+  --accent-green: #A8E10C;
+  --accent-purple: #845EC2;
+  --accent-error: #FF5555;
+
+  /* Fonts */
+  --font-heading: 'Exo 2', sans-serif;
+  --font-body: 'Poppins', sans-serif;
+  --font-mono: 'Poppins', monospace;
+
+  /* Shapes & Shadows */
+  --radius-card: 16px;
+  --radius-btn: 12px;
+  --radius-pill: 99px;
+  --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 8px 25px rgba(0, 194, 255, 0.15);
+  --shadow-lg: 0 8px 20px -5px rgba(0, 194, 255, 0.4);
+}
+
+/* Header/Footer basic theming */
+.site-header {
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+}
+.nav .logo {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.nav-links {
+  display: flex;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.nav-links a { color: var(--text-primary); }
+.nav-links .active a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+
+
+/* Buttons in header */
+.site-header .btn.btn-secondary {
+  background: var(--surface-color);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.site-footer {
+  margin-top: 3rem;
+  padding: 1.5rem 0;
+  background: var(--surface-color);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+

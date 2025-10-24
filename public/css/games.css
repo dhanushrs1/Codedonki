@@ -1,0 +1,128 @@
+/* Games Page - CodeDonki Theme */
+.games-container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; font-family: var(--font-body); }
+
+/* Header */
+.games-header { text-align: center; padding: 2rem 0 3rem; }
+.games-header h1 { font-family: var(--font-heading); font-size: 3rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-primary); }
+.gradient-text { background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-purple) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.games-header p { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 2rem; }
+
+/* Stats Cards */
+.games-stats { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+.stat-card { background: var(--surface-color); border-radius: var(--radius-card); padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); transition: all 0.3s ease; }
+.stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--primary-color); }
+.stat-icon { font-size: 2.5rem; }
+.stat-number { font-size: 2rem; font-weight: 700; color: var(--primary-color); font-family: var(--font-heading); }
+.stat-label { font-size: 0.9rem; color: var(--text-secondary); }
+
+/* How to Play Section */
+.how-to-play-section { margin: 3rem 0; }
+.rules-container { background: var(--surface-color); border-radius: var(--radius-card); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+.rules-container h2 { font-family: var(--font-heading); font-size: 2rem; margin-bottom: 1.5rem; text-align: center; }
+.rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+.rule-card { background: var(--bg-color); border-radius: var(--radius-btn); padding: 1.5rem; text-align: center; border: 1px solid var(--border-color); transition: all 0.3s ease; }
+.rule-card:hover { transform: translateY(-3px); border-color: var(--primary-color); }
+.rule-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.rule-card h3 { font-family: var(--font-heading); font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--text-primary); }
+.rule-card p { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; }
+
+/* Game Rules Section */
+.game-rules-section { background: var(--surface-color); border-radius: var(--radius-card); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+.game-rules-section h3 { font-family: var(--font-heading); font-size: 1.8rem; margin-bottom: 1.5rem; text-align: center; }
+.game-rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+.game-rule-card { background: var(--bg-color); border-radius: var(--radius-btn); padding: 1.5rem; border: 1px solid var(--border-color); transition: all 0.3s ease; }
+.game-rule-card:hover { transform: translateY(-3px); border-color: var(--primary-color); box-shadow: 0 4px 15px rgba(0, 194, 255, 0.2); }
+.game-rule-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+.game-rule-icon { font-size: 2rem; }
+.game-rule-header h4 { font-family: var(--font-heading); font-size: 1.3rem; margin: 0; color: var(--text-primary); flex: 1; }
+.difficulty-badge { padding: 0.25rem 0.75rem; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 600; font-family: var(--font-heading); }
+.difficulty-badge.beginner { background: rgba(168, 225, 12, 0.2); color: #5A7007; border: 1px solid var(--accent-green); }
+.difficulty-badge.intermediate { background: rgba(0, 194, 255, 0.2); color: #006B8F; border: 1px solid var(--primary-color); }
+.difficulty-badge.advanced { background: rgba(132, 94, 194, 0.2); color: #4A2F7A; border: 1px solid var(--accent-purple); }
+.game-rule-content h5 { font-family: var(--font-heading); font-size: 1rem; margin-top: 1rem; margin-bottom: 0.5rem; color: var(--text-primary); }
+.game-rule-content ul { list-style: none; padding-left: 0; margin: 0.5rem 0; }
+.game-rule-content li { padding-left: 1.5rem; position: relative; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); }
+.game-rule-content li::before { content: "✓"; position: absolute; left: 0; color: var(--accent-green); font-weight: bold; }
+
+/* Tips Section */
+.tips-section { background: var(--surface-color); border-radius: var(--radius-card); padding: 2rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+.tips-section h3 { font-family: var(--font-heading); font-size: 1.8rem; margin-bottom: 1.5rem; text-align: center; }
+.tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+.tip-item { display: flex; gap: 1rem; background: var(--bg-color); padding: 1.5rem; border-radius: var(--radius-btn); border: 1px solid var(--border-color); transition: all 0.3s ease; }
+.tip-item:hover { transform: translateY(-3px); border-color: var(--accent-orange); }
+.tip-icon { font-size: 2rem; flex-shrink: 0; }
+.tip-content h4 { font-family: var(--font-heading); font-size: 1.1rem; margin: 0 0 0.5rem 0; color: var(--text-primary); }
+.tip-content p { font-size: 0.9rem; color: var(--text-secondary); margin: 0; }
+
+/* Games Grid */
+.games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 3rem 0; }
+.game-card { background: var(--surface-color); border-radius: var(--radius-card); padding: 2rem; text-align: center; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); transition: all 0.3s ease; }
+.game-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); border-color: var(--primary-color); }
+.game-icon { font-size: 4rem; margin-bottom: 1rem; }
+.game-card h3 { font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-primary); }
+.game-card p { font-size: 1rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6; }
+.game-difficulty { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.game-points { font-weight: 600; color: var(--accent-purple); font-family: var(--font-heading); }
+.btn { display: inline-block; padding: 0.75rem 1.5rem; border: none; border-radius: var(--radius-btn); cursor: pointer; font-family: var(--font-heading); font-weight: 600; font-size: 1rem; text-align: center; transition: all 0.2s ease; text-decoration: none; }
+.btn-primary { background-color: var(--accent-orange); color: #FFFFFF; box-shadow: 0 4px 15px -5px rgba(255, 123, 0, 0.5); }
+.btn-primary:hover { background-color: var(--accent-green); color: var(--text-primary); transform: translateY(-2px); box-shadow: 0 6px 20px -5px rgba(168, 225, 12, 0.7); }
+.btn-secondary { background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); }
+.btn-secondary:hover { background-color: #F0F2F5; }
+.game-start-btn { width: 100%; }
+
+/* Game Modal */
+.game-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(30, 30, 47, 0.7); backdrop-filter: blur(5px); }
+.game-modal-content { background-color: var(--surface-color); margin: 2% auto; padding: 0; border: 1px solid var(--border-color); border-radius: var(--radius-card); width: 90%; max-width: 900px; box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3); animation: modalFadeIn 0.3s ease; }
+@keyframes modalFadeIn { from { opacity: 0; transform: translateY(-50px); } to { opacity: 1; transform: translateY(0); } }
+.game-modal-header { background: linear-gradient(135deg, var(--primary-color), var(--accent-purple)); padding: 1.5rem; border-radius: var(--radius-card) var(--radius-card) 0 0; display: flex; justify-content: space-between; align-items: center; }
+.game-modal-header h2 { margin: 0; color: #FFFFFF; font-family: var(--font-heading); font-size: 1.8rem; }
+.close-btn { background: none; border: none; color: #FFFFFF; font-size: 2rem; cursor: pointer; transition: transform 0.2s ease; }
+.close-btn:hover { transform: scale(1.2) rotate(90deg); }
+.game-modal-body { padding: 2rem; max-height: 70vh; overflow-y: auto; }
+.game-instructions { background: var(--bg-color); padding: 1.5rem; border-radius: var(--radius-btn); margin-bottom: 1.5rem; border: 1px solid var(--border-color); }
+.game-instructions h3 { font-family: var(--font-heading); color: var(--text-primary); margin-top: 0; }
+.game-instructions p { color: var(--text-secondary); margin-bottom: 0; }
+.game-info { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-color); border-radius: var(--radius-btn); margin-bottom: 1.5rem; font-family: var(--font-heading); font-weight: 600; color: var(--text-primary); }
+
+/* Memory Game */
+.memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-top: 1rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+.memory-card { aspect-ratio: 1; background: var(--primary-color); border-radius: var(--radius-btn); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: #FFFFFF; transition: all 0.3s ease; border: 2px solid transparent; padding: 0.4rem; text-align: center; min-height: 80px; max-height: 120px; }
+.memory-card:hover { transform: scale(1.05); border-color: var(--accent-orange); }
+.memory-card.flipped { background: var(--surface-color); color: var(--text-primary); border-color: var(--border-color); }
+.memory-card.matched { background: var(--accent-green); color: var(--text-primary); cursor: default; }
+
+/* Typing Game */
+.code-display { background: #F0F2F5; padding: 1.5rem; border-radius: var(--radius-btn); font-family: 'Courier New', monospace; font-size: 1rem; margin-bottom: 1rem; border: 1px solid var(--border-color); white-space: pre-wrap; line-height: 1.6; }
+.typing-input textarea { width: 100%; min-height: 150px; padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-btn); font-family: 'Courier New', monospace; font-size: 1rem; resize: vertical; box-sizing: border-box; }
+.typing-input textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.2); }
+
+/* Puzzle Game */
+.puzzle-question { background: var(--bg-color); padding: 1.5rem; border-radius: var(--radius-btn); margin-bottom: 1rem; border: 1px solid var(--border-color); }
+.puzzle-question h4 { font-family: var(--font-heading); color: var(--text-primary); margin-top: 0; }
+.puzzle-editor textarea { width: 100%; min-height: 200px; padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-btn); font-family: 'Courier New', monospace; font-size: 1rem; resize: vertical; margin-bottom: 1rem; box-sizing: border-box; }
+.puzzle-editor textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.2); }
+
+/* Messages */
+.game-message { padding: 1rem; border-radius: var(--radius-btn); margin-top: 1rem; font-weight: 600; text-align: center; }
+.game-message.success { background: rgba(168, 225, 12, 0.2); color: #5A7007; border: 1px solid var(--accent-green); }
+.game-message.error { background: rgba(255, 85, 85, 0.2); color: var(--accent-error); border: 1px solid var(--accent-error); }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .games-header h1 { font-size: 2rem; }
+    .games-header p { font-size: 1rem; }
+    .games-stats { flex-direction: column; }
+    .stat-card { width: 100%; }
+    .memory-grid { grid-template-columns: repeat(4, 1fr); gap: 0.5rem; max-width: 100%; }
+    .memory-card { font-size: 0.65rem; padding: 0.3rem; min-height: 60px; max-height: 90px; }
+    .game-modal-content { width: 95%; margin: 10% auto; }
+    .game-modal-body { padding: 1rem; }
+    .game-rules-grid, .rules-grid, .tips-grid { grid-template-columns: 1fr; }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .memory-grid { gap: 0.4rem; }
+    .memory-card { font-size: 0.6rem; padding: 0.2rem; min-height: 50px; max-height: 75px; }
+}
+

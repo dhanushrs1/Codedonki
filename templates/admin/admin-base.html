@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin Panel{% endblock %} - CodeDonki</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-layout.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/alerts.css') }}">
+  {% block extra_css %}{% endblock %}
+  <style>
+    /* Make profile clickable with hover effect */
+    .topbar-profile {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      cursor: pointer;
+    }
+    .topbar-profile:hover {
+      opacity: 0.8;
+      transform: translateY(-1px);
+    }
+    .topbar-profile:hover .topbar-profile-img {
+      box-shadow: 0 4px 12px rgba(0, 194, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-wrapper">
+    
+    <!-- Sidebar Navigation -->
+    <nav class="admin-sidebar" id="adminSidebar">
+      <div class="sidebar-logo">
+        <a href="{{ url_for('admin_panel') }}">
+          <img src="/uploads/codedonki-logo-dark.svg" alt="CodeDonki Logo" style="height: 60px; width: auto;">
+        </a>
+      </div>
+      
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-item">
+          <a href="{{ url_for('admin_panel') }}" {% if active_page == 'dashboard' %}class="active"{% endif %}>
+            <i class="fas fa-home"></i> Dashboard
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{{ url_for('admin_lessons') }}" {% if active_page == 'lessons' %}class="active"{% endif %}>
+            <i class="fas fa-cubes"></i> Lessons
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{{ url_for('admin_quiz') }}" {% if active_page == 'quiz' %}class="active"{% endif %}>
+            <i class="fas fa-tasks"></i> Quiz Management
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{{ url_for('admin_categories') }}" {% if active_page == 'categories' %}class="active"{% endif %}>
+            <i class="fas fa-tags"></i> Categories
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{{ url_for('admin_badges') }}" {% if active_page == 'badges' %}class="active"{% endif %}>
+            <i class="fas fa-award"></i> Badge System
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{{ url_for('admin_users') }}" {% if active_page == 'users' %}class="active"{% endif %}>
+            <i class="fas fa-users"></i> User Management
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{{ url_for('admin_media') }}" {% if active_page == 'media' %}class="active"{% endif %}>
+            <i class="fas fa-photo-film"></i> Media
+          </a>
+        </li>
+        <hr style="border-color: rgba(255,255,255,0.1);">
+        <li class="sidebar-nav-item">
+          <a href="{{ url_for('home_page') }}">
+            <i class="fas fa-arrow-left"></i> Back to Site
+          </a>
+        </li>
+      </ul>
+    </nav>
+    
+    <!-- Main Content Area -->
+    <div class="admin-main">
+      
+      <!-- Top Bar -->
+      <header class="admin-topbar">
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <i class="fas fa-bars"></i>
+        </button>
+        <a href="{{ url_for('profile_page') }}" class="topbar-profile" style="text-decoration: none; display: flex; align-items: center; gap: 0.75rem;" title="View Profile">
+          <span class="topbar-profile-name" id="adminProfileName">Admin</span>
+          <img src="{{ url_for('static', filename='uploads/profile.png') }}" alt="Admin Avatar" class="topbar-profile-img" id="adminProfileAvatar">
+        </a>
+      </header>
+      
+      <!-- Page Content -->
+      <main class="admin-main-content">
+        {% block content %}{% endblock %}
+      </main>
+      
+    </div>
+  </div>
+
+  <!-- Common Scripts -->
+  <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/alerts.js') }}"></script>
+  <script>
+    // Mobile menu toggle
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+      document.getElementById('adminSidebar').classList.toggle('active');
+    });
+
+    // Load admin profile data for topbar
+    async function loadAdminProfile() {
+      try {
+        const response = await apiFetch('/api/profile');
+        if (response.ok) {
+          const profile = await response.json();
+          
+          // Update admin name
+          const nameElement = document.getElementById('adminProfileName');
+          if (nameElement && profile.name) {
+            nameElement.textContent = profile.name;
+          }
+          
+          // Update admin avatar
+          const avatarElement = document.getElementById('adminProfileAvatar');
+          if (avatarElement) {
+            if (profile.avatar_url) {
+              avatarElement.src = `${API_BASE_URL}${profile.avatar_url}`;
+            } else {
+              avatarElement.src = `${API_BASE_URL}/uploads/profile.png`;
+            }
+            avatarElement.alt = profile.name || 'Admin Avatar';
+          }
+        }
+      } catch (error) {
+        console.error('Error loading admin profile:', error);
+        // Keep default values if loading fails
+      }
+    }
+
+    // Load profile when page loads
+    document.addEventListener('DOMContentLoaded', loadAdminProfile);
+  </script>
+  
+  {% block scripts %}{% endblock %}
+</body>
+</html>
+

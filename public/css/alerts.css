@@ -1,0 +1,93 @@
+/* Unified alert styles used across the entire site (admin + user) */
+/* Uses theme variables from public/css/theme.css */
+
+/* Container that holds alerts appended by JS; page templates may also place one-off alerts */
+#global-alert-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 2000;
+  pointer-events: none; /* allow clicks to pass through except on alert itself */
+}
+
+/* Base alert */
+body .alert-popup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 260px;
+  max-width: min(92vw, 520px);
+  background: var(--surface-color);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  padding: 12px 14px;
+  pointer-events: auto; /* clickable */
+  transform: translateY(-8px);
+  opacity: 0;
+  animation: slideIn 220ms ease-out forwards;
+}
+
+/* State accents */
+body .alert-popup.success { border-left: 6px solid var(--accent-green); }
+body .alert-popup.error   { border-left: 6px solid var(--accent-error); }
+body .alert-popup.warning { border-left: 6px solid var(--accent-orange); }
+body .alert-popup.info    { border-left: 6px solid var(--primary-color); }
+
+/* Optional .show class used by some pages */
+body .alert-popup.show { opacity: 1; transform: translateY(0); }
+
+/* Icon */
+body .alert-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex: 0 0 28px;
+  color: #fff;
+}
+body .alert-popup.success .alert-icon { background: var(--accent-green); }
+body .alert-popup.error   .alert-icon { background: var(--accent-error); }
+body .alert-popup.warning .alert-icon { background: var(--accent-orange); }
+body .alert-popup.info    .alert-icon { background: var(--primary-color); }
+
+/* Content */
+body .alert-content { flex: 1; min-width: 0; }
+body .alert-message {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-primary);
+  word-wrap: break-word;
+}
+
+/* Close button */
+body .alert-close {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+}
+body .alert-close:hover { background: rgba(0,0,0,0.05); }
+
+/* Animations used by existing pages */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+
+

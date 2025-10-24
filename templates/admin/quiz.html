@@ -1,0 +1,626 @@
+{% extends 'admin/admin-base.html' %}
+{% set active_page = 'quiz' %}
+
+{% block title %}Quiz Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-quiz.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="quiz-page-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title"><i class="fas fa-question-circle"></i> Quiz Management</h1>
+      <p class="page-subtitle">Create and manage quiz questions for your lessons</p>
+    </div>
+    <button class="btn btn-primary" onclick="openQuestionModal()" id="add-question-btn" style="display: none;">
+      <i class="fas fa-plus"></i> Add Question
+    </button>
+  </div>
+
+  <!-- Lesson Selector -->
+  <div class="lesson-selector-section">
+    <div class="selector-header">
+      <h3 class="selector-title"><i class="fas fa-book"></i> Select Lesson</h3>
+    </div>
+    <select id="lessonSelect" class="lesson-selector">
+      <option value="">Choose a lesson to manage its quiz...</option>
+    </select>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-bar" id="searchBar" style="display: none;">
+    <div class="search-input-wrapper">
+      <i class="fas fa-search search-icon"></i>
+      <input 
+        type="text" 
+        id="searchInput" 
+        class="search-input" 
+        placeholder="Search questions by text..."
+        onkeyup="filterQuestions()"
+      >
+    </div>
+  </div>
+
+  <!-- Questions Container -->
+  <div class="questions-container" id="questionsContainer">
+    <div class="questions-header">
+      <h2 class="questions-title">
+        <span id="selectedLessonTitle">Quiz Questions</span>
+        <span class="question-count" id="questionCount">0</span>
+      </h2>
+    </div>
+    
+    <div class="questions-grid" id="questionsList"></div>
+  </div>
+
+  <!-- Popup Alert Container -->
+  <!-- Alert container now managed globally by alerts.js -->
+</div>
+
+<!-- Question Detail Modal -->
+<div id="questionDetailModal" class="question-detail-modal">
+  <div class="question-detail-content">
+    <div class="detail-header">
+      <div class="detail-title">
+        <h3>Question Details</h3>
+        <p class="detail-subtitle">Review question and answers</p>
+      </div>
+      <button class="detail-close" onclick="closeDetailModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="detail-question">
+      <div class="detail-question-text" id="detailQuestionText"></div>
+    </div>
+    
+    <div class="detail-options" id="detailOptions"></div>
+    
+    <div class="detail-explanation" id="detailExplanation" style="display: none;">
+      <div class="explanation-title">
+        <i class="fas fa-lightbulb"></i> Explanation
+      </div>
+      <div class="explanation-text" id="explanationText"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit/Add Question Modal -->
+<div id="questionModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add New Question</h2>
+      <span class="close" onclick="closeQuestionModal()">&times;</span>
+    </div>
+    
+    <form id="questionForm">
+      <input type="hidden" id="questionId" name="question_id">
+      <input type="hidden" id="lessonId" name="lesson_id">
+      
+      <div class="form-group">
+        <label for="questionText">Question Text *</label>
+        <textarea id="questionText" name="question_text" required placeholder="Enter the question..."></textarea>
+      </div>
+      
+      <div class="options-grid">
+        <div class="form-group option-group">
+          <label for="optionA">Option A *</label>
+          <input type="text" id="optionA" name="option_a" required>
+          <div class="correct-indicator" id="correctA" style="display: none;">✓</div>
+        </div>
+        
+        <div class="form-group option-group">
+          <label for="optionB">Option B *</label>
+          <input type="text" id="optionB" name="option_b" required>
+          <div class="correct-indicator" id="correctB" style="display: none;">✓</div>
+        </div>
+        
+        <div class="form-group option-group">
+          <label for="optionC">Option C *</label>
+          <input type="text" id="optionC" name="option_c" required>
+          <div class="correct-indicator" id="correctC" style="display: none;">✓</div>
+        </div>
+        
+        <div class="form-group option-group">
+          <label for="optionD">Option D *</label>
+          <input type="text" id="optionD" name="option_d" required>
+          <div class="correct-indicator" id="correctD" style="display: none;">✓</div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="correctAnswer">Correct Answer *</label>
+        <select id="correctAnswer" name="correct_answer" required onchange="updateCorrectIndicator()">
+          <option value="">Select correct answer...</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="explanation">Explanation (Optional)</label>
+        <textarea id="explanation" name="explanation" placeholder="Explain why this is the correct answer..."></textarea>
+      </div>
+      
+      <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeQuestionModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i> Save Question
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let currentQuestionId = null;
+  let currentLessonId = null;
+  let lessons = [];
+  let allQuestions = [];
+  let filteredQuestions = [];
+  let displayedCount = 20; // Initially show 20 questions
+  const QUESTIONS_PER_PAGE = 20;
+
+  // Check admin status and initialize
+  async function checkAdminAndInit() {
+    try {
+      const response = await apiFetch('/api/profile');
+
+      if (response.ok) {
+        const profile = await response.json();
+        if (profile.role === 'admin') {
+          await loadLessons();
+          
+          // Check if lesson_id is in URL params
+          const urlParams = new URLSearchParams(window.location.search);
+          const lessonId = urlParams.get('lesson_id');
+          if (lessonId) {
+            document.getElementById('lessonSelect').value = lessonId;
+            loadQuestions(lessonId);
+          } else {
+            // Load all questions initially
+            loadAllQuestions();
+          }
+        } else {
+          showMessage('You do not have admin permissions', 'error');
+          setTimeout(() => {
+            window.location.href = '{{ url_for("home_page") }}';
+          }, 2000);
+        }
+      } else {
+        window.location.href = '{{ url_for("auth_page") }}';
+      }
+    } catch (error) {
+      console.error('Admin check error:', error);
+      window.location.href = '{{ url_for("auth_page") }}';
+    }
+  }
+
+  // Load lessons for dropdown
+  async function loadLessons() {
+    try {
+      const response = await apiFetch('/api/lessons');
+
+      if (response.ok) {
+        lessons = await response.json();
+        const lessonSelect = document.getElementById('lessonSelect');
+        lessonSelect.innerHTML = '<option value="">All Quizzes (Show All)</option>';
+        
+        lessons.forEach(lesson => {
+          const option = document.createElement('option');
+          option.value = lesson.id;
+          option.textContent = `${lesson.title}${lesson.category ? ' - ' + lesson.category : ''}`;
+          lessonSelect.appendChild(option);
+        });
+      }
+    } catch (error) {
+      console.error('Error loading lessons:', error);
+      showMessage('Error loading lessons', 'error');
+    }
+  }
+
+  // Load all questions from all lessons
+  async function loadAllQuestions() {
+    try {
+      const response = await apiFetch('/api/admin/quiz');
+
+      if (response.ok) {
+        allQuestions = await response.json();
+        
+        // Enrich questions with lesson info
+        allQuestions = allQuestions.map(q => {
+          const lesson = lessons.find(l => l.id === q.lesson_id);
+          return {
+            ...q,
+            lessonTitle: lesson ? lesson.title : 'Unknown Lesson',
+            lessonCategory: lesson ? lesson.category : ''
+          };
+        });
+        
+        filteredQuestions = [...allQuestions];
+        currentLessonId = null;
+        displayedCount = QUESTIONS_PER_PAGE;
+        
+        // Update UI
+        document.getElementById('selectedLessonTitle').textContent = 'All Quiz Questions';
+        document.getElementById('questionsContainer').classList.add('active');
+        document.getElementById('searchBar').style.display = allQuestions.length > 0 ? 'block' : 'none';
+        document.getElementById('add-question-btn').style.display = 'none'; // Hide add button when showing all
+        
+        displayQuestions();
+      } else {
+        showMessage('Error loading quiz questions', 'error');
+      }
+    } catch (error) {
+      console.error('Error loading all questions:', error);
+      showMessage('Error loading quiz questions', 'error');
+    }
+  }
+
+  // Load questions for selected lesson
+  async function loadQuestions(lessonId) {
+    if (!lessonId) return;
+    
+    try {
+      const response = await apiFetch(`/api/admin/lessons/${lessonId}/quiz`);
+
+      if (response.ok) {
+        allQuestions = await response.json();
+        filteredQuestions = [...allQuestions];
+        currentLessonId = lessonId;
+        
+        // Update lesson title
+        const lesson = lessons.find(l => l.id == lessonId);
+        if (lesson) {
+          document.getElementById('selectedLessonTitle').textContent = lesson.title;
+        }
+        
+        // Show/hide elements
+        document.getElementById('questionsContainer').classList.add('active');
+        document.getElementById('searchBar').style.display = allQuestions.length > 0 ? 'block' : 'none';
+        document.getElementById('add-question-btn').style.display = 'block';
+        
+        displayQuestions();
+      } else {
+        showMessage('Error loading quiz questions', 'error');
+      }
+    } catch (error) {
+      console.error('Error loading questions:', error);
+      showMessage('Error loading quiz questions', 'error');
+    }
+  }
+
+  // Display questions in compact cards
+  function displayQuestions() {
+    const container = document.getElementById('questionsList');
+    const countBadge = document.getElementById('questionCount');
+    
+    countBadge.textContent = filteredQuestions.length;
+    
+    if (filteredQuestions.length === 0) {
+      container.innerHTML = `
+        <div class="no-questions">
+          <i class="fas fa-question-circle"></i>
+          <h3>No Quiz Questions${document.getElementById('searchInput').value ? ' Found' : ''}</h3>
+          <p>${document.getElementById('searchInput').value ? 'Try a different search term' : 'No quiz questions available yet. Select a lesson and add your first question!'}</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Display only up to displayedCount questions
+    const questionsToShow = filteredQuestions.slice(0, displayedCount);
+    const hasMore = filteredQuestions.length > displayedCount;
+    
+    let html = '';
+    questionsToShow.forEach((question, index) => {
+      // Show lesson info if viewing all quizzes
+      const lessonBadge = !currentLessonId && question.lessonTitle ? 
+        `<div class="lesson-badge" title="${question.lessonTitle}">
+          <i class="fas fa-book"></i> ${question.lessonTitle}
+        </div>` : '';
+      
+      html += `
+        <div class="question-card" onclick="viewQuestionDetail(${question.id})">
+          <div class="question-number">Q${index + 1}</div>
+          
+          <div class="question-preview">
+            <div class="question-text">${question.question_text}</div>
+            ${lessonBadge}
+          </div>
+          
+          <div class="question-meta">
+            <div class="correct-badge">
+              <i class="fas fa-check"></i>
+              ${question.correct_answer}
+            </div>
+            ${question.explanation ? '<div class="has-explanation"><i class="fas fa-lightbulb"></i> Has Explanation</div>' : ''}
+          </div>
+          
+          <div class="question-actions" onclick="event.stopPropagation()">
+            <button class="btn-action-quiz btn-view" onclick="viewQuestionDetail(${question.id})" title="View Details">
+              <i class="fas fa-eye"></i> View
+            </button>
+            <button class="btn-action-quiz btn-edit-quiz" onclick="editQuestion(${question.id}, ${question.lesson_id})" title="Edit Question">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn-action-quiz btn-delete-quiz" onclick="deleteQuestion(${question.id})" title="Delete Question">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+    
+    // Add Load More button if there are more questions
+    if (hasMore) {
+      const loadMoreBtn = document.createElement('div');
+      loadMoreBtn.className = 'load-more-container';
+      loadMoreBtn.innerHTML = `
+        <button class="btn-load-more" onclick="loadMore()">
+          <i class="fas fa-chevron-down"></i>
+          Load More (${filteredQuestions.length - displayedCount} remaining)
+        </button>
+      `;
+      container.appendChild(loadMoreBtn);
+    }
+  }
+
+  // Load more questions
+  function loadMore() {
+    displayedCount += QUESTIONS_PER_PAGE;
+    displayQuestions();
+  }
+
+  // Filter questions by search
+  function filterQuestions() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    displayedCount = QUESTIONS_PER_PAGE; // Reset to first page when searching
+    
+    if (!searchTerm) {
+      filteredQuestions = [...allQuestions];
+    } else {
+      filteredQuestions = allQuestions.filter(q => 
+        q.question_text.toLowerCase().includes(searchTerm) ||
+        q.option_a.toLowerCase().includes(searchTerm) ||
+        q.option_b.toLowerCase().includes(searchTerm) ||
+        q.option_c.toLowerCase().includes(searchTerm) ||
+        q.option_d.toLowerCase().includes(searchTerm) ||
+        (q.explanation && q.explanation.toLowerCase().includes(searchTerm)) ||
+        (q.lessonTitle && q.lessonTitle.toLowerCase().includes(searchTerm))
+      );
+    }
+    
+    displayQuestions();
+  }
+
+  // View question details in modal
+  function viewQuestionDetail(questionId) {
+    const question = allQuestions.find(q => q.id === questionId);
+    if (!question) return;
+
+    document.getElementById('detailQuestionText').textContent = question.question_text;
+    
+    const options = [
+      { label: 'A', text: question.option_a },
+      { label: 'B', text: question.option_b },
+      { label: 'C', text: question.option_c },
+      { label: 'D', text: question.option_d }
+    ];
+    
+    const optionsHtml = options.map(option => `
+      <div class="option-item ${option.label === question.correct_answer ? 'correct' : ''}">
+        <div class="option-letter">${option.label}</div>
+        <div class="option-text">${option.text}</div>
+        ${option.label === question.correct_answer ? '<i class="fas fa-check option-check"></i>' : ''}
+      </div>
+    `).join('');
+    
+    document.getElementById('detailOptions').innerHTML = optionsHtml;
+    
+    // Show explanation if exists
+    if (question.explanation) {
+      document.getElementById('detailExplanation').style.display = 'block';
+      document.getElementById('explanationText').textContent = question.explanation;
+    } else {
+      document.getElementById('detailExplanation').style.display = 'none';
+    }
+    
+    document.getElementById('questionDetailModal').style.display = 'block';
+  }
+
+  // Close detail modal
+  function closeDetailModal() {
+    document.getElementById('questionDetailModal').style.display = 'none';
+  }
+
+  // Modal functions
+  function openQuestionModal(questionId = null) {
+    if (!currentLessonId) {
+      showMessage('Please select a lesson first', 'error');
+      return;
+    }
+
+    currentQuestionId = questionId;
+    const modal = document.getElementById('questionModal');
+    const title = document.getElementById('modalTitle');
+    const form = document.getElementById('questionForm');
+    
+    document.getElementById('lessonId').value = currentLessonId;
+    
+    if (questionId) {
+      title.textContent = 'Edit Question';
+      loadQuestionData(questionId);
+    } else {
+      title.textContent = 'Add New Question';
+      form.reset();
+      document.getElementById('lessonId').value = currentLessonId;
+    }
+    
+    modal.style.display = 'block';
+  }
+
+  function closeQuestionModal() {
+    document.getElementById('questionModal').style.display = 'none';
+    currentQuestionId = null;
+    document.getElementById('questionForm').reset();
+    updateCorrectIndicator();
+  }
+
+  // Load question data for editing
+  function loadQuestionData(questionId) {
+    const question = allQuestions.find(q => q.id === questionId);
+    if (!question) return;
+
+    document.getElementById('questionId').value = question.id;
+    document.getElementById('questionText').value = question.question_text;
+    document.getElementById('optionA').value = question.option_a;
+    document.getElementById('optionB').value = question.option_b;
+    document.getElementById('optionC').value = question.option_c;
+    document.getElementById('optionD').value = question.option_d;
+    document.getElementById('correctAnswer').value = question.correct_answer;
+    document.getElementById('explanation').value = question.explanation || '';
+    
+    updateCorrectIndicator();
+  }
+
+  // Update correct answer indicator
+  function updateCorrectIndicator() {
+    // Hide all indicators
+    ['A', 'B', 'C', 'D'].forEach(letter => {
+      document.getElementById(`correct${letter}`).style.display = 'none';
+    });
+    
+    // Show correct one
+    const correctAnswer = document.getElementById('correctAnswer').value;
+    if (correctAnswer) {
+      document.getElementById(`correct${correctAnswer}`).style.display = 'flex';
+    }
+  }
+
+  // Handle form submission
+  document.getElementById('questionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {
+      lesson_id: parseInt(formData.get('lesson_id')),
+      question_text: formData.get('question_text'),
+      option_a: formData.get('option_a'),
+      option_b: formData.get('option_b'),
+      option_c: formData.get('option_c'),
+      option_d: formData.get('option_d'),
+      correct_answer: formData.get('correct_answer'),
+      explanation: formData.get('explanation') || ''
+    };
+    
+    const isEdit = currentQuestionId !== null;
+    
+    try {
+      let response;
+      if (isEdit) {
+        response = await apiFetch(`/api/admin/quiz/${currentQuestionId}`, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+      } else {
+        response = await apiFetch('/api/admin/quiz', {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+      }
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showMessage(result.message || 'Question saved successfully!', 'success');
+        closeQuestionModal();
+        loadQuestions(currentLessonId);
+      } else {
+        showMessage(result.error || 'Error saving question', 'error');
+      }
+    } catch (error) {
+      console.error('Error saving question:', error);
+      showMessage('Error saving question', 'error');
+    }
+  });
+
+  // Delete question
+  async function deleteQuestion(questionId) {
+    if (!confirm('Are you sure you want to delete this question? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await apiFetch(`/api/admin/quiz/${questionId}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showMessage(result.message || 'Question deleted successfully!', 'success');
+        loadQuestions(currentLessonId);
+      } else {
+        showMessage(result.error || 'Error deleting question', 'error');
+      }
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      showMessage('Error deleting question', 'error');
+    }
+  }
+
+  // Edit question
+  function editQuestion(questionId, lessonId = null) {
+    // If lessonId is provided and different from current, update currentLessonId
+    if (lessonId && !currentLessonId) {
+      currentLessonId = lessonId;
+    }
+    openQuestionModal(questionId);
+  }
+
+  // Show popup alert message
+  function showMessage(message, type) {
+    showAlert(message, { type: type });
+  }
+
+  // Lesson select change handler
+  document.getElementById('lessonSelect').addEventListener('change', (e) => {
+    const lessonId = e.target.value;
+    // Reset search
+    document.getElementById('searchInput').value = '';
+    displayedCount = QUESTIONS_PER_PAGE;
+    
+    if (lessonId) {
+      loadQuestions(lessonId);
+    } else {
+      loadAllQuestions();
+    }
+  });
+
+  // Close modals when clicking outside
+  window.onclick = function(event) {
+    const questionModal = document.getElementById('questionModal');
+    const detailModal = document.getElementById('questionDetailModal');
+    
+    if (event.target === questionModal) {
+      closeQuestionModal();
+    }
+    if (event.target === detailModal) {
+      closeDetailModal();
+    }
+  }
+
+  // Initialize page
+  document.addEventListener('DOMContentLoaded', checkAdminAndInit);
+</script>
+{% endblock %}

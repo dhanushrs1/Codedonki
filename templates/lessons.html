@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% block title %}Lessons · CodeDonki{% endblock %}
+{% block head_extra %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/user-lessons.css') }}">
+{% endblock %}
+{% block content %}
+  <div class="container lessons-page">
+    <div class="page-header">
+      <div class="header-top">
+        <div class="title-section">
+          <h1 id="pageTitle">Lessons</h1>
+          <a id="backToArchive" href="/archive">
+            <i class="fas fa-arrow-left"></i> All categories
+          </a>
+        </div>
+      </div>
+      <p id="categoryDescription"></p>
+    </div>
+
+    <div id="progressSection" style="display: none;">
+      <div class="progress-card">
+        <div class="progress-header">
+          <div class="progress-text">
+            <i class="fas fa-trophy"></i>
+            <span id="progressText">0/0 completed</span>
+          </div>
+          <div class="progress-bar-container">
+            <div id="progressBar" class="progress-bar" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="lessons-list">
+      <div class="loading-state">
+        <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+        <p style="margin-top: 1rem;">Loading lessons...</p>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    // Enhanced lesson loading with better error handling and mobile optimization
+    async function loadLessonsForCategory() {
+      const params = new URLSearchParams(window.location.search);
+      const categoryId = params.get('category_id');
+      const categoryName = params.get('category');
+      
+      // Redirect to archive if no category is selected
+      if (!categoryId) {
+        window.location.href = '/archive';
+        return;
+      }
+      
+      if (categoryName) {
+        document.getElementById('pageTitle').textContent = categoryName;
+      }
+
+      if (!localStorage.getItem('token')) {
+        window.location.href = '/auth';
+        return;
+      }
+
+      const list = document.getElementById('lessons-list');
+      const desc = document.getElementById('categoryDescription');
+      
+      // Show enhanced loading state
+      list.innerHTML = '';
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'loading-state';
+      
+      const spinner = document.createElement('i');
+      spinner.className = 'fas fa-circle-notch fa-spin';
+      spinner.style.fontSize = '2rem';
+      spinner.style.color = 'var(--primary-color)';
+      
+      const loadingText = document.createElement('p');
+      loadingText.style.marginTop = '1rem';
+      loadingText.textContent = 'Loading lessons...';
+      
+      loadingDiv.appendChild(spinner);
+      loadingDiv.appendChild(loadingText);
+      list.appendChild(loadingDiv);
+
+      try {
+        // Fetch all lessons with status, then filter by category_id
+        const res = await fetch('/api/lessons/all-status', {
+          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+        });
+        
+        if (!res.ok) throw new Error('Failed to load lessons');
+        
+        const lessons = await res.json();
+        console.log('All lessons loaded:', lessons); // Debug log
+        
+        const filtered = lessons.filter(l => String(l.category_id) === String(categoryId));
+        console.log('Filtered lessons:', filtered); // Debug log
+
+        // Load category description
+        try {
+          const catRes = await fetch('/api/categories', { 
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+          });
+          if (catRes.ok) {
+            const cats = await catRes.json();
+            const found = cats.find(c => String(c.id) === String(categoryId));
+            if (found && found.description) {
+              desc.textContent = found.description;
+            }
+          }
+        } catch(e) { 
+          console.log('Could not load category description');
+        }
+
+        if (filtered.length === 0) {
+          list.innerHTML = '';
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'error-state';
+          const errorP = document.createElement('p');
+          errorP.textContent = 'No lessons found in this category.';
+          errorDiv.appendChild(errorP);
+          list.appendChild(errorDiv);
+          return;
+        }
+        
+        renderLessons(filtered);
+        
+      } catch(e) {
+        console.error('Error loading lessons:', e);
+        list.innerHTML = '';
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-state';
+        const errorP = document.createElement('p');
+        errorP.textContent = 'Could not load lessons. Please try again later.';
+        errorDiv.appendChild(errorP);
+        list.appendChild(errorDiv);
+      }
+    }
+
+    function renderLessons(lessons) {
+      const list = document.getElementById('lessons-list');
+      
+      // Sort by order_in_category to ensure proper sequence
+      lessons.sort((a, b) => (a.order_in_category || 0) - (b.order_in_category || 0));
+      console.log('Sorted lessons:', lessons); // Debug log
+
+      // Update progress
+      const completedCount = lessons.filter(x => x.is_completed).length;
+      const totalCount = lessons.length;
+      const pct = Math.round((completedCount / totalCount) * 100);
+      
+      const progressSection = document.getElementById('progressSection');
+      progressSection.style.display = 'block';
+      document.getElementById('progressText').textContent = `${completedCount}/${totalCount} completed`;
+      document.getElementById('progressBar').style.width = pct + '%';
+
+
+      // Find current lesson (first unlocked and not completed)
+      const currentLesson = lessons.find(l => l.is_unlocked && !l.is_completed);
+
+      // Render game map
+        list.innerHTML = '';
+      const mapContainer = document.createElement('div');
+      mapContainer.className = 'lessons-map';
+
+      const pathContainer = document.createElement('div');
+      pathContainer.className = 'lesson-path';
+
+      // Create all lesson nodes
+      lessons.forEach((lesson, index) => {
+        const node = document.createElement('div');
+        node.className = 'lesson-node';
+        node.setAttribute('data-index', index);
+        node.setAttribute('data-lesson-id', lesson.id);
+
+        const isCurrent = currentLesson && lesson.id === currentLesson.id;
+        const stateClass = lesson.is_completed ? 'completed' : (lesson.is_unlocked ? 'unlocked' : 'locked');
+        const bubbleClass = isCurrent ? 'current' : stateClass;
+
+          const xpRange = (lesson.xp_min && lesson.xp_max) ? `${lesson.xp_min}-${lesson.xp_max}` : (lesson.xp || '0');
+
+        const bubble = lesson.is_unlocked 
+          ? `<a href="/lesson?slug=${lesson.slug}" class="lesson-bubble ${bubbleClass}">`
+          : `<div class="lesson-bubble ${bubbleClass}">`;
+
+        node.innerHTML = `
+          ${bubble}
+            ${lesson.is_locked || !lesson.is_unlocked ? '<i class="fas fa-lock lock-icon"></i>' : ''}
+            ${lesson.is_completed ? '<i class="fas fa-check lesson-icon"></i>' : ''}
+            <div class="lesson-number">${lesson.order_in_category || index + 1}</div>
+            ${lesson.is_completed ? '<div class="star-decoration" style="top: -10px; right: -10px;"><i class="fas fa-star"></i></div>' : ''}
+          ${lesson.is_unlocked ? '</a>' : '</div>'}
+          <div class="lesson-info">
+            <div class="lesson-title">${lesson.title}</div>
+            <div class="lesson-xp">
+              <i class="fas fa-star" style="color: var(--accent-orange);"></i>
+              +${xpRange} XP
+            </div>
+            <div class="lesson-badge ${lesson.is_completed ? 'badge-completed' : (isCurrent ? 'badge-current' : (lesson.is_unlocked ? 'badge-current' : 'badge-locked'))}">
+              ${lesson.is_completed ? '✓ Completed' : (lesson.is_unlocked ? (isCurrent ? '→ Current' : 'Ready') : '🔒 Locked')}
+            </div>
+          </div>
+        `;
+
+        pathContainer.appendChild(node);
+      });
+
+      mapContainer.appendChild(pathContainer);
+      list.appendChild(mapContainer);
+
+      // Draw connecting lines after nodes are rendered and positioned
+      setTimeout(() => {
+        drawConnectingLines(pathContainer, lessons);
+        // Trigger reflow to ensure proper positioning
+        list.offsetHeight;
+      }, 200);
+    }
+
+    function drawConnectingLines(container, lessons) {
+      const nodes = container.querySelectorAll('.lesson-node');
+      console.log('Drawing lines for', nodes.length, 'nodes'); // Debug log
+      
+      // Clear existing lines
+      const existingLines = container.querySelectorAll('.path-line');
+      existingLines.forEach(line => line.remove());
+      
+      nodes.forEach((node, index) => {
+        if (index === nodes.length - 1) return; // Skip last node
+        
+        const currentBubble = node.querySelector('.lesson-bubble');
+        const nextNode = nodes[index + 1];
+        const nextBubble = nextNode.querySelector('.lesson-bubble');
+        
+        if (!currentBubble || !nextBubble) return;
+        
+        const currentRect = currentBubble.getBoundingClientRect();
+        const nextRect = nextBubble.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        
+        // Calculate positions relative to container
+        const x1 = currentRect.left + currentRect.width / 2 - containerRect.left;
+        const y1 = currentRect.top + currentRect.height / 2 - containerRect.top;
+        const x2 = nextRect.left + nextRect.width / 2 - containerRect.left;
+        const y2 = nextRect.top + nextRect.height / 2 - containerRect.top;
+        
+        // Create curved path with better mobile handling
+        const isMobile = window.innerWidth <= 768;
+        let pathData;
+        
+        if (isMobile) {
+          // Straight vertical lines for mobile
+          pathData = `M ${x1} ${y1} L ${x2} ${y2}`;
+        } else {
+          // Curved lines for desktop
+          const midY = (y1 + y2) / 2;
+          const curveIntensity = Math.abs(x2 - x1) * 0.3;
+          pathData = `M ${x1} ${y1} Q ${x1} ${midY}, ${(x1 + x2) / 2} ${midY} T ${x2} ${y2}`;
+        }
+        
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        line.setAttribute('class', 'path-line');
+        line.style.position = 'absolute';
+        line.style.top = '0';
+        line.style.left = '0';
+        line.style.width = '100%';
+        line.style.height = '100%';
+        line.style.pointerEvents = 'none';
+        
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', pathData);
+        
+        // Determine line state based on lesson completion
+        const currentLesson = lessons[index];
+        
+        if (currentLesson.is_completed) {
+          path.classList.add('completed');
+        } else if (currentLesson.is_unlocked) {
+          path.classList.add('active');
+        }
+        
+        line.appendChild(path);
+        container.appendChild(line);
+      });
+    }
+
+    // Handle window resize for better mobile experience
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const pathContainer = document.querySelector('.lesson-path');
+        if (pathContainer) {
+          const lessons = Array.from(document.querySelectorAll('.lesson-node')).map(node => ({
+            id: node.getAttribute('data-lesson-id'),
+            is_completed: node.querySelector('.lesson-bubble').classList.contains('completed'),
+            is_unlocked: node.querySelector('.lesson-bubble').classList.contains('unlocked')
+          }));
+          drawConnectingLines(pathContainer, lessons);
+        }
+      }, 250);
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+    loadLessonsForCategory();
+    });
+  </script>
+{% endblock %}

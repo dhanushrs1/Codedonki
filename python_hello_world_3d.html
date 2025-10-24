@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Python Print - 3D Interactive</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Exo+2:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Exo 2', sans-serif;
+            background: #1E1E2F;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .py3d-split-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .py3d-canvas-container {
+            flex: 1;
+            position: relative;
+            background: #87CEEB;
+            min-width: 0;
+        }
+        
+        .py3d-story-bubble {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 3px solid #00C2FF;
+            border-radius: 20px;
+            padding: clamp(15px, 4vw, 30px);
+            max-width: min(90%, 600px);
+            text-align: center;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: py3d-bounceIn 0.5s ease;
+        }
+        
+        @keyframes py3d-bounceIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .py3d-story-bubble h2 {
+            font-family: 'Fredoka', sans-serif;
+            color: #00C2FF;
+            font-size: clamp(18px, 4vw, 26px);
+            margin-bottom: 10px;
+        }
+        
+        .py3d-story-bubble p {
+            font-size: clamp(13px, 2.5vw, 16px);
+            color: #1E1E2F;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .py3d-code-example {
+            background: #1E1E2F;
+            color: #A8E10C;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(11px, 2vw, 14px);
+            margin: 8px 0;
+            text-align: left;
+        }
+        
+        .py3d-start-btn {
+            background: linear-gradient(135deg, #FF7B00, #FF9500);
+            color: white;
+            border: none;
+            padding: clamp(10px, 2vw, 14px) clamp(20px, 4vw, 35px);
+            border-radius: 10px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(14px, 2.5vw, 18px);
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,123,0,0.4);
+            transition: all 0.3s;
+        }
+        
+        .py3d-start-btn:hover {
+            background: linear-gradient(135deg, #A8E10C, #B8F01C);
+            color: #1E1E2F;
+            transform: translateY(-2px);
+        }
+        
+        .py3d-speech-bubble {
+            position: absolute;
+            background: white;
+            border: 3px solid #00C2FF;
+            border-radius: 15px;
+            padding: clamp(10px, 2vw, 15px) clamp(12px, 2.5vw, 22px);
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(12px, 2vw, 16px);
+            font-weight: 600;
+            z-index: 12;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: none;
+            animation: py3d-popIn 0.3s ease;
+            max-width: 280px;
+        }
+        
+        .py3d-speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid white;
+        }
+        
+        .py3d-speech-bubble.py3d-show {
+            display: block;
+        }
+        
+        #py3d-alex-speech {
+            top: 8%;
+            left: 8%;
+            color: #00C2FF;
+        }
+        
+        #py3d-sam-speech {
+            top: 8%;
+            right: 8%;
+            color: #FF7B00;
+        }
+        
+        @media (max-width: 768px) {
+            #py3d-alex-speech {
+                top: 5%;
+                left: 5%;
+            }
+            #py3d-sam-speech {
+                top: 5%;
+                right: 5%;
+            }
+        }
+        
+        #py3d-ui-overlay {
+            flex: 1;
+            position: relative;
+            z-index: 10;
+            pointer-events: all;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            min-width: 0;
+            border-left: 3px solid #00C2FF;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .py3d-lesson-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #FFFFFF;
+            padding: clamp(20px, 3vw, 30px);
+            overflow-y: auto;
+        }
+        
+        .py3d-lesson-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #E8E8E8;
+        }
+        
+        .py3d-lesson-title {
+            font-family: 'Fredoka', sans-serif;
+            color: #1E1E2F;
+            font-size: clamp(16px, 2.5vw, 20px);
+            font-weight: 700;
+        }
+        
+        .py3d-lesson-title .py3d-highlight {
+            color: #00C2FF;
+        }
+        
+        .py3d-lesson-subtitle {
+            font-size: clamp(11px, 2vw, 13px);
+            color: #5E6C84;
+            margin-top: 2px;
+        }
+        
+        .py3d-xp-badge {
+            background: linear-gradient(135deg, #845EC2, #A855F7);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: clamp(10px, 2vw, 12px);
+            font-weight: 700;
+            display: none;
+            white-space: nowrap;
+        }
+        
+        .py3d-xp-badge.py3d-show {
+            display: inline-block;
+            animation: py3d-popIn 0.3s ease;
+        }
+        
+        @keyframes py3d-popIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .py3d-challenge-card {
+            background: linear-gradient(135deg, #E3F2FD, #F0F8FF);
+            border-left: 4px solid #00C2FF;
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2.5vw, 16px);
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: clamp(13px, 2vw, 15px);
+            color: #1E1E2F;
+            transition: all 0.3s ease;
+        }
+        
+        .py3d-challenge-number {
+            display: inline-block;
+            background: #00C2FF;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            margin-right: 6px;
+        }
+        
+        .py3d-challenge-card.py3d-completed {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-left-color: #A8E10C;
+        }
+        
+        .py3d-challenge-card.py3d-completed .py3d-challenge-number {
+            background: #A8E10C;
+        }
+        
+        #py3d-code-input {
+            width: 100%;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(14px, 2.5vw, 16px);
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px);
+            border: 2px solid #DFE1E6;
+            border-radius: 8px;
+            margin: 12px 0 8px 0;
+            transition: all 0.3s;
+            background: #1E1E2F;
+            color: #A8E10C;
+        }
+        
+        #py3d-code-input:focus {
+            outline: none;
+            border-color: #00C2FF;
+            box-shadow: 0 0 0 3px rgba(0,194,255,0.2);
+        }
+        
+        .py3d-hint-text {
+            color: #5E6C84;
+            font-size: clamp(10px, 2vw, 12px);
+            margin: 4px 0;
+            line-height: 1.4;
+        }
+        
+        .py3d-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .py3d-btn {
+            font-family: 'Fredoka', sans-serif;
+            padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 24px);
+            border: none;
+            border-radius: 8px;
+            font-size: clamp(14px, 2vw, 16px);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        #py3d-run-btn {
+            background: linear-gradient(135deg, #FF7B00, #FF9500);
+            color: white;
+            flex: 1;
+            box-shadow: 0 2px 8px rgba(255,123,0,0.3);
+        }
+        
+        #py3d-run-btn:hover {
+            background: linear-gradient(135deg, #A8E10C, #B8F01C);
+            color: #1E1E2F;
+            transform: translateY(-2px);
+        }
+        
+        .py3d-status-message {
+            padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px);
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: clamp(12px, 2vw, 14px);
+            font-weight: 600;
+            display: none;
+            line-height: 1.5;
+        }
+        
+        .py3d-status-message.py3d-success {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            color: #2E7D32;
+            border: 2px solid #A8E10C;
+        }
+        
+        .py3d-status-message.py3d-error {
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            color: #C62828;
+            border: 2px solid #FF5555;
+        }
+        
+        .py3d-status-message.py3d-hint {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            color: #E65100;
+            border: 2px solid #FF7B00;
+        }
+        
+        .py3d-status-message.py3d-show {
+            display: block;
+            animation: py3d-slideUp 0.3s ease;
+        }
+        
+        @keyframes py3d-slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .py3d-interaction-hint {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,194,255,0.9);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: clamp(10px, 2vw, 12px);
+            color: white;
+            z-index: 5;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 968px) {
+            .py3d-split-container {
+                flex-direction: column;
+            }
+            .py3d-canvas-container {
+                height: 40%;
+                min-height: 300px;
+            }
+            #py3d-ui-overlay {
+                height: 60%;
+                border-left: none;
+                border-top: 3px solid #00C2FF;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            }
+            .py3d-speech-bubble {
+                font-size: 11px;
+                max-width: 200px;
+                padding: 8px 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .py3d-story-bubble {
+                padding: 15px 20px;
+            }
+            .py3d-code-example {
+                font-size: 11px;
+            }
+            .py3d-interaction-hint {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="py3d-split-container">
+        <div id="py3d-canvas-container" class="py3d-canvas-container">
+            <div class="py3d-interaction-hint" style="display:none;" id="py3d-interaction-hint">
+                🖱️ Drag • Scroll zoom
+            </div>
+            
+            <div id="py3d-alex-speech" class="py3d-speech-bubble">Hello Sam! 👋</div>
+            <div id="py3d-sam-speech" class="py3d-speech-bubble">...</div>
+        </div>
+        
+        <div id="py3d-ui-overlay" style="display:none;">
+            <div class="py3d-lesson-panel">
+                <div class="py3d-lesson-header">
+                    <div>
+                        <div class="py3d-lesson-title">Challenge: <span class="py3d-highlight" id="py3d-challenge-title">Print a String</span></div>
+                        <div class="py3d-lesson-subtitle">Help Sam respond!</div>
+                    </div>
+                    <div class="py3d-xp-badge" id="py3d-xp-badge">+50 XP! 🎉</div>
+                </div>
+                
+                <div id="py3d-challenge1" class="py3d-challenge-card">
+                    <span class="py3d-challenge-number">1</span>
+                    <strong>String:</strong> <code style="color: #00C2FF;">print("Hi!")</code>
+                </div>
+                
+                <div id="py3d-challenge2" class="py3d-challenge-card" style="opacity: 0.5;">
+                    <span class="py3d-challenge-number">2</span>
+                    <strong>Number:</strong> <code style="color: #845EC2;">print(20)</code>
+                </div>
+                
+                <input type="text" id="py3d-code-input" placeholder='print("Hi!")' autocomplete="off" spellcheck="false">
+                
+                <div class="py3d-hint-text" id="py3d-live-hint">💡 Type text in quotes</div>
+                
+                <div class="py3d-controls">
+                    <button id="py3d-run-btn" class="py3d-btn">▶ Run Code</button>
+                </div>
+                
+                <div class="py3d-status-message" id="py3d-status"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="py3d-story-intro" class="py3d-story-bubble">
+        <h2>💬 Python Print Challenge</h2>
+        <p><strong style="color: #00C2FF;">Alex</strong> wants to chat with <strong style="color: #FF7B00;">Sam</strong>!</p>
+        <p>Learn TWO ways to use print():</p>
+        <div class="py3d-code-example">
+            <div>1️⃣ Text in quotes:</div>
+            <div style="color: #FFD700;">print("Hi!")</div>
+            <br>
+            <div>2️⃣ Numbers without quotes:</div>
+            <div style="color: #FFD700;">print(20)</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2); padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #FF7B00;">
+            <strong>🐴 Donki is here to help!</strong><br>
+            <small style="color: #666;">If you make a mistake, Donki will automatically give you smart hints!</small>
+        </div>
+        <button class="py3d-start-btn" onclick="window.py3dStartLesson()">Start! 🚀</button>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        const container = document.getElementById('py3d-canvas-container');
+        const scene = new THREE.Scene();
+        
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.Fog(0xB0E0E6, 25, 70);
+        
+        const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 4, 15);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+        
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.target.set(0, 1.5, 0);
+        controls.maxPolarAngle = Math.PI / 2.2;
+        controls.minDistance = 5;
+        controls.maxDistance = 30;
+        
+        // Lights
+        scene.add(new THREE.AmbientLight(0xFFFAF0, 0.6));
+        const sunLight = new THREE.DirectionalLight(0xFFE4B5, 1.2);
+        sunLight.position.set(15, 25, 10);
+        sunLight.castShadow = true;
+        sunLight.shadow.camera.left = sunLight.shadow.camera.bottom = -25;
+        sunLight.shadow.camera.right = sunLight.shadow.camera.top = 25;
+        sunLight.shadow.mapSize.width = sunLight.shadow.mapSize.height = 2048;
+        scene.add(sunLight);
+        
+        // Ground
+        const groundGeometry = new THREE.PlaneGeometry(100, 100, 50, 50);
+        const vertices = groundGeometry.attributes.position.array;
+        for (let i = 0; i < vertices.length; i += 3) {
+            vertices[i + 2] = Math.random() * 0.3;
+        }
+        groundGeometry.attributes.position.needsUpdate = true;
+        groundGeometry.computeVertexNormals();
+        
+        const ground = new THREE.Mesh(groundGeometry, new THREE.MeshStandardMaterial({ 
+            color: 0x4A7C2C, roughness: 0.95, metalness: 0.1
+        }));
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+        
+        // Path
+        const pathGeometry = new THREE.PlaneGeometry(4, 35, 10, 10);
+        const pathVertices = pathGeometry.attributes.position.array;
+        for (let i = 0; i < pathVertices.length; i += 3) {
+            pathVertices[i + 2] = Math.random() * 0.1;
+        }
+        pathGeometry.attributes.position.needsUpdate = true;
+        
+        const path = new THREE.Mesh(pathGeometry, new THREE.MeshStandardMaterial({ 
+            color: 0xC8B88A, roughness: 0.85
+        }));
+        path.rotation.x = -Math.PI / 2;
+        path.position.y = 0.02;
+        path.receiveShadow = true;
+        scene.add(path);
+        
+        // Trees
+        function createTree(x, z, scale = 1) {
+            const tree = new THREE.Group();
+            const trunk = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.2 * scale, 0.28 * scale, 2 * scale, 12),
+                new THREE.MeshStandardMaterial({ color: 0x4A3728, roughness: 0.95 })
+            );
+            trunk.position.y = 1 * scale;
+            trunk.castShadow = true;
+            tree.add(trunk);
+            
+            const foliageColors = [0x2D5016, 0x3A6B1F, 0x2A4A16];
+            for (let i = 0; i < 4; i++) {
+                const foliage = new THREE.Mesh(
+                    new THREE.SphereGeometry((1.2 - i * 0.15) * scale, 8, 8),
+                    new THREE.MeshStandardMaterial({ color: foliageColors[i % 3], roughness: 0.9 })
+                );
+                foliage.position.y = (2 + i * 0.6) * scale;
+                foliage.castShadow = true;
+                tree.add(foliage);
+            }
+            
+            tree.position.set(x, 0, z);
+            return tree;
+        }
+        
+        [[-8, -5, 1.2], [-10, 0, 0.9], [-9, 5, 1.1], [8, -5, 1.1], [10, 0, 1.2], [9, 5, 0.9]].forEach(([x, z, s]) => {
+            scene.add(createTree(x, z, s));
+        });
+        
+        // Rocks
+        function createRock(x, z, scale = 1) {
+            const rock = new THREE.Mesh(
+                new THREE.DodecahedronGeometry(0.6 * scale, 1),
+                new THREE.MeshStandardMaterial({ color: 0x7A7A7A, roughness: 0.95, flatShading: true })
+            );
+            rock.position.set(x, 0.35 * scale, z);
+            rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            rock.castShadow = true;
+            return rock;
+        }
+        
+        [[-4, -3, 0.8], [-5, 2, 1.0], [4, -2, 0.7], [5, 3, 0.9]].forEach(([x, z, s]) => {
+            scene.add(createRock(x, z, s));
+        });
+        
+        // Mountains
+        function createMountain(x, z, scale = 1) {
+            const group = new THREE.Group();
+            const mountain = new THREE.Mesh(
+                new THREE.ConeGeometry(4 * scale, 8 * scale, 6),
+                new THREE.MeshStandardMaterial({ color: 0x6B7280, flatShading: true })
+            );
+            mountain.position.set(x, 4 * scale, z);
+            const snowCap = new THREE.Mesh(
+                new THREE.ConeGeometry(2 * scale, 3 * scale, 6),
+                new THREE.MeshStandardMaterial({ color: 0xFFFFFF, flatShading: true })
+            );
+            snowCap.position.set(x, 7 * scale, z);
+            group.add(mountain, snowCap);
+            return group;
+        }
+        
+        scene.add(createMountain(0, -28, 3));
+        
+        // Flowers
+        for (let i = 0; i < 20; i++) {
+            const x = (Math.random() - 0.5) * 25;
+            const z = (Math.random() - 0.5) * 25;
+            if (Math.abs(x) > 3 || Math.abs(z) > 3) {
+                const flower = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.15, 6, 6),
+                    new THREE.MeshStandardMaterial({ 
+                        color: [0xFF69B4, 0xFFFF00, 0xFF4500][Math.floor(Math.random() * 3)]
+                    })
+                );
+                flower.position.set(x, 0.15, z);
+                scene.add(flower);
+            }
+        }
+        
+        // Clouds
+        const clouds = [];
+        for (let i = 0; i < 5; i++) {
+            const cloud = new THREE.Group();
+            for (let j = 0; j < 5; j++) {
+                const puff = new THREE.Mesh(
+                    new THREE.SphereGeometry(1.2, 8, 8),
+                    new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.8 })
+                );
+                puff.position.set((j - 2) * 1.3, Math.random() * 0.8, 0);
+                puff.scale.set(1 + Math.random() * 0.5, 0.7 + Math.random() * 0.3, 0.8);
+                cloud.add(puff);
+            }
+            cloud.position.set((Math.random() - 0.5) * 60, 18 + Math.random() * 12, -30);
+            cloud.userData.speed = 0.008 + Math.random() * 0.012;
+            clouds.push(cloud);
+            scene.add(cloud);
+        }
+        
+        // Butterflies
+        const butterflies = [];
+        for (let i = 0; i < 8; i++) {
+            const butterfly = new THREE.Mesh(
+                new THREE.SphereGeometry(0.12, 8, 8),
+                new THREE.MeshBasicMaterial({ 
+                    color: [0xFFFF00, 0xFF69B4, 0x00CED1][i % 3]
+                })
+            );
+            const x = (Math.random() - 0.5) * 12;
+            const z = (Math.random() - 0.5) * 12;
+            butterfly.position.set(x, 1.5 + Math.random() * 2, z);
+            butterfly.userData = {
+                angle: Math.random() * Math.PI * 2,
+                speed: 0.015 + Math.random() * 0.025,
+                radius: 2.5 + Math.random() * 4,
+                centerX: x,
+                centerZ: z,
+                bobSpeed: 0.05 + Math.random() * 0.05
+            };
+            butterflies.push(butterfly);
+            scene.add(butterfly);
+        }
+        
+        // Human characters
+        function createPerson(color, position, name) {
+            const person = new THREE.Group();
+            person.userData.name = name;
+            
+            // Torso
+            const torso = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.45, 0.5, 1.2, 16),
+                new THREE.MeshStandardMaterial({ color: color, roughness: 0.7 })
+            );
+            torso.castShadow = true;
+            torso.position.y = 1.1;
+            person.add(torso);
+            
+            // Neck
+            const neck = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.15, 0.18, 0.25, 12),
+                new THREE.MeshStandardMaterial({ color: 0xFFDBAC })
+            );
+            neck.position.y = 1.9;
+            person.add(neck);
+            
+            // Head
+            const head = new THREE.Mesh(
+                new THREE.SphereGeometry(0.4, 16, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFFDBAC, roughness: 0.75 })
+            );
+            head.scale.set(0.9, 1.05, 0.95);
+            head.castShadow = true;
+            head.position.y = 2.25;
+            person.add(head);
+            
+            // Hair
+            const hair = new THREE.Mesh(
+                new THREE.SphereGeometry(0.42, 16, 16),
+                new THREE.MeshStandardMaterial({ 
+                    color: name === 'Alex' ? 0x3B2414 : 0xD2691E,
+                    roughness: 0.9
+                })
+            );
+            hair.scale.set(1, 0.75, 1);
+            hair.position.y = 2.4;
+            person.add(hair);
+            
+            // Eyes
+            const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+            const leftEyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 10), eyeWhiteMat);
+            leftEyeWhite.position.set(-0.15, 2.28, 0.36);
+            person.add(leftEyeWhite);
+            
+            const rightEyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 10), eyeWhiteMat);
+            rightEyeWhite.position.set(0.15, 2.28, 0.36);
+            person.add(rightEyeWhite);
+            
+            // Pupils
+            const pupilMat = new THREE.MeshBasicMaterial({ color: 0x1E1E2F });
+            const leftPupil = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), pupilMat);
+            leftPupil.position.set(-0.15, 2.28, 0.42);
+            person.add(leftPupil);
+            person.userData.leftPupil = leftPupil;
+            
+            const rightPupil = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), pupilMat);
+            rightPupil.position.set(0.15, 2.28, 0.42);
+            person.add(rightPupil);
+            person.userData.rightPupil = rightPupil;
+            
+            // Mouth
+            const mouth = new THREE.Mesh(
+                new THREE.TorusGeometry(0.15, 0.025, 8, 16, Math.PI),
+                new THREE.MeshStandardMaterial({ color: 0xE67E80 })
+            );
+            mouth.position.set(0, 1.98, 0.36);
+            mouth.rotation.x = Math.PI;
+            person.add(mouth);
+            person.userData.mouth = mouth;
+            
+            // Arms
+            const armMaterial = new THREE.MeshStandardMaterial({ color: 0xFFDBAC, roughness: 0.8 });
+            const leftArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 1, 6, 10), armMaterial);
+            leftArm.position.set(-0.62, 1.3, 0);
+            leftArm.rotation.z = 0.35;
+            leftArm.castShadow = true;
+            person.add(leftArm);
+            person.userData.leftArm = leftArm;
+            
+            const rightArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 1, 6, 10), armMaterial);
+            rightArm.position.set(0.62, 1.3, 0);
+            rightArm.rotation.z = -0.35;
+            rightArm.castShadow = true;
+            person.add(rightArm);
+            person.userData.rightArm = rightArm;
+            
+            // Legs
+            const legMaterial = new THREE.MeshStandardMaterial({ color: 0x2C3E50, roughness: 0.75 });
+            const leftLeg = new THREE.Mesh(new THREE.CapsuleGeometry(0.14, 1.1, 6, 10), legMaterial);
+            leftLeg.position.set(-0.22, 0.2, 0);
+            leftLeg.castShadow = true;
+            person.add(leftLeg);
+            
+            const rightLeg = new THREE.Mesh(new THREE.CapsuleGeometry(0.14, 1.1, 6, 10), legMaterial);
+            rightLeg.position.set(0.22, 0.2, 0);
+            rightLeg.castShadow = true;
+            person.add(rightLeg);
+            
+            person.position.set(position[0], position[1], position[2]);
+            person.userData.originalY = position[1];
+            
+            return person;
+        }
+        
+        const alex = createPerson(0x00C2FF, [-2.5, 0, 1], 'Alex');
+        const sam = createPerson(0xFF7B00, [2.5, 0, 1], 'Sam');
+        scene.add(alex);
+        scene.add(sam);
+        
+        alex.rotation.y = Math.PI / 8;
+        sam.rotation.y = -Math.PI / 8;
+        
+        // Hearts
+        const hearts = new THREE.Group();
+        scene.add(hearts);
+        
+        function createHeartCelebration() {
+            hearts.clear();
+            for (let i = 0; i < 40; i++) {
+                const heart = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.12, 6, 6),
+                    new THREE.MeshBasicMaterial({ 
+                        color: [0xFF69B4, 0xFF1493, 0xFF7B00, 0x00C2FF][i % 4]
+                    })
+                );
+                heart.position.set((Math.random() - 0.5) * 8, 0.5 + Math.random() * 1.5, (Math.random() - 0.5) * 5);
+                heart.userData.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.04,
+                    0.04 + Math.random() * 0.05,
+                    (Math.random() - 0.5) * 0.04
+                );
+                hearts.add(heart);
+            }
+            setTimeout(() => hearts.clear(), 3500);
+        }
+        
+        // Animation
+        let time = 0;
+        let currentChallenge = 1;
+        let blinkTimer = 0;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+            blinkTimer += 0.016;
+            
+            // Characters
+            alex.position.y = alex.userData.originalY + Math.sin(time * 1.5) * 0.06;
+            alex.userData.leftArm.rotation.z = 0.35 + Math.sin(time * 3) * 0.35;
+            
+            if (currentChallenge < 3) {
+                sam.position.y = sam.userData.originalY + Math.sin(time * 0.8) * 0.04;
+                sam.userData.rightArm.rotation.z = -0.35 - Math.sin(time * 0.8) * 0.15;
+                sam.userData.mouth.rotation.x = Math.PI;
+            } else {
+                sam.position.y = sam.userData.originalY + Math.abs(Math.sin(time * 4.5)) * 0.35;
+                sam.rotation.y = -Math.PI / 8 + Math.sin(time * 3.5) * 0.18;
+                sam.userData.leftArm.rotation.z = Math.sin(time * 7) * 0.7;
+                sam.userData.rightArm.rotation.z = -Math.sin(time * 7) * 0.7;
+                sam.userData.mouth.rotation.x = 0;
+            }
+            
+            // Blinking
+            if (blinkTimer > 3 && Math.random() < 0.015) {
+                [alex, sam].forEach(p => {
+                    p.userData.leftPupil.scale.y = 0.1;
+                    p.userData.rightPupil.scale.y = 0.1;
+                });
+                setTimeout(() => {
+                    [alex, sam].forEach(p => {
+                        p.userData.leftPupil.scale.y = 1;
+                        p.userData.rightPupil.scale.y = 1;
+                    });
+                }, 120);
+                blinkTimer = 0;
+            }
+            
+            // Environment
+            clouds.forEach(cloud => {
+                cloud.position.x += cloud.userData.speed;
+                if (cloud.position.x > 35) cloud.position.x = -35;
+            });
+            
+            butterflies.forEach(b => {
+                b.userData.angle += b.userData.speed;
+                b.position.x = b.userData.centerX + Math.cos(b.userData.angle) * b.userData.radius;
+                b.position.z = b.userData.centerZ + Math.sin(b.userData.angle) * b.userData.radius;
+                b.position.y += Math.sin(time * b.userData.bobSpeed) * 0.003;
+                b.rotation.y = b.userData.angle;
+            });
+            
+            hearts.children.forEach(heart => {
+                heart.position.add(heart.userData.velocity);
+                heart.rotation.x += 0.12;
+                heart.rotation.y += 0.12;
+            });
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // Responsive resize
+        function handleResize() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+        
+        window.addEventListener('resize', handleResize);
+        new ResizeObserver(handleResize).observe(container);
+        
+        // UI Logic
+        const storyIntro = document.getElementById('py3d-story-intro');
+        const uiOverlay = document.getElementById('py3d-ui-overlay');
+        const alexSpeech = document.getElementById('py3d-alex-speech');
+        const samSpeech = document.getElementById('py3d-sam-speech');
+        const interactionHint = document.getElementById('py3d-interaction-hint');
+        const codeInput = document.getElementById('py3d-code-input');
+        const runBtn = document.getElementById('py3d-run-btn');
+        const status = document.getElementById('py3d-status');
+        const liveHint = document.getElementById('py3d-live-hint');
+        const xpBadge = document.getElementById('py3d-xp-badge');
+        const challengeTitle = document.getElementById('py3d-challenge-title');
+        const challenge1 = document.getElementById('py3d-challenge1');
+        const challenge2 = document.getElementById('py3d-challenge2');
+        
+        // Enhanced API_BASE detection for iframe context
+        function getAPIBase() {
+            // If in iframe, try to get parent's origin
+            if (window.parent && window.parent !== window) {
+                try {
+                    // Try to access parent location (will fail if cross-origin)
+                    const parentOrigin = window.parent.location.origin;
+                    console.log('✅ Iframe detected, using parent origin:', parentOrigin);
+                    return parentOrigin;
+                } catch (e) {
+                    console.log('⚠️ Cross-origin iframe, using document referrer');
+                    // Cross-origin iframe - use document.referrer
+                    if (document.referrer) {
+                        const url = new URL(document.referrer);
+                        return url.origin;
+                    }
+                }
+            }
+            
+            // Standalone mode - check if Live Server
+            if (location.port === '5500') {
+                console.log('🔧 Live Server detected, using localhost:5000');
+                return 'http://127.0.0.1:5000';
+            }
+            
+            // Default: same origin
+            console.log('📍 Using same origin for API calls');
+            return '';
+        }
+        
+        const API_BASE = getAPIBase();
+        console.log('🌐 API_BASE set to:', API_BASE || 'same-origin');
+        
+        // Get student name from session storage
+        let studentName = sessionStorage.getItem('studentName') || 'Student';
+        
+        // Try to fetch student name from Flask session
+        async function fetchStudentName() {
+            try {
+                const response = await fetch(`${API_BASE}/api/user-info`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.name) {
+                        studentName = data.name;
+                        sessionStorage.setItem('studentName', studentName);
+                    }
+                }
+            } catch (e) {
+                console.log('No user session found, using default name');
+            }
+        }
+        
+        // Fetch name on load
+        fetchStudentName();
+        
+        function speak(text, pitch = 1, useFemaleVoice = false) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Cancel any ongoing speech
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = pitch;
+                
+                // Use female voice for Donki
+                if (useFemaleVoice) {
+                    const voices = window.speechSynthesis.getVoices();
+                    // Try to find a female voice
+                    const femaleVoice = voices.find(voice => 
+                        voice.name.includes('Female') || 
+                        voice.name.includes('female') ||
+                        voice.name.includes('Woman') ||
+                        voice.name.includes('Zira') ||
+                        voice.name.includes('Google UK English Female') ||
+                        voice.name.includes('Microsoft Zira')
+                    );
+                    if (femaleVoice) {
+                        utterance.voice = femaleVoice;
+                    }
+                    utterance.pitch = 1.2; // Higher pitch for female voice
+                }
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // Load voices when available
+        if ('speechSynthesis' in window) {
+            speechSynthesis.addEventListener('voiceschanged', () => {
+                const voices = speechSynthesis.getVoices();
+                console.log('Available voices:', voices.map(v => v.name));
+            });
+        }
+        
+        // Fetch AI-generated dialogue
+        async function getAIDialogue(stage, userInput = '') {
+            try {
+                const response = await fetch(`${API_BASE}/api/dialogue`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        student_name: studentName,
+                        stage: stage,
+                        user_input: userInput,
+                        challenge: currentChallenge
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.dialogue || '...';
+                }
+            } catch (e) {
+                console.error('AI dialogue error:', e);
+            }
+            
+            // Fallback responses
+            const fallbacks = {
+                'greeting': `Hello ${studentName}! I'm doing great!`,
+                'string_response': `Thanks ${studentName}! That worked!`,
+                'age_question': `Nice! ${studentName}, how old are you?`,
+                'age_response': `I'm ${userInput} years old!`,
+                'celebration': `Awesome ${studentName}! You're a star!`
+            };
+            return fallbacks[stage] || '...';
+        }
+        
+        window.py3dStartLesson = async function() {
+            storyIntro.style.display = 'none';
+            uiOverlay.style.display = 'flex';
+            interactionHint.style.display = 'block';
+            
+            // Alex greets Sam (using student's name)
+            setTimeout(() => {
+                alexSpeech.classList.add('py3d-show');
+                alexSpeech.textContent = `Hello Sam! How are you? 👋`;
+                speak(`Hello Sam! ${studentName} will help you respond!`, 1.2);
+            }, 500);
+            
+            setTimeout(() => {
+                samSpeech.classList.add('py3d-show');
+                samSpeech.textContent = "... 🤔";
+            }, 2000);
+            
+            setTimeout(() => {
+                alexSpeech.textContent = `${studentName}, help Sam greet back!`;
+                speak(`${studentName}, help Sam greet back using print!`, 1.2);
+            }, 3500);
+        };
+        
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            try {
+                if (type === 'success') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        setTimeout(() => {
+                            const osc = audioContext.createOscillator();
+                            const gain = audioContext.createGain();
+                            osc.connect(gain).connect(audioContext.destination);
+                            osc.frequency.value = freq;
+                            osc.type = 'sine';
+                            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                            osc.start();
+                            osc.stop(audioContext.currentTime + 0.4);
+                        }, i * 150);
+                    });
+                } else {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain).connect(audioContext.destination);
+                    osc.frequency.value = 200;
+                    osc.type = 'square';
+                    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(audioContext.currentTime + 0.15);
+                }
+            } catch (e) {}
+        }
+        
+        function updateLiveHint(code) {
+            code = code.trim();
+            if (currentChallenge === 1) {
+                if (!code) {
+                    liveHint.innerHTML = '💡 Type <strong>print</strong> then text in quotes';
+                } else if (!/^print/i.test(code)) {
+                    liveHint.innerHTML = '💡 Start with <strong>print</strong>';
+                } else if (!/\(/.test(code)) {
+                    liveHint.innerHTML = '💡 Add <strong>(</strong>';
+                } else if (!/["']/.test(code)) {
+                    liveHint.innerHTML = '💡 Add <strong>quotes</strong>: "text"';
+                } else if (!/\)/.test(code)) {
+                    liveHint.innerHTML = '💡 Close with <strong>)</strong>';
+                } else {
+                    liveHint.innerHTML = '✅ Perfect! Run it!';
+                }
+            } else {
+                if (!code) {
+                    liveHint.innerHTML = '💡 Type age: <strong>print(20)</strong>';
+                } else if (!/^print/i.test(code)) {
+                    liveHint.innerHTML = '💡 Start with <strong>print</strong>';
+                } else if (!/\(/.test(code)) {
+                    liveHint.innerHTML = '💡 Add <strong>(</strong>';
+                } else if (/["']/.test(code)) {
+                    liveHint.innerHTML = '⚠️ <strong>Remove quotes!</strong> Numbers don\'t need them';
+                } else if (!/\d/.test(code)) {
+                    liveHint.innerHTML = '💡 Add a number';
+                } else if (!/\)/.test(code)) {
+                    liveHint.innerHTML = '💡 Close with <strong>)</strong>';
+                } else {
+                    liveHint.innerHTML = '✅ Great! Run it!';
+                }
+            }
+        }
+        
+        codeInput.addEventListener('input', (e) => {
+            updateLiveHint(e.target.value);
+        });
+        
+        function validateChallenge1(code) {
+            const normalized = code.trim().replace(/\s*\(\s*/g, '(').replace(/\s*\)\s*/g, ')');
+            const match = normalized.match(/^print\((["'])(.*?)\1\)$/i);
+            if (match && match[2].length > 0) {
+                return match[2];
+            }
+            return null;
+        }
+        
+        function validateChallenge2(code) {
+            const normalized = code.trim().replace(/\s*\(\s*/g, '(').replace(/\s*\)\s*/g, ')');
+            const match = normalized.match(/^print\((\d+)\)$/i);
+            if (match) {
+                return match[1];
+            }
+            return null;
+        }
+        
+        async function requestAIHint(userCode) {
+            // DONKI - Auto-triggered AI hints when student makes mistakes!
+            status.className = 'py3d-status-message py3d-hint py3d-show';
+            status.innerHTML = '🐴 Donki is thinking...';
+            
+            console.log('🐴 Requesting Donki hint...', {
+                api: `${API_BASE}/api/hint`,
+                challenge: currentChallenge,
+                code: userCode,
+                topic: 'print'
+            });
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/hint`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',  // Important for iframe cookies/sessions
+                    body: JSON.stringify({ 
+                        code: userCode,
+                        student_name: studentName,
+                        challenge: currentChallenge,
+                        topic: 'print'  // IMPORTANT: Tell Donki this is about PRINT!
+                    })
+                });
+                
+                console.log('📡 Donki API response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Donki hint received:', data);
+                    if (data.hint) {
+                        status.innerHTML = `🐴 <strong>Donki:</strong> ${data.hint}`;
+                        // Speak the hint with FEMALE VOICE!
+                        const cleanHint = data.hint.replace(studentName + ',', '').replace(studentName + '!', '');
+                        speak(cleanHint, 1.1, true); // true = use female voice
+                        return;
+                    }
+                } else {
+                    console.error('❌ Donki API error:', response.status, response.statusText);
+                }
+            } catch (e) {
+                console.error('❌ Donki hint fetch error:', e);
+            }
+            
+            // Fallback hints (offline mode)
+            console.log('⚠️ Using fallback hint (Donki API unavailable)');
+            let hint = currentChallenge === 1 
+                ? `Hey ${studentName}! For text, wrap in quotes: <strong>print("Hi!")</strong>`
+                : `Remember ${studentName}, numbers like 20 don't need quotes: <strong>print(20)</strong>`;
+            status.innerHTML = `🐴 <strong>Donki:</strong> ${hint}`;
+            const cleanText = hint.replace(/<[^>]*>/g, '').replace(studentName + ',', '').replace(studentName + '!', '');
+            speak(cleanText, 1.1, true); // true = use female voice
+        }
+        
+        runBtn.addEventListener('click', async () => {
+            const code = codeInput.value;
+            
+            if (currentChallenge === 1) {
+                const userText = validateChallenge1(code);
+                if (userText) {
+                    // Sam speaks what the user typed!
+                    samSpeech.textContent = `${userText} 😊`;
+                    samSpeech.style.borderColor = '#A8E10C';
+                    speak(userText, 1);
+                    
+                    // Get AI response from Sam
+                    const samResponse = await getAIDialogue('string_response', userText);
+                    
+                    setTimeout(async () => {
+                        samSpeech.textContent = samResponse + ' 😊';
+                        speak(samResponse, 1);
+                        
+                        // Get AI response from Alex asking about age
+                        const alexAgeQuestion = await getAIDialogue('age_question', samResponse);
+                        
+                        setTimeout(() => {
+                            alexSpeech.textContent = alexAgeQuestion;
+                            speak(alexAgeQuestion, 1.2);
+                        }, 1500);
+                    }, 1500);
+                    
+                    challenge1.classList.add('py3d-completed');
+                    challenge1.innerHTML = '<span class="py3d-challenge-number">✓</span><strong>String Done!</strong> "' + userText + '"';
+                    
+                    status.className = 'py3d-status-message py3d-success py3d-show';
+                    status.innerHTML = `🎉 <strong>Excellent!</strong> Sam said: "${userText}" - Strings need quotes!`;
+                    playSound('success');
+                    
+                    currentChallenge = 2;
+                    challenge2.style.opacity = '1';
+                    
+                    setTimeout(() => {
+                        challengeTitle.textContent = "Print a Number";
+                        codeInput.value = '';
+                        codeInput.placeholder = 'print(20)';
+                        updateLiveHint('');
+                        status.style.display = 'none';
+                    }, 3000);
+                    
+                } else {
+                    if (!/["']/.test(code) && /print\(.+\)/.test(code)) {
+                        status.className = 'py3d-status-message py3d-error py3d-show';
+                        status.innerHTML = '⚠️ Text needs <strong>quotes</strong>! Try: print("Hi!")';
+                        alexSpeech.textContent = `${studentName}, add quotes! 🤔`;
+                        speak("Text needs quotes!", 1.2);
+                    } else {
+                        playSound('error');
+                        samSpeech.textContent = "... confused 😕";
+                        await requestAIHint(code);
+                    }
+                }
+                
+            } else if (currentChallenge === 2) {
+                const userNumber = validateChallenge2(code);
+                if (userNumber) {
+                    currentChallenge = 3;
+                    
+                    // Get AI response from Sam about age
+                    const samAgeResponse = await getAIDialogue('age_response', userNumber);
+                    samSpeech.textContent = samAgeResponse + ' 🎊';
+                    speak(samAgeResponse, 1);
+                    
+                    // Get AI celebration from Alex
+                    const alexCelebration = await getAIDialogue('celebration', userNumber);
+                    
+                    setTimeout(() => {
+                        alexSpeech.textContent = alexCelebration;
+                        speak(alexCelebration, 1.2);
+                    }, 1500);
+                    
+                    challenge2.classList.add('py3d-completed');
+                    challenge2.innerHTML = '<span class="py3d-challenge-number">✓</span><strong>Number Done!</strong> ' + userNumber + ' (no quotes!)';
+                    
+                    status.className = 'py3d-status-message py3d-success py3d-show';
+                    status.innerHTML = `🎉 <strong>Perfect ${studentName}!</strong> You mastered:<br>• Strings WITH quotes: "text"<br>• Numbers WITHOUT quotes: ${userNumber}`;
+                    xpBadge.classList.add('py3d-show');
+                    playSound('success');
+                    createHeartCelebration();
+                    
+                    // Signal lesson completion to parent page
+                    setTimeout(() => {
+                        signalLessonComplete();
+                    }, 2000);
+                    
+                } else {
+                    if (/["']/.test(code) && /\d+/.test(code)) {
+                        status.className = 'py3d-status-message py3d-error py3d-show';
+                        status.innerHTML = '⚠️ <strong>Remove quotes!</strong> Numbers don\'t need them: print(20)';
+                        alexSpeech.textContent = `${studentName}, no quotes for numbers! 🔢`;
+                        speak("Numbers don't need quotes!", 1.2);
+                    } else {
+                        playSound('error');
+                        samSpeech.textContent = "... confused 😕";
+                        await requestAIHint(code);
+                    }
+                }
+            }
+        });
+        
+        codeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') runBtn.click();
+        });
+        
+        // Universal lesson completion signal
+        function signalLessonComplete() {
+            // Send message to parent page (lesson.html)
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'LESSON_COMPLETE',
+                    studentName: studentName,
+                    timestamp: new Date().toISOString()
+                }, '*');
+                console.log('✅ Lesson completion signal sent to parent page');
+            } else {
+                console.log('⚠️ Not in iframe, cannot signal parent');
+            }
+        }
+        
+        // Make function globally available
+        window.signalLessonComplete = signalLessonComplete;
+    </script>
+</body>
+</html>

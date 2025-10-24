@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Leaderboard · CodeDonki{% endblock %}
+{% block content %}
+  <div class="leaderboard-container">
+    <!-- Header Section -->
+    <div class="leaderboard-header">
+      <div class="header-content">
+        <h1 class="leaderboard-title">
+          <i class="fas fa-trophy"></i>
+          Leaderboard
+          <span class="live-badge" id="live-badge">
+            <i class="fas fa-circle"></i>
+            LIVE
+          </span>
+        </h1>
+        <p class="leaderboard-subtitle">Compete with fellow coders and climb the ranks!</p>
+      </div>
+    </div>
+
+    <!-- Navigation Button -->
+    <div class="navigation-section">
+      <a href="/archive" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i>
+        Back to Archive
+      </a>
+    </div>
+
+    <!-- Top 3 Podium Section -->
+    <div class="podium-section" id="podium-section">
+      <div class="podium-container">
+        <!-- 2nd Place -->
+        <div class="podium-place second-place" id="second-place">
+          <div class="podium-avatar">
+            <div class="avatar-placeholder">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="medal silver-medal">
+              <i class="fas fa-medal"></i>
+            </div>
+          </div>
+          <div class="podium-info">
+            <h3 class="player-name">Loading...</h3>
+            <div class="xp-display">
+              <span class="xp-value">0</span>
+              <span class="xp-label">XP</span>
+            </div>
+          </div>
+          <div class="podium-base silver">
+            <span class="rank-number">2</span>
+          </div>
+        </div>
+
+        <!-- 1st Place -->
+        <div class="podium-place first-place" id="first-place">
+          <div class="podium-avatar">
+            <div class="avatar-placeholder">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="medal gold-medal">
+              <i class="fas fa-crown"></i>
+            </div>
+          </div>
+          <div class="podium-info">
+            <h3 class="player-name">Loading...</h3>
+            <div class="xp-display">
+              <span class="xp-value">0</span>
+              <span class="xp-label">XP</span>
+            </div>
+          </div>
+          <div class="podium-base gold">
+            <span class="rank-number">1</span>
+          </div>
+        </div>
+
+        <!-- 3rd Place -->
+        <div class="podium-place third-place" id="third-place">
+          <div class="podium-avatar">
+            <div class="avatar-placeholder">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="medal bronze-medal">
+              <i class="fas fa-medal"></i>
+            </div>
+          </div>
+          <div class="podium-info">
+            <h3 class="player-name">Loading...</h3>
+            <div class="xp-display">
+              <span class="xp-value">0</span>
+              <span class="xp-label">XP</span>
+            </div>
+          </div>
+          <div class="podium-base bronze">
+            <span class="rank-number">3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Regular Leaderboard Section -->
+    <div class="leaderboard-section">
+      <div class="section-header">
+        <h2>All Players</h2>
+        <div class="stats-summary">
+          <span class="stat-item">
+            <i class="fas fa-users"></i>
+            <span id="total-players">0</span> Players
+          </span>
+          <span class="stat-item">
+            <i class="fas fa-fire"></i>
+            <span id="total-xp">0</span> Total XP
+          </span>
+        </div>
+      </div>
+
+      <div class="leaderboard-list" id="leaderboard-list">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Loading leaderboard...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="empty-state" style="display: none;">
+      <div class="empty-icon">
+        <i class="fas fa-trophy"></i>
+      </div>
+      <h3>No Players Yet</h3>
+      <p>Complete your first lesson to get on the leaderboard!</p>
+      <a href="/lessons" class="btn btn-primary">
+        <i class="fas fa-play"></i>
+        Start Learning
+      </a>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/leaderboard.js') }}"></script>
+{% endblock %}
+

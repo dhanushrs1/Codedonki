@@ -1,0 +1,144 @@
+<header class="site-header">
+  <nav class="nav container">
+    <a class="logo" href="/" style="display:flex;align-items:center;gap:.5rem;margin:0;">
+      <img src="/uploads/codedonki-logo.svg" alt="CodeDonki" style="height:42px;width:auto">
+    </a>
+    
+    <!-- Mobile menu button -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle mobile menu">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+    
+    <!-- Desktop navigation -->
+    <ul class="nav-links desktop-nav">
+      <li class="{{ 'active' if request.path == '/' else '' }}"><a href="/">Home</a></li>
+      <li class="{{ 'active' if request.path.startswith('/lessons') else '' }}"><a href="/lessons">Lessons</a></li>
+      <li class="{{ 'active' if request.path.startswith('/games') else '' }}"><a href="/games">Games</a></li>
+      <li class="{{ 'active' if request.path.startswith('/leaderboard') else '' }}"><a href="/leaderboard">Leaderboard</a></li>
+      {% if g.user %}
+        <li class="admin-panel-li" id="adminPanelLi" style="display: none;">
+          <a href="/admin" class="admin-panel-btn">
+            <i class="fas fa-cog"></i>
+            Admin Panel
+          </a>
+        </li>
+        <li class="{{ 'active' if request.path.startswith('/profile') else '' }}" style="display:flex;align-items:center;gap:.5rem;">
+          <a href="/profile" id="header-profile-link" style="display:flex;align-items:center;gap:.5rem;">
+            <img id="header-avatar" src="/uploads/profile.png" alt="Avatar" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+            <span id="header-username" style="display:none;">Profile</span>
+          </a>
+        </li>
+        <li>
+          <form action="/logout" method="post" style="display:inline">
+            <button type="submit" class="btn btn-secondary">Logout</button>
+          </form>
+        </li>
+      {% else %}
+        <li class="{{ 'active' if request.path.startswith('/auth') else '' }}"><a href="/auth">Login/Signup</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  
+  <!-- Mobile off-canvas menu -->
+  <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="mobile-menu-header">
+      <img src="/uploads/codedonki-logo.svg" alt="CodeDonki" class="mobile-logo">
+      <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Close mobile menu">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <ul class="mobile-nav-links">
+      <li class="{{ 'active' if request.path == '/' else '' }}">
+        <a href="/">
+          <i class="fas fa-home"></i>
+          Home
+        </a>
+      </li>
+      <li class="{{ 'active' if request.path.startswith('/lessons') else '' }}">
+        <a href="/lessons">
+          <i class="fas fa-graduation-cap"></i>
+          Lessons
+        </a>
+      </li>
+      <li class="{{ 'active' if request.path.startswith('/games') else '' }}">
+        <a href="/games">
+          <i class="fas fa-gamepad"></i>
+          Games
+        </a>
+      </li>
+      <li class="{{ 'active' if request.path.startswith('/leaderboard') else '' }}">
+        <a href="/leaderboard">
+          <i class="fas fa-trophy"></i>
+          Leaderboard
+        </a>
+      </li>
+      {% if g.user %}
+        <li class="mobile-admin-panel-li" id="mobileAdminPanelLi" style="display: none;">
+          <a href="/admin" class="mobile-admin-panel-btn">
+            <i class="fas fa-cog"></i>
+            Admin Panel
+          </a>
+        </li>
+        <li class="{{ 'active' if request.path.startswith('/profile') else '' }}">
+          <a href="/profile" id="mobile-profile-link">
+            <img id="mobile-avatar" src="/uploads/profile.png" alt="Avatar" class="mobile-avatar">
+            <span id="mobile-username">Profile</span>
+          </a>
+        </li>
+        <li>
+          <form action="/logout" method="post" class="mobile-logout-form">
+            <button type="submit" class="btn btn-secondary mobile-logout-btn">
+              <i class="fas fa-sign-out-alt"></i>
+              Logout
+            </button>
+          </form>
+        </li>
+      {% else %}
+        <li class="{{ 'active' if request.path.startswith('/auth') else '' }}">
+          <a href="/auth">
+            <i class="fas fa-sign-in-alt"></i>
+            Login/Signup
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+  
+  {% if g.user %}
+  <script>
+    (async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await fetch('/api/profile', { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) return;
+        const profile = await res.json();
+        
+        // Update desktop avatar and username
+        const avatar = document.getElementById('header-avatar');
+        if (avatar && profile.avatar_url) avatar.src = profile.avatar_url;
+        const nameEl = document.getElementById('header-username');
+        if (nameEl && profile.name) nameEl.textContent = profile.name;
+        
+        // Update mobile avatar and username
+        const mobileAvatar = document.getElementById('mobile-avatar');
+        if (mobileAvatar && profile.avatar_url) mobileAvatar.src = profile.avatar_url;
+        const mobileNameEl = document.getElementById('mobile-username');
+        if (mobileNameEl && profile.name) mobileNameEl.textContent = profile.name;
+        
+        // Show admin panel if user is admin
+        if (profile.role === 'admin') {
+          const adminPanelLi = document.getElementById('adminPanelLi');
+          const mobileAdminPanelLi = document.getElementById('mobileAdminPanelLi');
+          if (adminPanelLi) adminPanelLi.style.display = 'block';
+          if (mobileAdminPanelLi) mobileAdminPanelLi.style.display = 'block';
+        }
+      } catch (e) { /* no-op */ }
+    })();
+  </script>
+  {% endif %}
+</header>
+

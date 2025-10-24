@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% block title %}My Profile · CodeDonki{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+  <!-- Header -->
+  <div class="profile-header">
+    <h1>
+      <i class="fas fa-user-circle"></i>
+      My Profile
+    </h1>
+    <a href="/archive" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <!-- Alert Container -->
+  <!-- Alert container now managed globally by alerts.js -->
+
+  <!-- Profile Grid -->
+  <div class="profile-grid">
+    <!-- Avatar Section -->
+    <div class="avatar-section">
+        <div class="avatar-container">
+        <img id="avatar-preview" src="" alt="Profile Picture" class="avatar-preview">
+        <div class="avatar-overlay">
+          <i class="fas fa-camera"></i>
+        </div>
+      </div>
+
+      <form id="avatarForm" class="avatar-form">
+        <div class="file-input-wrapper">
+          <input type="file" id="avatar-file" name="avatar" accept="image/png, image/jpeg, image/jpg, image/gif" required>
+          <label for="avatar-file" class="file-input-label">
+            <i class="fas fa-image"></i>
+            <span>Choose Image</span>
+          </label>
+        </div>
+        <div id="selected-file" class="selected-file"></div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+          <i class="fas fa-upload"></i> Upload Avatar
+        </button>
+      </form>
+
+    </div>
+
+    <!-- Profile Details -->
+    <div class="profile-details">
+      <h2>
+        <i class="fas fa-cog"></i>
+        Account Settings
+      </h2>
+      <form id="profileForm">
+        <div class="form-group">
+          <label for="name">
+            <i class="fas fa-user"></i> Full Name
+          </label>
+          <input type="text" id="name" name="name" placeholder="Enter your name" required>
+        </div>
+        <div class="form-group">
+          <label for="email">
+            <i class="fas fa-envelope"></i> Email Address
+          </label>
+          <input type="email" id="email" name="email" placeholder="your@email.com" disabled>
+        </div>
+        <div class="form-group">
+          <label for="xp">
+            <i class="fas fa-trophy"></i> Experience Points (XP)
+          </label>
+          <input type="text" id="xp" name="xp" placeholder="0" disabled>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Save Changes
+          </button>
+        </div>
+      </form>
+
+      <!-- Change Password Section -->
+      <div class="change-password-section">
+        <h3>
+          <i class="fas fa-key"></i>
+          Change Password
+        </h3>
+        <form id="passwordForm" class="password-form">
+          <div class="form-group">
+            <label for="current-password">
+              <i class="fas fa-lock"></i> Current Password
+            </label>
+            <input type="password" id="current-password" name="current_password" placeholder="Enter current password" required>
+          </div>
+          <div class="form-group">
+            <label for="new-password">
+              <i class="fas fa-key"></i> New Password
+            </label>
+            <input type="password" id="new-password" name="new_password" placeholder="Enter new password" required>
+          </div>
+          <div class="form-group">
+            <label for="confirm-password">
+              <i class="fas fa-check"></i> Confirm New Password
+            </label>
+            <input type="password" id="confirm-password" name="confirm_password" placeholder="Confirm new password" required>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Change Password
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badges Section -->
+  <div class="badges-section">
+    <h2>
+      <i class="fas fa-trophy"></i>
+      My Achievements
+    </h2>
+    <div id="badges-container" class="badges-grid">
+      <div class="loading-badges">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        <p>Loading your badges...</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/api.js') }}"></script>
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+<script>
+  // Load and display user badges
+  async function loadUserBadges() {
+    try {
+      const response = await apiFetch('/api/profile/badges');
+      if (response.ok) {
+        const badges = await response.json();
+        displayBadges(badges);
+      } else {
+        throw new Error('Failed to load badges');
+      }
+    } catch (error) {
+      console.error('Error loading badges:', error);
+      document.getElementById('badges-container').innerHTML = `
+        <div class="empty-badges">
+          <i class="fas fa-exclamation-circle"></i>
+          <h3>Failed to Load Badges</h3>
+          <p>Please try refreshing the page.</p>
+        </div>
+      `;
+    }
+  }
+
+  function badgeImgFallback(img, iconUrl, color) {
+    // Try icon URL first; if that fails or not provided, render colored icon
+    if (iconUrl) {
+      img.onerror = null;
+      img.src = `${API_BASE_URL}${iconUrl}`;
+      return;
+    }
+    const parent = img.parentElement;
+    parent.innerHTML = `<div class="badge-icon" style="background: ${color}"><i class="fas fa-award"></i></div>`;
+  }
+
+  function displayBadges(badges) {
+    const container = document.getElementById('badges-container');
+    
+    if (!badges || badges.length === 0) {
+      container.innerHTML = `
+        <div class="empty-badges">
+          <i class="fas fa-trophy"></i>
+          <h3>No Badges Yet</h3>
+          <p>Complete lessons and quizzes to earn your first badge!</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = badges.map(badge => {
+      const badgeColor = badge.color || '#FFD700';
+      const imageUrl = badge.image_url ? `${API_BASE_URL}${badge.image_url}` : null;
+      const iconUrl = badge.icon_url || '';
+
+      let mediaHTML = '';
+      if (imageUrl) {
+        mediaHTML = `
+          <div class="badge-icon-wrapper">
+            <img src="${imageUrl}" alt="${badge.name}" class="badge-image"
+                 onerror="badgeImgFallback(this, '${iconUrl}', '${badgeColor}')">
+          </div>`;
+      } else if (iconUrl) {
+        mediaHTML = `
+          <div class="badge-icon-wrapper">
+            <img src="${API_BASE_URL}${iconUrl}" alt="${badge.name}" class="badge-image"
+                 onerror="badgeImgFallback(this, '', '${badgeColor}')">
+          </div>`;
+      } else {
+        mediaHTML = `
+          <div class="badge-icon" style="background: ${badgeColor}">
+            <i class="fas fa-award"></i>
+          </div>`;
+      }
+
+      return `
+        <div class="badge-card">
+          ${mediaHTML}
+          <h3 class="badge-name">${badge.name}</h3>
+          <p class="badge-description">${badge.description || 'Achievement unlocked!'}</p>
+          <div class="badge-xp">
+            <i class="fas fa-star"></i>
+            <span>Earned at ${badge.xp_threshold || 0} XP</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // File input preview
+  document.addEventListener('DOMContentLoaded', () => {
+    loadUserBadges();
+    
+    const fileInput = document.getElementById('avatar-file');
+    const selectedFileDiv = document.getElementById('selected-file');
+    
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        const fileName = e.target.files[0].name;
+        selectedFileDiv.textContent = `Selected: ${fileName}`;
+        selectedFileDiv.classList.add('show');
+      } else {
+        selectedFileDiv.classList.remove('show');
+      }
+    });
+  });
+</script>
+{% endblock %}

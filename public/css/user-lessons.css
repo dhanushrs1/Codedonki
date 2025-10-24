@@ -1,0 +1,452 @@
+/* User Lessons Page Styles - Zigzag Game Map Layout */
+/* This file contains styles for the user-facing lessons page with zigzag game map layout */
+
+/* Reset and override conflicting styles from main.css */
+.lessons-page * {
+  box-sizing: border-box;
+}
+
+/* Override conflicting styles from main.css */
+.lessons-page .page-header {
+  margin-bottom: 2rem;
+}
+
+.lessons-page .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Page Header Styles */
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.title-section {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.title-section h1 {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+#backToArchive {
+  font-size: 0.95rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+#backToArchive:hover {
+  transform: translateX(-3px);
+}
+
+#categoryDescription {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+/* Progress Section */
+#progressSection {
+  margin-bottom: 2rem;
+}
+
+.progress-card {
+  background: var(--surface-color);
+  padding: 1.5rem;
+  border-radius: var(--radius-card);
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.progress-text {
+  font-weight: 700;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-text i {
+  color: var(--accent-orange);
+}
+
+.progress-bar-container {
+  flex: 1;
+  min-width: 200px;
+  height: 12px;
+  background: var(--border-color);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--primary-color);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+/* Loading and Error States */
+.loading-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-secondary);
+}
+
+.error-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--accent-error);
+}
+
+/* Game Map Styles - Zigzag Layout */
+.lessons-page .lessons-map {
+  position: relative;
+  padding: 2rem 0;
+  display: block !important;
+}
+
+.lessons-map {
+  position: relative;
+  padding: 2rem 0;
+}
+
+.lesson-path {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  position: relative;
+}
+
+/* Override any grid styles from main.css */
+.lessons-page .lesson-path {
+  display: flex !important;
+  flex-direction: column !important;
+  grid-template-columns: none !important;
+}
+
+/* Lesson Node Styles */
+.lesson-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+  margin-top: 3rem;
+}
+
+.lesson-node:first-child {
+  margin-top: 0;
+}
+
+/* Zigzag pattern */
+.lesson-node:nth-child(even) {
+  align-self: flex-start;
+  margin-left: 15%;
+}
+
+.lesson-node:nth-child(odd) {
+  align-self: flex-end;
+  margin-right: 15%;
+}
+
+/* Override any card styles from main.css */
+.lessons-page .lesson-node {
+  display: flex !important;
+  flex-direction: column !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  margin-top: 3rem !important;
+}
+
+/* Lesson Bubble Styles */
+.lesson-bubble {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.5rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  text-decoration: none;
+  color: white;
+}
+
+.lesson-bubble:hover:not(.locked) {
+  transform: scale(1.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.lesson-bubble.locked {
+  background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.lesson-bubble.unlocked {
+  background: linear-gradient(135deg, var(--primary-color), #0099CC);
+  cursor: pointer;
+}
+
+.lesson-bubble.completed {
+  background: linear-gradient(135deg, var(--accent-green), #88B80A);
+  animation: pulse 2s infinite;
+}
+
+.lesson-bubble.current {
+  background: linear-gradient(135deg, var(--accent-orange), #FF7B00);
+  animation: pulse-ring 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 123, 0, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 20px rgba(255, 123, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 123, 0, 0);
+  }
+}
+
+/* Lesson Bubble Icons */
+.lock-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  opacity: 0.7;
+}
+
+.lesson-icon {
+  font-size: 1rem;
+  margin-top: -5px;
+}
+
+.lesson-number {
+  font-size: 2rem;
+  font-family: var(--font-heading);
+}
+
+.star-decoration {
+  position: absolute;
+  color: gold;
+  animation: twinkle 2s infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Lesson Info */
+.lesson-info {
+  text-align: center;
+  margin-top: 1rem;
+  max-width: 200px;
+}
+
+.lesson-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+}
+
+.lesson-xp {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.lesson-xp i {
+  color: var(--accent-orange);
+}
+
+.lesson-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.badge-locked {
+  background: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.badge-current {
+  background: var(--accent-orange);
+  color: white;
+  animation: glow 2s infinite;
+}
+
+.badge-completed {
+  background: var(--accent-green);
+  color: white;
+}
+
+@keyframes glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Path Lines */
+.path-line {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.path-line svg {
+  overflow: visible;
+}
+
+.path-line path {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.path-line path.completed {
+  stroke: var(--accent-green);
+  stroke-dasharray: 10 5;
+  animation: dash 20s linear infinite;
+}
+
+.path-line path.active {
+  stroke: var(--primary-color);
+  stroke-dasharray: 10 5;
+  animation: dash 20s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .lessons-page .container {
+    padding: 1rem;
+  }
+  
+  .title-section h1 {
+    font-size: 1.5rem;
+  }
+
+  .lesson-node:nth-child(even),
+  .lesson-node:nth-child(odd) {
+    align-self: center;
+    margin: 0;
+  }
+
+  .lesson-bubble {
+    width: 80px;
+    height: 80px;
+    font-size: 1.2rem;
+  }
+
+  .lesson-number {
+    font-size: 1.5rem;
+  }
+  
+  .progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .progress-bar-container {
+    width: 100%;
+    margin-left: 0;
+  }
+  
+  .title-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .lesson-bubble {
+    width: 70px;
+    height: 70px;
+    font-size: 1rem;
+  }
+  
+  .lesson-info {
+    max-width: 150px;
+  }
+  
+  .lesson-title {
+    font-size: 0.9rem;
+  }
+  
+  .lesson-xp {
+    font-size: 0.75rem;
+  }
+  
+  .lesson-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+}
