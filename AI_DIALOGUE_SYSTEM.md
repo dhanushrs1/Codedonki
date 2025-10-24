@@ -159,7 +159,7 @@ speak(samResponse, 1);
 
 ### Required Environment Variable
 ```bash
-GEMINI_API_KEY=AIzaSyC_TRi_uYXTSXfmOk8u5hmW1J2aKGKgHWg
+GEMINI_API_KEY=your__api__key__aKGKgHWg
 ```
 
 ### Fallback Behavior
