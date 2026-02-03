@@ -230,7 +230,7 @@
       // Check if user has a token first
       const token = localStorage.getItem('token');
       if (!token) {
-        showMessage('Please log in first. Use admin credentials: admin@nexqod.com / admin123', 'error');
+        showMessage('Please log in first. Use admin credentials: admin@codedonki.com / admin123', 'error');
         setTimeout(() => {
           window.location.href = '{{ url_for("auth_page") }}';
         }, 2000);
@@ -260,7 +260,7 @@
           }
         } else if (response.status === 401 || response.status === 422) {
           // Token expired or invalid
-          showMessage('Session expired. Please log in again with admin credentials: admin@nexqod.com / admin123', 'error');
+          showMessage('Session expired. Please log in again with admin credentials: admin@codedonki.com / admin123', 'error');
           setTimeout(() => {
             window.location.href = '{{ url_for("auth_page") }}';
           }, 2000);
@@ -274,7 +274,7 @@
         if (error.message && error.message.includes('fetch')) {
           showMessage('Network error. Please check your connection and ensure the server is running.', 'error');
         } else {
-          showMessage('Authentication error. Please log in with admin credentials: admin@nexqod.com / admin123', 'error');
+          showMessage('Authentication error. Please log in with admin credentials: admin@codedonki.com / admin123', 'error');
           setTimeout(() => {
             window.location.href = '{{ url_for("auth_page") }}';
           }, 2000);
