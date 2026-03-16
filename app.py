@@ -357,6 +357,36 @@ def test_db_connection():
         print("[SUCCESS] Database connection successful!")
         conn.close()
 
+def ensure_default_admin(conn):
+    """Ensure the default admin user exists with a valid password hash."""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, hashed_password FROM users WHERE email = ?", ('admin@codedonki.com',))
+        admin = cursor.fetchone()
+        if admin is None:
+            # Insert default admin user
+            cursor.execute(
+                "INSERT INTO users (id, name, email, hashed_password, role, xp) VALUES (1, 'Admin User', 'admin@codedonki.com', ?, 'admin', 0)",
+                (pbkdf2_sha256.hash('admin123'),)
+            )
+            conn.commit()
+            print("[SUCCESS] Default admin user created (email: admin@codedonki.com, password: admin123)")
+        else:
+            # Validate the existing hash; replace it only if it is malformed (invalid format)
+            try:
+                pbkdf2_sha256.verify('admin123', admin['hashed_password'])
+            except ValueError:
+                cursor.execute(
+                    "UPDATE users SET hashed_password = ? WHERE email = ?",
+                    (pbkdf2_sha256.hash('admin123'), 'admin@codedonki.com')
+                )
+                conn.commit()
+                print("[SUCCESS] Default admin password hash repaired (email: admin@codedonki.com, password: admin123)")
+        cursor.close()
+    except Exception as e:
+        print(f"[ERROR] Could not ensure default admin user: {e}")
+
+
 def setup_database():
     """Setup database tables and sample data."""
     conn = get_db_connection()
@@ -370,6 +400,8 @@ def setup_database():
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('users','categories','lessons') LIMIT 1")
         if cursor.fetchone():
             cursor.close()
+            # Still ensure admin user is present and has a valid password hash
+            ensure_default_admin(conn)
             conn.close()
             print("[INFO] Database already initialized; skipping setup script.")
             return True
@@ -389,6 +421,10 @@ def setup_database():
         
         conn.commit()
         cursor.close()
+
+        # Ensure admin user has a valid password hash after schema execution
+        ensure_default_admin(conn)
+
         conn.close()
         
         print("[SUCCESS] Database setup completed successfully!")

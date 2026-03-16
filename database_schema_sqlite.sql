@@ -153,7 +153,7 @@ CREATE INDEX IF NOT EXISTS idx_user_badges_user ON user_badges(user_id);
 -- Password: admin123 (hashed with pbkdf2_sha256)
 INSERT OR IGNORE INTO users (id, name, email, hashed_password, role, xp)
 VALUES (1, 'Admin User', 'admin@codedonki.com', 
-        '$pbkdf2-sha256$29000$9N7bO.d8by11zlkLQcjZuw$dGE3b9kqKxRj6WGZqXqF3xXqD7kKGKJqJ7kqXqF3xA', 
+        '$pbkdf2-sha256$29000$w1gLASBkrPX.vxfiXIvRGg$9uG1AklXwACoVNmmdZeXNmXex94Rbl7JHXlFgn8g2O4', 
         'admin', 0);
 
 -- ============================================
