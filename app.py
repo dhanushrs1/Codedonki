@@ -25,7 +25,7 @@ except Exception as e:
 
 
 # Initialize the Flask app
-app = Flask(__name__, static_folder='public', static_url_path='/static')
+app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # --- UPDATED: CORS Configuration ---
 # This setup trusts your frontend dev server, Flask server, and 'file://'
