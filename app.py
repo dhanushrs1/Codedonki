@@ -7,6 +7,9 @@ import jwt
 import datetime, time
 import functools 
 import google.generativeai as genai 
+
+# MySQL error code for duplicate key violation
+MYSQL_ERROR_DUPLICATE_KEY = 1062
 from flask import Flask, request, jsonify, send_from_directory, render_template, g, redirect, url_for, session
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -502,7 +505,7 @@ def signup():
         return jsonify({"message": "User created successfully"}), 201
     except pymysql.err.IntegrityError as e:
         conn.rollback()
-        if e.args[0] == 1062:
+        if e.args[0] == MYSQL_ERROR_DUPLICATE_KEY:
             return jsonify({"error": "Email already exists"}), 409
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     finally:
@@ -1761,7 +1764,7 @@ def create_category():
         return jsonify({"message": "Category created successfully", "category_id": category_id}), 201
     except pymysql.Error as e:
         conn.rollback()
-        if e.args[0] == 1062:
+        if e.args[0] == MYSQL_ERROR_DUPLICATE_KEY:
             return jsonify({"error": "Category name or slug already exists"}), 409
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     finally:
@@ -1821,7 +1824,7 @@ def update_category(category_id):
         return jsonify({"message": "Category updated successfully"}), 200
     except pymysql.Error as e:
         conn.rollback()
-        if e.args[0] == 1062:
+        if e.args[0] == MYSQL_ERROR_DUPLICATE_KEY:
             return jsonify({"error": "Category name or slug already exists"}), 409
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     finally:
@@ -1898,7 +1901,7 @@ def create_badge():
         except pymysql.Error as e:
             conn.rollback()
             print(f"❌ Database error in create_badge: {str(e)}")
-            if e.args[0] == 1062:
+            if e.args[0] == MYSQL_ERROR_DUPLICATE_KEY:
                 return jsonify({"error": "Badge name already exists"}), 409
             return jsonify({"error": f"Database error: {str(e)}"}), 500
         finally:
@@ -2011,7 +2014,7 @@ def update_badge(badge_id):
             conn.rollback()
             conn.close()
         print(f"❌ Database error in update_badge: {str(e)}")
-        if e.args[0] == 1062:
+        if e.args[0] == MYSQL_ERROR_DUPLICATE_KEY:
             return jsonify({"error": "Badge name already exists"}), 409
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     except Exception as e:
@@ -2688,16 +2691,14 @@ def get_recent_activity():
         activities = activities[:10]
         
         # Format timestamps to relative time
-        from datetime import datetime
-        now = datetime.now()
+        now = datetime.datetime.now()
         
         for activity in activities:
             ts = activity["timestamp"]
             if ts:
                 if isinstance(ts, str):
                     try:
-                        from datetime import datetime as dt
-                        ts = dt.fromisoformat(ts.replace('Z', '+00:00').replace(' ', 'T'))
+                        ts = datetime.datetime.fromisoformat(ts.replace('Z', '+00:00').replace(' ', 'T'))
                     except Exception:
                         ts = None
                 if ts:
