@@ -367,7 +367,7 @@ def test_db_connection():
         conn.close()
 
 def ensure_default_admin(conn):
-    """Ensure the default admin user exists with a valid password hash."""
+    """Ensure the default admin user and demo user exist with valid password hashes."""
     try:
         cursor = conn.cursor()
         cursor.execute("SELECT id, hashed_password FROM users WHERE email = %s", ('admin@codedonki.com',))
@@ -389,6 +389,18 @@ def ensure_default_admin(conn):
                 )
                 conn.commit()
                 print("[SUCCESS] Default admin password hash repaired (email: admin@codedonki.com, password: admin123)")
+
+        # Ensure demo user exists
+        cursor.execute("SELECT id FROM users WHERE email = %s", ('user@codedonki.com',))
+        demo_user = cursor.fetchone()
+        if demo_user is None:
+            cursor.execute(
+                "INSERT IGNORE INTO users (name, email, hashed_password, role, xp) VALUES ('Demo User', 'user@codedonki.com', %s, 'user', 0)",
+                (pbkdf2_sha256.hash('user123'),)
+            )
+            conn.commit()
+            print("[SUCCESS] Demo user created (email: user@codedonki.com, password: user123)")
+
         cursor.close()
     except Exception as e:
         print(f"[ERROR] Could not ensure default admin user: {e}")
@@ -2687,7 +2699,10 @@ def get_recent_activity():
             pass
         
         # Sort by timestamp and limit to 10 most recent
-        activities.sort(key=lambda x: x["timestamp"], reverse=True)
+        activities.sort(
+            key=lambda x: (x["timestamp"] if isinstance(x["timestamp"], datetime.datetime) else datetime.datetime.min),
+            reverse=True
+        )
         activities = activities[:10]
         
         # Format timestamps to relative time
