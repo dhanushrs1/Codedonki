@@ -1,7 +1,8 @@
 import os
 import mimetypes
 import re 
-import sqlite3
+import pymysql
+import pymysql.cursors
 import jwt
 import datetime, time
 import functools 
@@ -186,7 +187,7 @@ def get_user_info():
             if conn:
                 cursor = conn.cursor()
                 # Note: users table uses 'id' column, not 'user_id'
-                cursor.execute("SELECT name FROM users WHERE id = ?", (user['user_id'],))
+                cursor.execute("SELECT name FROM users WHERE id = %s", (user['user_id'],))
                 user_row = cursor.fetchone()
                 conn.close()
                 if user_row:
@@ -328,13 +329,18 @@ def set_user_session_from_token(token):
 
 # --- Database Helper Function ---
 def get_db_connection():
-    """Establishes a connection to the SQLite database."""
+    """Establishes a connection to the MySQL database."""
     try:
-        db_path = os.getenv("DATABASE_PATH", "codedonki.db")
-        conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row  # Enable column access by name
-        # Enable foreign keys in SQLite
-        conn.execute("PRAGMA foreign_keys = ON")
+        conn = pymysql.connect(
+            host=os.getenv("MYSQL_HOST", "localhost"),
+            port=int(os.getenv("MYSQL_PORT", "3306")),
+            user=os.getenv("MYSQL_USER", "root"),
+            password=os.getenv("MYSQL_PASSWORD", ""),
+            database=os.getenv("MYSQL_DATABASE", "codedonki"),
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor,
+            autocommit=False
+        )
         return conn
     except Exception as e:
         print(f"❌ Database connection failed: {e}")
@@ -361,23 +367,21 @@ def ensure_default_admin(conn):
     """Ensure the default admin user exists with a valid password hash."""
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, hashed_password FROM users WHERE email = ?", ('admin@codedonki.com',))
+        cursor.execute("SELECT id, hashed_password FROM users WHERE email = %s", ('admin@codedonki.com',))
         admin = cursor.fetchone()
         if admin is None:
-            # Insert default admin user
             cursor.execute(
-                "INSERT INTO users (id, name, email, hashed_password, role, xp) VALUES (1, 'Admin User', 'admin@codedonki.com', ?, 'admin', 0)",
+                "INSERT INTO users (id, name, email, hashed_password, role, xp) VALUES (1, 'Admin User', 'admin@codedonki.com', %s, 'admin', 0)",
                 (pbkdf2_sha256.hash('admin123'),)
             )
             conn.commit()
             print("[SUCCESS] Default admin user created (email: admin@codedonki.com, password: admin123)")
         else:
-            # Validate the existing hash; replace it only if it is malformed (invalid format)
             try:
                 pbkdf2_sha256.verify('admin123', admin['hashed_password'])
             except ValueError:
                 cursor.execute(
-                    "UPDATE users SET hashed_password = ? WHERE email = ?",
+                    "UPDATE users SET hashed_password = %s WHERE email = %s",
                     (pbkdf2_sha256.hash('admin123'), 'admin@codedonki.com')
                 )
                 conn.commit()
@@ -393,43 +397,43 @@ def setup_database():
     if not conn:
         print("❌ Cannot setup database - connection failed")
         return False
-    
+
     try:
         cursor = conn.cursor()
-        # If core tables already exist, assume DB is initialized and skip seeding
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('users','categories','lessons') LIMIT 1")
-        if cursor.fetchone():
+        # Check if core tables already exist
+        cursor.execute(
+            "SELECT COUNT(*) AS cnt FROM information_schema.TABLES "
+            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('users','categories','lessons')"
+        )
+        row = cursor.fetchone()
+        if row and row['cnt'] > 0:
             cursor.close()
-            # Still ensure admin user is present and has a valid password hash
             ensure_default_admin(conn)
             conn.close()
             print("[INFO] Database already initialized; skipping setup script.")
             return True
-        
-        # Disable foreign keys temporarily for initial setup
-        cursor.execute("PRAGMA foreign_keys = OFF")
-        
-        # Read and execute the SQLite database schema
-        with open('database_schema_sqlite.sql', 'r', encoding='utf-8') as file:
+
+        # Read and execute the MySQL database schema
+        with open('database_schema_mysql.sql', 'r', encoding='utf-8') as file:
             sql_script = file.read()
-        
-        # Execute the entire script
-        cursor.executescript(sql_script)
-        
-        # Re-enable foreign keys
-        cursor.execute("PRAGMA foreign_keys = ON")
-        
+
+        # Execute statements one at a time (PyMySQL does not support executescript)
+        statements = [s.strip() for s in sql_script.split(';') if s.strip() and not s.strip().startswith('--')]
+        for statement in statements:
+            try:
+                cursor.execute(statement)
+            except pymysql.Error as e:
+                print(f"[WARN] Statement skipped: {e}")
+
         conn.commit()
         cursor.close()
 
-        # Ensure admin user has a valid password hash after schema execution
         ensure_default_admin(conn)
-
         conn.close()
-        
+
         print("[SUCCESS] Database setup completed successfully!")
         return True
-        
+
     except Exception as e:
         print(f"[ERROR] Database setup failed: {e}")
         if conn:
@@ -491,14 +495,14 @@ def signup():
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO users (name, email, hashed_password) VALUES (?, ?, ?)",
+            "INSERT INTO users (name, email, hashed_password) VALUES (%s, %s, %s)",
             (name, email, hashed_password)
         )
         conn.commit()
         return jsonify({"message": "User created successfully"}), 201
-    except sqlite3.IntegrityError as e:
+    except pymysql.err.IntegrityError as e:
         conn.rollback()
-        if 'UNIQUE constraint failed' in str(e): 
+        if e.args[0] == 1062:
             return jsonify({"error": "Email already exists"}), 409
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     finally:
@@ -515,7 +519,7 @@ def login():
     if not conn: return jsonify({"error": "Database connection failed"}), 500
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name, email, hashed_password, role FROM users WHERE email = ?", (email,))
+        cursor.execute("SELECT id, name, email, hashed_password, role FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
         if not user: return jsonify({"error": "Invalid credentials"}), 401
         user_id = user['id']
@@ -552,14 +556,15 @@ def forgot_password():
     try:
         cursor = conn.cursor()
         # Check if user exists
-        cursor.execute("SELECT id, name FROM users WHERE email = ?", (email,))
+        cursor.execute("SELECT id, name FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
         
         if not user:
             # For security, don't reveal if email exists or not
             return jsonify({"message": "If the email exists, a reset link has been sent"}), 200
         
-        user_id, user_name = user
+        user_id = user['id']
+        user_name = user['name']
         
         # Generate a reset token (expires in 1 hour)
         reset_token = jwt.encode({
@@ -594,7 +599,7 @@ def get_profile():
     try:
         cursor = conn.cursor()
         # --- THIS QUERY IS UPDATED ---
-        cursor.execute("SELECT name, email, role, xp, avatar_url FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT name, email, role, xp, avatar_url FROM users WHERE id = %s", (user_id,))
         user = cursor.fetchone()
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -634,7 +639,7 @@ def update_profile():
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE users SET name = ? WHERE id = ?",
+            "UPDATE users SET name = %s WHERE id = %s",
             (new_name, user_id)
         )
         conn.commit()
@@ -677,7 +682,7 @@ def upload_avatar():
             cursor = conn.cursor()
             # Update the user's avatar_url in the database
             cursor.execute(
-                "UPDATE users SET avatar_url = ? WHERE id = ?",
+                "UPDATE users SET avatar_url = %s WHERE id = %s",
                 (avatar_url, user_id)
             )
             conn.commit()
@@ -716,7 +721,7 @@ def change_password():
         cursor = conn.cursor()
         
         # Get current password hash (column is 'hashed_password' in schema)
-        cursor.execute("SELECT hashed_password FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT hashed_password FROM users WHERE id = %s", (user_id,))
         user = cursor.fetchone()
         
         if not user:
@@ -731,7 +736,7 @@ def change_password():
         
         # Update password
         cursor.execute(
-            "UPDATE users SET hashed_password = ? WHERE id = ?",
+            "UPDATE users SET hashed_password = %s WHERE id = %s",
             (new_password_hash, user_id)
         )
         conn.commit()
@@ -762,7 +767,7 @@ def get_categories():
                 "icon": cat['icon'],
                 "slug": cat['slug'],
                 "meta_description": cat['meta_description'],
-                "created_at": cat['created_at'] if cat['created_at'] else None
+                "created_at": str(cat['created_at']) if cat['created_at'] else None
             })
         return jsonify(categories), 200
     except Exception as e:
@@ -815,9 +820,9 @@ def get_lesson_by_field(field, value):
         FROM lessons WHERE 
     """
     if field == 'id':
-        sql_query += "id = ?"
+        sql_query += "id = %s"
     elif field == 'slug':
-        sql_query += "slug = ?"
+        sql_query += "slug = %s"
     else:
         return None
 
@@ -902,7 +907,7 @@ def create_lesson():
             """
             INSERT INTO lessons (title, description, category_id, xp_min, xp_max, 
                                order_in_category, pass_threshold, ar_model_url, slug)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (title, description, category_id, xp_min, xp_max, order_in_category, pass_threshold, model_url, lesson_slug)
         )
         lesson_id = cursor.lastrowid
@@ -927,7 +932,7 @@ def get_lesson_details(lesson_id):
             SELECT l.*, c.name as category_name
             FROM lessons l
             LEFT JOIN categories c ON l.category_id = c.id
-            WHERE l.id = ?
+            WHERE l.id = %s
             """, (lesson_id,)
         )
         lesson = cursor.fetchone()
@@ -935,19 +940,18 @@ def get_lesson_details(lesson_id):
         if not lesson:
             return jsonify({"error": "Lesson not found"}), 404
         
-        # Handle the case where created_at and updated_at might not exist
         lesson_dict = {
-            'id': lesson[0],
-            'title': lesson[1],
-            'description': lesson[2],
-            'category_id': lesson[3],
-            'category': lesson[11] if len(lesson) > 11 else None,  # category_name from JOIN
-            'ar_model_url': lesson[4],
-            'xp_min': lesson[6],  # Fixed index - xp_min is at index 6
-            'xp_max': lesson[7],  # Fixed index - xp_max is at index 7
-            'order_in_category': lesson[8],  # Fixed index - order_in_category is at index 8
-            'pass_threshold': lesson[9],  # Fixed index - pass_threshold is at index 9
-            'is_locked_by_default': lesson[10]  # Fixed index - is_locked_by_default is at index 10
+            'id': lesson['id'],
+            'title': lesson['title'],
+            'description': lesson['description'],
+            'category_id': lesson['category_id'],
+            'category': lesson.get('category_name'),
+            'ar_model_url': lesson['ar_model_url'],
+            'xp_min': lesson['xp_min'],
+            'xp_max': lesson['xp_max'],
+            'order_in_category': lesson['order_in_category'],
+            'pass_threshold': lesson['pass_threshold'],
+            'is_locked_by_default': lesson['is_locked_by_default']
         }
         
         # Add created_at and updated_at if they exist (these columns don't exist in current schema)
@@ -1002,31 +1006,31 @@ def update_lesson(lesson_id):
         update_values = []
         
         if title: 
-            update_fields.append("title = ?")
+            update_fields.append("title = %s")
             update_values.append(title)
             # Update slug when title changes
-            update_fields.append("slug = ?")
+            update_fields.append("slug = %s")
             update_values.append(create_slug(title))
         if description is not None: 
-            update_fields.append("description = ?")
+            update_fields.append("description = %s")
             update_values.append(description)
         if category_id: 
-            update_fields.append("category_id = ?")
+            update_fields.append("category_id = %s")
             update_values.append(category_id)
         if xp_min is not None: 
-            update_fields.append("xp_min = ?")
+            update_fields.append("xp_min = %s")
             update_values.append(xp_min)
         if xp_max is not None: 
-            update_fields.append("xp_max = ?")
+            update_fields.append("xp_max = %s")
             update_values.append(xp_max)
         if order_in_category: 
-            update_fields.append("order_in_category = ?")
+            update_fields.append("order_in_category = %s")
             update_values.append(order_in_category)
         if pass_threshold is not None: 
-            update_fields.append("pass_threshold = ?")
+            update_fields.append("pass_threshold = %s")
             update_values.append(pass_threshold)
         if model_url: 
-            update_fields.append("ar_model_url = ?")
+            update_fields.append("ar_model_url = %s")
             update_values.append(model_url)
         
         # Don't try to update updated_at if column doesn't exist
@@ -1034,7 +1038,7 @@ def update_lesson(lesson_id):
         
         update_values.append(lesson_id)
         
-        query = f"UPDATE lessons SET {', '.join(update_fields)} WHERE id = ?"
+        query = f"UPDATE lessons SET {', '.join(update_fields)} WHERE id = %s"
         cursor.execute(query, update_values)
         
         if cursor.rowcount == 0:
@@ -1059,16 +1063,17 @@ def delete_lesson(lesson_id):
         cursor = conn.cursor()
         
         # Get lesson details before deletion
-        cursor.execute("SELECT category_id, order_in_category FROM lessons WHERE id = ?", (lesson_id,))
+        cursor.execute("SELECT category_id, order_in_category FROM lessons WHERE id = %s", (lesson_id,))
         lesson_data = cursor.fetchone()
         
         if not lesson_data:
             return jsonify({"error": "Lesson not found"}), 404
         
-        category_id, deleted_order = lesson_data
+        category_id = lesson_data['category_id']
+        deleted_order = lesson_data['order_in_category']
         
         # Delete the lesson
-        cursor.execute("DELETE FROM lessons WHERE id = ?", (lesson_id,))
+        cursor.execute("DELETE FROM lessons WHERE id = %s", (lesson_id,))
         
         if cursor.rowcount == 0:
             return jsonify({"error": "Lesson not found"}), 404
@@ -1078,7 +1083,7 @@ def delete_lesson(lesson_id):
             """
             UPDATE lessons 
             SET order_in_category = order_in_category - 1
-            WHERE category_id = ? AND order_in_category > ?
+            WHERE category_id = %s AND order_in_category > %s
             """, (category_id, deleted_order)
         )
         
@@ -1105,10 +1110,10 @@ def get_next_level():
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COALESCE(MAX(order_in_category), 0) + 1 FROM lessons WHERE category_id = ?",
+            "SELECT COALESCE(MAX(order_in_category), 0) + 1 AS next_level FROM lessons WHERE category_id = %s",
             (category_id,)
         )
-        next_level = cursor.fetchone()[0]
+        next_level = cursor.fetchone()['next_level']
         
         return jsonify({"next_level": next_level}), 200
         
@@ -1145,7 +1150,7 @@ def complete_lesson():
         
         # 1. Check if lesson is already completed
         cursor.execute(
-            "SELECT * FROM completed_lessons WHERE user_id = ? AND lesson_id = ?",
+            "SELECT * FROM completed_lessons WHERE user_id = %s AND lesson_id = %s",
             (user_id, lesson_id)
         )
         if cursor.fetchone():
@@ -1153,17 +1158,17 @@ def complete_lesson():
 
         # 2. Add to completed_lessons
         cursor.execute(
-            "INSERT INTO completed_lessons (user_id, lesson_id) VALUES (?, ?)",
+            "INSERT IGNORE INTO completed_lessons (user_id, lesson_id) VALUES (%s, %s)",
             (user_id, lesson_id)
         )
         
         # 3. Update user's XP
         cursor.execute(
-            "UPDATE users SET xp = xp + ? WHERE id = ?",
+            "UPDATE users SET xp = xp + %s WHERE id = %s",
             (xp_to_award, user_id)
         )
         # Get the updated XP value
-        cursor.execute("SELECT xp FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT xp FROM users WHERE id = %s", (user_id,))
         new_xp = cursor.fetchone()['xp']
         
         conn.commit()
@@ -1301,7 +1306,7 @@ def get_all_lessons_with_status():
                    ) as is_unlocked
             FROM lessons l
             LEFT JOIN categories c ON l.category_id = c.id
-            LEFT JOIN lesson_progress lp ON l.id = lp.lesson_id AND lp.user_id = ?
+            LEFT JOIN lesson_progress lp ON l.id = lp.lesson_id AND lp.user_id = %s
             ORDER BY c.name, l.order_in_category
             """,
             (user_id,)
@@ -1392,7 +1397,7 @@ def manage_quiz_questions():
             """
             INSERT INTO quiz_questions (lesson_id, question_text, option_a, option_b, 
                                       option_c, option_d, correct_answer, explanation)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """, (lesson_id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation)
         )
         question_id = cursor.lastrowid
@@ -1475,7 +1480,7 @@ def delete_quiz_question(question_id):
     if not conn: return jsonify({"error": "Database connection failed"}), 500
     try:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM quiz_questions WHERE id = ?", (question_id,))
+        cursor.execute("DELETE FROM quiz_questions WHERE id = %s", (question_id,))
         if cursor.rowcount == 0:
             return jsonify({"error": "Quiz question not found"}), 404
         conn.commit()
@@ -1495,7 +1500,7 @@ def get_lesson_quiz_questions(lesson_id):
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation FROM quiz_questions WHERE lesson_id = ? ORDER BY id",
+            "SELECT id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation FROM quiz_questions WHERE lesson_id = %s ORDER BY id",
             (lesson_id,)
         )
         questions = []
@@ -1525,7 +1530,7 @@ def get_quiz_for_user(lesson_id):
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, question_text, option_a, option_b, option_c, option_d FROM quiz_questions WHERE lesson_id = ? ORDER BY id",
+            "SELECT id, question_text, option_a, option_b, option_c, option_d FROM quiz_questions WHERE lesson_id = %s ORDER BY id",
             (lesson_id,)
         )
         questions = []
@@ -1564,7 +1569,7 @@ def submit_quiz():
         
         # Get all questions for this lesson with correct answers
         cursor.execute(
-            "SELECT id, correct_answer FROM quiz_questions WHERE lesson_id = ?",
+            "SELECT id, correct_answer FROM quiz_questions WHERE lesson_id = %s",
             (lesson_id,)
         )
         questions = cursor.fetchall()
@@ -1576,23 +1581,27 @@ def submit_quiz():
         correct_count = 0
         total_questions = len(questions)
         
-        for question_id, correct_answer in questions:
-            user_answer = answers.get(str(question_id))
-            if user_answer == correct_answer:
+        for q in questions:
+            user_answer = answers.get(str(q['id']))
+            if user_answer == q['correct_answer']:
                 correct_count += 1
         
         score = int((correct_count / total_questions) * 100)
         
         # Get lesson details for pass threshold, XP range, category and order
         cursor.execute(
-            "SELECT pass_threshold, xp_min, xp_max, category_id, order_in_category FROM lessons WHERE id = ?",
+            "SELECT pass_threshold, xp_min, xp_max, category_id, order_in_category FROM lessons WHERE id = %s",
             (lesson_id,)
         )
         lesson_details = cursor.fetchone()
         if not lesson_details:
             return jsonify({"error": "Lesson not found"}), 404
         
-        pass_threshold, xp_min, xp_max, category_id, order_in_category = lesson_details
+        pass_threshold = lesson_details['pass_threshold']
+        xp_min = lesson_details['xp_min']
+        xp_max = lesson_details['xp_max']
+        category_id = lesson_details['category_id']
+        order_in_category = lesson_details['order_in_category']
         passed = score >= pass_threshold
         
         # Calculate XP to award with time-based bonus if passed
@@ -1625,7 +1634,7 @@ def submit_quiz():
         cursor.execute(
             """
             INSERT INTO user_quiz_attempts (user_id, lesson_id, quiz_questions, user_answers, score, passed, xp_awarded)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (user_id, lesson_id, str(questions), str(answers), score, passed, xp_awarded)
         )
         
@@ -1633,19 +1642,20 @@ def submit_quiz():
         if passed:
             # Update user XP
             cursor.execute(
-                "UPDATE users SET xp = xp + ? WHERE id = ?",
+                "UPDATE users SET xp = xp + %s WHERE id = %s",
                 (xp_awarded, user_id)
             )
             # Get the updated XP value
-            cursor.execute("SELECT xp FROM users WHERE id = ?", (user_id,))
+            cursor.execute("SELECT xp FROM users WHERE id = %s", (user_id,))
             new_total_xp = cursor.fetchone()['xp']
             
-            # Update lesson progress - SQLite uses INSERT OR REPLACE
+            # Update lesson progress using MySQL ON DUPLICATE KEY UPDATE
             cursor.execute(
                 """
-                INSERT OR REPLACE INTO lesson_progress (user_id, lesson_id, is_completed, is_unlocked, xp_earned, completed_at)
-                VALUES (?, ?, 1, 1, ?, CURRENT_TIMESTAMP)
-                """, (user_id, lesson_id, xp_awarded)
+                INSERT INTO lesson_progress (user_id, lesson_id, is_completed, is_unlocked, xp_earned, completed_at)
+                VALUES (%s, %s, 1, 1, %s, CURRENT_TIMESTAMP)
+                ON DUPLICATE KEY UPDATE is_completed=1, is_unlocked=1, xp_earned=%s, completed_at=CURRENT_TIMESTAMP
+                """, (user_id, lesson_id, xp_awarded, xp_awarded)
             )
             
             # Check for new badges
@@ -1653,9 +1663,9 @@ def submit_quiz():
                 """
                 SELECT b.id, b.name, b.description, b.icon_url 
                 FROM badges b 
-                WHERE b.xp_threshold <= ? 
+                WHERE b.xp_threshold <= %s 
                 AND b.id NOT IN (
-                    SELECT ub.badge_id FROM user_badges ub WHERE ub.user_id = ?
+                    SELECT ub.badge_id FROM user_badges ub WHERE ub.user_id = %s
                 )
                 AND b.is_active = 1
                 """, (new_total_xp, user_id)
@@ -1663,28 +1673,29 @@ def submit_quiz():
             new_badges = cursor.fetchall()
             
             # Award new badges
-            for badge_id, badge_name, badge_description, badge_icon in new_badges:
+            for badge in new_badges:
                 cursor.execute(
-                    "INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)",
-                    (user_id, badge_id)
+                    "INSERT IGNORE INTO user_badges (user_id, badge_id) VALUES (%s, %s)",
+                    (user_id, badge['id'])
                 )
             
             # Unlock next lesson in same category when passed
             cursor.execute(
                 """
                 SELECT id FROM lessons
-                WHERE category_id = ? AND order_in_category = ? + 1
+                WHERE category_id = %s AND order_in_category = %s + 1
                 LIMIT 1
                 """,
                 (category_id, order_in_category)
             )
             next_row = cursor.fetchone()
             if next_row:
-                next_lesson_id = next_row[0]
+                next_lesson_id = next_row['id']
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO lesson_progress (user_id, lesson_id, is_unlocked)
-                    VALUES (?, ?, 1)
+                    INSERT INTO lesson_progress (user_id, lesson_id, is_unlocked)
+                    VALUES (%s, %s, 1)
+                    ON DUPLICATE KEY UPDATE is_unlocked=1
                     """,
                     (user_id, next_lesson_id)
                 )
@@ -1699,7 +1710,7 @@ def submit_quiz():
                 "base_xp": base_xp,
                 "time_bonus": time_bonus,
                 "new_total_xp": new_total_xp,
-                "new_badges": [{"id": b[0], "name": b[1], "description": b[2], "icon_url": b[3]} for b in new_badges]
+                "new_badges": [{"id": b['id'], "name": b['name'], "description": b['description'], "icon_url": b['icon_url']} for b in new_badges]
             }), 200
         else:
             conn.commit()
@@ -1742,15 +1753,15 @@ def create_category():
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO categories (name, description, color, icon, slug, meta_description) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO categories (name, description, color, icon, slug, meta_description) VALUES (%s, %s, %s, %s, %s, %s)",
             (name, description, color, icon, slug, meta_description)
         )
         category_id = cursor.lastrowid
         conn.commit()
         return jsonify({"message": "Category created successfully", "category_id": category_id}), 201
-    except sqlite3.Error as e:
+    except pymysql.Error as e:
         conn.rollback()
-        if 'UNIQUE constraint failed' in str(e):  # Unique violation
+        if e.args[0] == 1062:
             return jsonify({"error": "Category name or slug already exists"}), 409
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     finally:
@@ -1781,36 +1792,36 @@ def update_category(category_id):
         update_values = []
         
         if name:
-            update_fields.append("name = ?")
+            update_fields.append("name = %s")
             update_values.append(name)
         if description is not None:
-            update_fields.append("description = ?")
+            update_fields.append("description = %s")
             update_values.append(description)
         if color:
-            update_fields.append("color = ?")
+            update_fields.append("color = %s")
             update_values.append(color)
         if icon:
-            update_fields.append("icon = ?")
+            update_fields.append("icon = %s")
             update_values.append(icon)
         if slug:
-            update_fields.append("slug = ?")
+            update_fields.append("slug = %s")
             update_values.append(slug)
         if meta_description is not None:
-            update_fields.append("meta_description = ?")
+            update_fields.append("meta_description = %s")
             update_values.append(meta_description)
         
         update_values.append(category_id)
         
-        query = f"UPDATE categories SET {', '.join(update_fields)} WHERE id = ?"
+        query = f"UPDATE categories SET {', '.join(update_fields)} WHERE id = %s"
         cursor.execute(query, update_values)
         
         if cursor.rowcount == 0:
             return jsonify({"error": "Category not found"}), 404
         conn.commit()
         return jsonify({"message": "Category updated successfully"}), 200
-    except sqlite3.Error as e:
+    except pymysql.Error as e:
         conn.rollback()
-        if 'UNIQUE constraint failed' in str(e):  # Unique violation
+        if e.args[0] == 1062:
             return jsonify({"error": "Category name or slug already exists"}), 409
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     finally:
@@ -1824,7 +1835,7 @@ def delete_category(category_id):
     if not conn: return jsonify({"error": "Database connection failed"}), 500
     try:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM categories WHERE id = ?", (category_id,))
+        cursor.execute("DELETE FROM categories WHERE id = %s", (category_id,))
         if cursor.rowcount == 0:
             return jsonify({"error": "Category not found"}), 404
         conn.commit()
@@ -1877,17 +1888,17 @@ def create_badge():
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO badges (name, description, icon_url, xp_threshold, color) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO badges (name, description, icon_url, xp_threshold, color) VALUES (%s, %s, %s, %s, %s)",
                 (name, description, icon_url, xp_threshold, color)
             )
             badge_id = cursor.lastrowid
             conn.commit()
             print(f"✅ Badge created: {name} (ID: {badge_id})")
             return jsonify({"message": "Badge created successfully", "badge_id": badge_id}), 201
-        except sqlite3.Error as e:
+        except pymysql.Error as e:
             conn.rollback()
             print(f"❌ Database error in create_badge: {str(e)}")
-            if 'UNIQUE constraint failed' in str(e):
+            if e.args[0] == 1062:
                 return jsonify({"error": "Badge name already exists"}), 409
             return jsonify({"error": f"Database error: {str(e)}"}), 500
         finally:
@@ -1960,22 +1971,22 @@ def update_badge(badge_id):
         update_values = []
         
         if name:
-            update_fields.append("name = ?")
+            update_fields.append("name = %s")
             update_values.append(name)
         if description is not None:
-            update_fields.append("description = ?")
+            update_fields.append("description = %s")
             update_values.append(description)
         if icon_url is not None:
-            update_fields.append("icon_url = ?")
+            update_fields.append("icon_url = %s")
             update_values.append(icon_url)
         if xp_threshold is not None:
-            update_fields.append("xp_threshold = ?")
+            update_fields.append("xp_threshold = %s")
             update_values.append(xp_threshold)
         if color:
-            update_fields.append("color = ?")
+            update_fields.append("color = %s")
             update_values.append(color)
         if is_active is not None:
-            update_fields.append("is_active = ?")
+            update_fields.append("is_active = %s")
             update_values.append(is_active)
         
         if not update_fields:
@@ -1984,7 +1995,7 @@ def update_badge(badge_id):
         
         update_values.append(badge_id)
         cursor.execute(
-            f"UPDATE badges SET {', '.join(update_fields)} WHERE id = ?",
+            f"UPDATE badges SET {', '.join(update_fields)} WHERE id = %s",
             update_values
         )
         if cursor.rowcount == 0:
@@ -1995,12 +2006,12 @@ def update_badge(badge_id):
         print(f"✅ Badge updated: ID {badge_id}")
         return jsonify({"message": "Badge updated successfully"}), 200
         
-    except sqlite3.Error as e:
+    except pymysql.Error as e:
         if conn:
             conn.rollback()
             conn.close()
         print(f"❌ Database error in update_badge: {str(e)}")
-        if 'UNIQUE constraint failed' in str(e):
+        if e.args[0] == 1062:
             return jsonify({"error": "Badge name already exists"}), 409
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     except Exception as e:
@@ -2021,7 +2032,7 @@ def delete_badge(badge_id):
     if not conn: return jsonify({"error": "Database connection failed"}), 500
     try:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM badges WHERE id = ?", (badge_id,))
+        cursor.execute("DELETE FROM badges WHERE id = %s", (badge_id,))
         if cursor.rowcount == 0:
             return jsonify({"error": "Badge not found"}), 404
         conn.commit()
@@ -2091,7 +2102,7 @@ def get_user_badges():
             SELECT b.id, b.name, b.description, b.icon_url, b.xp_threshold, b.color, ub.earned_at
             FROM badges b
             INNER JOIN user_badges ub ON b.id = ub.badge_id
-            WHERE ub.user_id = ? AND b.is_active = 1
+            WHERE ub.user_id = %s AND b.is_active = 1
             ORDER BY ub.earned_at DESC
             """, (user_id,)
         )
@@ -2104,7 +2115,7 @@ def get_user_badges():
                 "icon_url": row['icon_url'], 
                 "xp_threshold": row['xp_threshold'], 
                 "color": row['color'],
-                "earned_at": row['earned_at'] if row['earned_at'] else None
+                "earned_at": str(row['earned_at']) if row['earned_at'] else None
             })
         return jsonify(badges), 200
     except Exception as e:
@@ -2141,7 +2152,7 @@ def get_all_users():
                 "email": row['email'], 
                 "xp": row['xp'],
                 "avatar_url": row['avatar_url'], 
-                "created_at": row['created_at'] if row['created_at'] else None,
+                "created_at": str(row['created_at']) if row['created_at'] else None,
                 "role": row['role'] or "user", 
                 "completed_lessons": row['completed_lessons'], 
                 "badges_earned": row['badges_earned']
@@ -2162,16 +2173,16 @@ def reset_user_progress(user_id):
         cursor = conn.cursor()
         
         # Reset user XP to 0
-        cursor.execute("UPDATE users SET xp = 0 WHERE id = ?", (user_id,))
+        cursor.execute("UPDATE users SET xp = 0 WHERE id = %s", (user_id,))
         
         # Delete all lesson progress
-        cursor.execute("DELETE FROM lesson_progress WHERE user_id = ?", (user_id,))
+        cursor.execute("DELETE FROM lesson_progress WHERE user_id = %s", (user_id,))
         
         # Delete all user badges
-        cursor.execute("DELETE FROM user_badges WHERE user_id = ?", (user_id,))
+        cursor.execute("DELETE FROM user_badges WHERE user_id = %s", (user_id,))
         
         # Delete all quiz attempts
-        cursor.execute("DELETE FROM user_quiz_attempts WHERE user_id = ?", (user_id,))
+        cursor.execute("DELETE FROM user_quiz_attempts WHERE user_id = %s", (user_id,))
         
         conn.commit()
         return jsonify({"message": "User progress reset successfully"}), 200
@@ -2191,19 +2202,19 @@ def delete_user(user_id):
         cursor = conn.cursor()
         
         # Check if user exists
-        cursor.execute("SELECT name FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT name FROM users WHERE id = %s", (user_id,))
         user = cursor.fetchone()
         if not user:
             return jsonify({"error": "User not found"}), 404
         
         # Delete all user-related data (cascading deletes should handle this, but being explicit)
-        cursor.execute("DELETE FROM user_quiz_attempts WHERE user_id = ?", (user_id,))
-        cursor.execute("DELETE FROM user_badges WHERE user_id = ?", (user_id,))
-        cursor.execute("DELETE FROM lesson_progress WHERE user_id = ?", (user_id,))
-        cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        cursor.execute("DELETE FROM user_quiz_attempts WHERE user_id = %s", (user_id,))
+        cursor.execute("DELETE FROM user_badges WHERE user_id = %s", (user_id,))
+        cursor.execute("DELETE FROM lesson_progress WHERE user_id = %s", (user_id,))
+        cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
         
         conn.commit()
-        return jsonify({"message": f"User {user[0]} deleted successfully"}), 200
+        return jsonify({"message": f"User {user['name']} deleted successfully"}), 200
     except Exception as e:
         conn.rollback()
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
@@ -2220,19 +2231,20 @@ def promote_user(user_id):
         cursor = conn.cursor()
         
         # Check if user exists and get current role
-        cursor.execute("SELECT name, role FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT name, role FROM users WHERE id = %s", (user_id,))
         user = cursor.fetchone()
         if not user:
             return jsonify({"error": "User not found"}), 404
         
-        user_name, current_role = user
+        user_name = user['name']
+        current_role = user['role']
         
         # Check if already admin
         if current_role == 'admin':
             return jsonify({"error": "User is already an admin"}), 400
         
         # Promote to admin
-        cursor.execute("UPDATE users SET role = 'admin' WHERE id = ?", (user_id,))
+        cursor.execute("UPDATE users SET role = 'admin' WHERE id = %s", (user_id,))
         
         conn.commit()
         return jsonify({"message": f"User {user_name} promoted to admin successfully"}), 200
@@ -2252,21 +2264,22 @@ def award_missing_badges(user_id):
         cursor = conn.cursor()
         
         # Get user's current XP
-        cursor.execute("SELECT name, xp FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT name, xp FROM users WHERE id = %s", (user_id,))
         user = cursor.fetchone()
         if not user:
             return jsonify({"error": "User not found"}), 404
         
-        user_name, user_xp = user
+        user_name = user['name']
+        user_xp = user['xp']
         
         # Find badges this user should have earned but doesn't have
         cursor.execute("""
             SELECT b.id, b.name, b.xp_threshold 
             FROM badges b 
-            WHERE b.xp_threshold <= ? 
+            WHERE b.xp_threshold <= %s 
             AND b.is_active = 1
             AND b.id NOT IN (
-                SELECT ub.badge_id FROM user_badges ub WHERE ub.user_id = ?
+                SELECT ub.badge_id FROM user_badges ub WHERE ub.user_id = %s
             )
             ORDER BY b.xp_threshold
         """, (user_xp, user_id))
@@ -2278,12 +2291,12 @@ def award_missing_badges(user_id):
         
         # Award the missing badges
         awarded_badges = []
-        for badge_id, badge_name, xp_threshold in missing_badges:
+        for badge in missing_badges:
             cursor.execute("""
-                INSERT INTO user_badges (user_id, badge_id, earned_at) 
-                VALUES (?, ?, CURRENT_TIMESTAMP)
-            """, (user_id, badge_id))
-            awarded_badges.append({"name": badge_name, "xp_threshold": xp_threshold})
+                INSERT IGNORE INTO user_badges (user_id, badge_id, earned_at)
+                VALUES (%s, %s, CURRENT_TIMESTAMP)
+            """, (user_id, badge['id']))
+            awarded_badges.append({"name": badge['name'], "xp_threshold": badge['xp_threshold']})
         
         conn.commit()
         return jsonify({
@@ -2310,7 +2323,7 @@ def get_user_recent_activity(user_id):
 
         # Registration
         try:
-            cursor.execute("SELECT name, created_at FROM users WHERE id = ?", (user_id,))
+            cursor.execute("SELECT name, created_at FROM users WHERE id = %s", (user_id,))
             row = cursor.fetchone()
             if row and row['created_at']:
                 activities.append({
@@ -2329,7 +2342,7 @@ def get_user_recent_activity(user_id):
                 SELECT l.title as lesson_title, lp.completed_at, lp.xp_earned
                 FROM lesson_progress lp
                 JOIN lessons l ON l.id = lp.lesson_id
-                WHERE lp.user_id = ? AND lp.is_completed = 1 AND lp.completed_at IS NOT NULL
+                WHERE lp.user_id = %s AND lp.is_completed = 1 AND lp.completed_at IS NOT NULL
                 ORDER BY lp.completed_at DESC
                 LIMIT 20
                 """,
@@ -2353,7 +2366,7 @@ def get_user_recent_activity(user_id):
                 SELECT l.title as lesson_title, uqa.score, uqa.passed, uqa.attempted_at
                 FROM user_quiz_attempts uqa
                 JOIN lessons l ON l.id = uqa.lesson_id
-                WHERE uqa.user_id = ?
+                WHERE uqa.user_id = %s
                 ORDER BY uqa.attempted_at DESC
                 LIMIT 20
                 """,
@@ -2378,7 +2391,7 @@ def get_user_recent_activity(user_id):
                 SELECT b.name as badge_name, ub.earned_at
                 FROM user_badges ub
                 JOIN badges b ON b.id = ub.badge_id
-                WHERE ub.user_id = ?
+                WHERE ub.user_id = %s
                 ORDER BY ub.earned_at DESC
                 LIMIT 20
                 """,
@@ -2395,7 +2408,7 @@ def get_user_recent_activity(user_id):
             pass
 
         # Sort by timestamp (string in ISO-like format) descending and limit
-        activities.sort(key=lambda a: (a.get('timestamp') or ''), reverse=True)
+        activities.sort(key=lambda a: (str(a.get('timestamp') or '')), reverse=True)
         activities = activities[:30]
 
         return jsonify(activities), 200
@@ -2521,70 +2534,70 @@ def get_dashboard_stats():
         
         # Get total users (with error handling)
         try:
-            cursor.execute("SELECT COUNT(*) FROM users")
-            stats["total_users"] = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) AS cnt FROM users")
+            stats["total_users"] = cursor.fetchone()['cnt']
         except:
             stats["total_users"] = 0
         
         # Get total lessons (with error handling)
         try:
-            cursor.execute("SELECT COUNT(*) FROM lessons")
-            stats["total_lessons"] = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) AS cnt FROM lessons")
+            stats["total_lessons"] = cursor.fetchone()['cnt']
         except:
             stats["total_lessons"] = 0
         
         # Get total categories (with error handling)
         try:
-            cursor.execute("SELECT COUNT(*) FROM categories")
-            stats["total_categories"] = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) AS cnt FROM categories")
+            stats["total_categories"] = cursor.fetchone()['cnt']
         except:
             stats["total_categories"] = 0
         
         # Get total quiz questions (with error handling)
         try:
-            cursor.execute("SELECT COUNT(*) FROM quiz_questions")
-            stats["total_quiz_questions"] = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) AS cnt FROM quiz_questions")
+            stats["total_quiz_questions"] = cursor.fetchone()['cnt']
         except:
             stats["total_quiz_questions"] = 0
         
         # Get total badges (with error handling)
         try:
-            cursor.execute("SELECT COUNT(*) FROM badges")
-            stats["total_badges"] = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) AS cnt FROM badges")
+            stats["total_badges"] = cursor.fetchone()['cnt']
         except:
             stats["total_badges"] = 0
         
         # Get completed lessons count (with error handling)
         try:
-            cursor.execute("SELECT COUNT(*) FROM lesson_progress WHERE is_completed = TRUE")
-            stats["completed_lessons"] = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) AS cnt FROM lesson_progress WHERE is_completed = TRUE")
+            stats["completed_lessons"] = cursor.fetchone()['cnt']
         except:
             stats["completed_lessons"] = 0
         
         # Get recent users (last 7 days) (with error handling)
         try:
             cursor.execute("""
-                SELECT COUNT(*) FROM users 
-                WHERE created_at >= datetime('now', '-7 days')
+                SELECT COUNT(*) AS cnt FROM users 
+                WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
             """)
-            stats["recent_users"] = cursor.fetchone()[0]
+            stats["recent_users"] = cursor.fetchone()['cnt']
         except:
             stats["recent_users"] = 0
         
         # Get recent lesson completions (last 7 days) (with error handling)
         try:
             cursor.execute("""
-                SELECT COUNT(*) FROM lesson_progress 
-                WHERE completed_at >= datetime('now', '-7 days')
+                SELECT COUNT(*) AS cnt FROM lesson_progress 
+                WHERE completed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
             """)
-            stats["recent_completions"] = cursor.fetchone()[0]
+            stats["recent_completions"] = cursor.fetchone()['cnt']
         except:
             stats["recent_completions"] = 0
         
         # Get total XP awarded (with error handling)
         try:
-            cursor.execute("SELECT COALESCE(SUM(xp), 0) FROM users")
-            stats["total_xp_awarded"] = cursor.fetchone()[0]
+            cursor.execute("SELECT COALESCE(SUM(xp), 0) AS total_xp FROM users")
+            stats["total_xp_awarded"] = cursor.fetchone()['total_xp']
         except:
             stats["total_xp_awarded"] = 0
         
@@ -2618,9 +2631,9 @@ def get_recent_activity():
             for reg in recent_registrations:
                 activities.append({
                     "type": "registration",
-                    "text": f"New user registered: {reg[1]}",
-                    "time": reg[2],
-                    "timestamp": reg[2]
+                    "text": f"New user registered: {reg['name']}",
+                    "time": reg['created_at'],
+                    "timestamp": reg['created_at']
                 })
         except:
             pass
@@ -2641,9 +2654,9 @@ def get_recent_activity():
             for comp in recent_completions:
                 activities.append({
                     "type": "completion",
-                    "text": f"Lesson '{comp[2]}' completed by {comp[1]}",
-                    "time": comp[3],
-                    "timestamp": comp[3]
+                    "text": f"Lesson '{comp['title']}' completed by {comp['name']}",
+                    "time": comp['completed_at'],
+                    "timestamp": comp['completed_at']
                 })
         except:
             pass
@@ -2663,9 +2676,9 @@ def get_recent_activity():
             for badge in recent_badges:
                 activities.append({
                     "type": "badge",
-                    "text": f"Badge '{badge[2]}' earned by {badge[1]}",
-                    "time": badge[3],
-                    "timestamp": badge[3]
+                    "text": f"Badge '{badge['badge_name']}' earned by {badge['name']}",
+                    "time": badge['earned_at'],
+                    "timestamp": badge['earned_at']
                 })
         except:
             pass
@@ -2679,18 +2692,26 @@ def get_recent_activity():
         now = datetime.now()
         
         for activity in activities:
-            if activity["timestamp"]:
-                diff = now - activity["timestamp"]
-                if diff.days > 0:
-                    activity["time"] = f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
-                elif diff.seconds > 3600:
-                    hours = diff.seconds // 3600
-                    activity["time"] = f"{hours} hour{'s' if hours > 1 else ''} ago"
-                elif diff.seconds > 60:
-                    minutes = diff.seconds // 60
-                    activity["time"] = f"{minutes} minute{'s' if minutes > 1 else ''} ago"
-                else:
-                    activity["time"] = "Just now"
+            ts = activity["timestamp"]
+            if ts:
+                if isinstance(ts, str):
+                    try:
+                        from datetime import datetime as dt
+                        ts = dt.fromisoformat(ts.replace('Z', '+00:00').replace(' ', 'T'))
+                    except Exception:
+                        ts = None
+                if ts:
+                    diff = now - ts.replace(tzinfo=None) if hasattr(ts, 'tzinfo') and ts.tzinfo else now - ts
+                    if diff.days > 0:
+                        activity["time"] = f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+                    elif diff.seconds > 3600:
+                        hours = diff.seconds // 3600
+                        activity["time"] = f"{hours} hour{'s' if hours > 1 else ''} ago"
+                    elif diff.seconds > 60:
+                        minutes = diff.seconds // 60
+                        activity["time"] = f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+                    else:
+                        activity["time"] = "Just now"
         
         return jsonify(activities), 200
         
@@ -2719,12 +2740,12 @@ def get_dashboard_analytics():
             cursor.execute("""
                 SELECT DATE(created_at) as date, COUNT(*) as count
                 FROM users 
-                WHERE created_at >= datetime('now', '-7 days')
+                WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
                 GROUP BY DATE(created_at)
                 ORDER BY date
             """)
             user_activity = cursor.fetchall()
-            analytics["user_activity"] = [{"date": str(row[0]), "count": row[1]} for row in user_activity]
+            analytics["user_activity"] = [{"date": str(row['date']), "count": row['count']} for row in user_activity]
         except:
             analytics["user_activity"] = []
         
@@ -2739,9 +2760,9 @@ def get_dashboard_analytics():
             """)
             completion_data = cursor.fetchone()
             analytics["completion_stats"] = {
-                "total": completion_data[0] or 0,
-                "completed": completion_data[1] or 0,
-                "in_progress": completion_data[2] or 0
+                "total": completion_data['total_attempts'] or 0,
+                "completed": completion_data['completed'] or 0,
+                "in_progress": completion_data['in_progress'] or 0
             }
         except:
             analytics["completion_stats"] = {"total": 0, "completed": 0, "in_progress": 0}
@@ -2756,7 +2777,7 @@ def get_dashboard_analytics():
                 ORDER BY lesson_count DESC
             """)
             category_data = cursor.fetchall()
-            analytics["category_distribution"] = [{"name": row[0], "count": row[1]} for row in category_data]
+            analytics["category_distribution"] = [{"name": row['name'], "count": row['lesson_count']} for row in category_data]
         except:
             analytics["category_distribution"] = []
         
