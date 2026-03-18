@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -82,7 +82,7 @@
       <aside class="lrx-panel">
         <div class="lrx-title">
         <div>Python for-loop, visualized</div>
-        <small>Audience: Grades 6–10</small>
+        <small>Audience: Grades 6â€“10</small>
         </div>
 
         <div class="lrx-code" id="lrx-codePanel" aria-live="polite" aria-atomic="true">
@@ -94,7 +94,7 @@
         </pre>
         </div>
 
-        <div class="lrx-explain" id="lrx-explain">Press Play ▶ to start a narrated, step-by-step tour of how a Python for-loop works.</div>
+        <div class="lrx-explain" id="lrx-explain">Press Play â–¶ to start a narrated, step-by-step tour of how a Python for-loop works.</div>
 
         <div class="lrx-legend">
           <div class="lrx-chip"><span class="c c-sun"></span> Sun = program</div>
@@ -104,11 +104,11 @@
 
         <div class="lrx-controls">
           <div class="lrx-left">
-            <button id="lrx-btnPlay" class="lrx-btn lrx-btn-primary" title="Play/Pause">▶ Play</button>
-            <button id="lrx-btnReset" class="lrx-btn" title="Replay">↻ Replay</button>
+            <button id="lrx-btnPlay" class="lrx-btn lrx-btn-primary" title="Play/Pause">â–¶ Play</button>
+            <button id="lrx-btnReset" class="lrx-btn" title="Replay">â†» Replay</button>
           </div>
           <div class="lrx-right">
-            <button id="lrx-btnAR" title="Enter AR" class="lrx-btn toggle" aria-pressed="false">🕶 Enter AR</button>
+            <button id="lrx-btnAR" title="Enter AR" class="lrx-btn toggle" aria-pressed="false">ðŸ•¶ Enter AR</button>
           </div>
         </div>
       </aside>
@@ -365,7 +365,7 @@
 
     function stopAuto() {
       playing = false;
-      btnPlay.textContent = '▶ Play';
+      btnPlay.textContent = 'â–¶ Play';
       if (window.speechSynthesis) window.speechSynthesis.cancel();
       if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
     }
@@ -453,7 +453,7 @@
       current = Math.max(0, Math.min(idx, steps.length - 1));
       steps[current].run();
       if (speakNow) speak(steps[current].say);
-      btnPlay.textContent = playing ? '⏸ Pause' : '▶ Play';
+      btnPlay.textContent = playing ? 'â¸ Pause' : 'â–¶ Play';
     }
 
     function startAutoForCurrent() {
@@ -477,7 +477,7 @@
       // If we are at the end, restart
       if (current >= steps.length - 1) { goToStep(0, false); }
       playing = true;
-      btnPlay.textContent = '⏸ Pause';
+      btnPlay.textContent = 'â¸ Pause';
       steps[current].run();
       startAutoForCurrent();
     });
@@ -529,7 +529,7 @@
         xrHitTestSource = null; xrViewerSpace = null; xrRefSpace = null; xrSession = null;
         reticle.visible = false;
         btnAR.setAttribute('aria-pressed', 'false');
-        btnAR.textContent = '🕶 Enter AR';
+        btnAR.textContent = 'ðŸ•¶ Enter AR';
         inputEnabled = true;
       });
 
@@ -631,3 +631,4 @@
   </script>
 </body>
 </html>
+

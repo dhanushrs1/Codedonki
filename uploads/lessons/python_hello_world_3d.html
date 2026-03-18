@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -415,10 +415,10 @@
     <div class="py3d-split-container">
         <div id="py3d-canvas-container" class="py3d-canvas-container">
             <div class="py3d-interaction-hint" style="display:none;" id="py3d-interaction-hint">
-                🖱️ Drag • Scroll zoom
+                ðŸ–±ï¸ Drag â€¢ Scroll zoom
             </div>
             
-            <div id="py3d-alex-speech" class="py3d-speech-bubble">Hello Sam! 👋</div>
+            <div id="py3d-alex-speech" class="py3d-speech-bubble">Hello Sam! ðŸ‘‹</div>
             <div id="py3d-sam-speech" class="py3d-speech-bubble">...</div>
         </div>
         
@@ -429,7 +429,7 @@
                         <div class="py3d-lesson-title">Challenge: <span class="py3d-highlight" id="py3d-challenge-title">Print a String</span></div>
                         <div class="py3d-lesson-subtitle">Help Sam respond!</div>
                     </div>
-                    <div class="py3d-xp-badge" id="py3d-xp-badge">+50 XP! 🎉</div>
+                    <div class="py3d-xp-badge" id="py3d-xp-badge">+50 XP! ðŸŽ‰</div>
                 </div>
                 
                 <div id="py3d-challenge1" class="py3d-challenge-card">
@@ -444,10 +444,10 @@
                 
                 <input type="text" id="py3d-code-input" placeholder='print("Hi!")' autocomplete="off" spellcheck="false">
                 
-                <div class="py3d-hint-text" id="py3d-live-hint">💡 Type text in quotes</div>
+                <div class="py3d-hint-text" id="py3d-live-hint">ðŸ’¡ Type text in quotes</div>
                 
                 <div class="py3d-controls">
-                    <button id="py3d-run-btn" class="py3d-btn">▶ Run Code</button>
+                    <button id="py3d-run-btn" class="py3d-btn">â–¶ Run Code</button>
                 </div>
                 
                 <div class="py3d-status-message" id="py3d-status"></div>
@@ -456,21 +456,21 @@
     </div>
     
     <div id="py3d-story-intro" class="py3d-story-bubble">
-        <h2>💬 Python Print Challenge</h2>
+        <h2>ðŸ’¬ Python Print Challenge</h2>
         <p><strong style="color: #00C2FF;">Alex</strong> wants to chat with <strong style="color: #FF7B00;">Sam</strong>!</p>
         <p>Learn TWO ways to use print():</p>
         <div class="py3d-code-example">
-            <div>1️⃣ Text in quotes:</div>
+            <div>1ï¸âƒ£ Text in quotes:</div>
             <div style="color: #FFD700;">print("Hi!")</div>
             <br>
-            <div>2️⃣ Numbers without quotes:</div>
+            <div>2ï¸âƒ£ Numbers without quotes:</div>
             <div style="color: #FFD700;">print(20)</div>
         </div>
         <div style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2); padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #FF7B00;">
-            <strong>🐴 Donki is here to help!</strong><br>
+            <strong>ðŸ´ Donki is here to help!</strong><br>
             <small style="color: #666;">If you make a mistake, Donki will automatically give you smart hints!</small>
         </div>
-        <button class="py3d-start-btn" onclick="window.py3dStartLesson()">Start! 🚀</button>
+        <button class="py3d-start-btn" onclick="window.py3dStartLesson()">Start! ðŸš€</button>
     </div>
 
     <script type="importmap">
@@ -917,10 +917,10 @@
                 try {
                     // Try to access parent location (will fail if cross-origin)
                     const parentOrigin = window.parent.location.origin;
-                    console.log('✅ Iframe detected, using parent origin:', parentOrigin);
+                    console.log('âœ… Iframe detected, using parent origin:', parentOrigin);
                     return parentOrigin;
                 } catch (e) {
-                    console.log('⚠️ Cross-origin iframe, using document referrer');
+                    console.log('âš ï¸ Cross-origin iframe, using document referrer');
                     // Cross-origin iframe - use document.referrer
                     if (document.referrer) {
                         const url = new URL(document.referrer);
@@ -931,17 +931,17 @@
             
             // Standalone mode - check if Live Server
             if (location.port === '5500') {
-                console.log('🔧 Live Server detected, using localhost:5000');
-                return 'http://127.0.0.1:5000';
+                console.log('ðŸ”§ Live Server detected, using localhost:5000');
+                return '';
             }
             
             // Default: same origin
-            console.log('📍 Using same origin for API calls');
+            console.log('ðŸ“ Using same origin for API calls');
             return '';
         }
         
         const API_BASE = getAPIBase();
-        console.log('🌐 API_BASE set to:', API_BASE || 'same-origin');
+        console.log('ðŸŒ API_BASE set to:', API_BASE || 'same-origin');
         
         // Get student name from session storage
         let studentName = sessionStorage.getItem('studentName') || 'Student';
@@ -1045,13 +1045,13 @@
             // Alex greets Sam (using student's name)
             setTimeout(() => {
                 alexSpeech.classList.add('py3d-show');
-                alexSpeech.textContent = `Hello Sam! How are you? 👋`;
+                alexSpeech.textContent = `Hello Sam! How are you? ðŸ‘‹`;
                 speak(`Hello Sam! ${studentName} will help you respond!`, 1.2);
             }, 500);
             
             setTimeout(() => {
                 samSpeech.classList.add('py3d-show');
-                samSpeech.textContent = "... 🤔";
+                samSpeech.textContent = "... ðŸ¤”";
             }, 2000);
             
             setTimeout(() => {
@@ -1096,33 +1096,33 @@
             code = code.trim();
             if (currentChallenge === 1) {
                 if (!code) {
-                    liveHint.innerHTML = '💡 Type <strong>print</strong> then text in quotes';
+                    liveHint.innerHTML = 'ðŸ’¡ Type <strong>print</strong> then text in quotes';
                 } else if (!/^print/i.test(code)) {
-                    liveHint.innerHTML = '💡 Start with <strong>print</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Start with <strong>print</strong>';
                 } else if (!/\(/.test(code)) {
-                    liveHint.innerHTML = '💡 Add <strong>(</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Add <strong>(</strong>';
                 } else if (!/["']/.test(code)) {
-                    liveHint.innerHTML = '💡 Add <strong>quotes</strong>: "text"';
+                    liveHint.innerHTML = 'ðŸ’¡ Add <strong>quotes</strong>: "text"';
                 } else if (!/\)/.test(code)) {
-                    liveHint.innerHTML = '💡 Close with <strong>)</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Close with <strong>)</strong>';
                 } else {
-                    liveHint.innerHTML = '✅ Perfect! Run it!';
+                    liveHint.innerHTML = 'âœ… Perfect! Run it!';
                 }
             } else {
                 if (!code) {
-                    liveHint.innerHTML = '💡 Type age: <strong>print(20)</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Type age: <strong>print(20)</strong>';
                 } else if (!/^print/i.test(code)) {
-                    liveHint.innerHTML = '💡 Start with <strong>print</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Start with <strong>print</strong>';
                 } else if (!/\(/.test(code)) {
-                    liveHint.innerHTML = '💡 Add <strong>(</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Add <strong>(</strong>';
                 } else if (/["']/.test(code)) {
-                    liveHint.innerHTML = '⚠️ <strong>Remove quotes!</strong> Numbers don\'t need them';
+                    liveHint.innerHTML = 'âš ï¸ <strong>Remove quotes!</strong> Numbers don\'t need them';
                 } else if (!/\d/.test(code)) {
-                    liveHint.innerHTML = '💡 Add a number';
+                    liveHint.innerHTML = 'ðŸ’¡ Add a number';
                 } else if (!/\)/.test(code)) {
-                    liveHint.innerHTML = '💡 Close with <strong>)</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Close with <strong>)</strong>';
                 } else {
-                    liveHint.innerHTML = '✅ Great! Run it!';
+                    liveHint.innerHTML = 'âœ… Great! Run it!';
                 }
             }
         }
@@ -1152,9 +1152,9 @@
         async function requestAIHint(userCode) {
             // DONKI - Auto-triggered AI hints when student makes mistakes!
             status.className = 'py3d-status-message py3d-hint py3d-show';
-            status.innerHTML = '🐴 Donki is thinking...';
+            status.innerHTML = 'ðŸ´ Donki is thinking...';
             
-            console.log('🐴 Requesting Donki hint...', {
+            console.log('ðŸ´ Requesting Donki hint...', {
                 api: `${API_BASE}/api/hint`,
                 challenge: currentChallenge,
                 code: userCode,
@@ -1174,31 +1174,31 @@
                     })
                 });
                 
-                console.log('📡 Donki API response status:', response.status);
+                console.log('ðŸ“¡ Donki API response status:', response.status);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('✅ Donki hint received:', data);
+                    console.log('âœ… Donki hint received:', data);
                     if (data.hint) {
-                        status.innerHTML = `🐴 <strong>Donki:</strong> ${data.hint}`;
+                        status.innerHTML = `ðŸ´ <strong>Donki:</strong> ${data.hint}`;
                         // Speak the hint with FEMALE VOICE!
                         const cleanHint = data.hint.replace(studentName + ',', '').replace(studentName + '!', '');
                         speak(cleanHint, 1.1, true); // true = use female voice
                         return;
                     }
                 } else {
-                    console.error('❌ Donki API error:', response.status, response.statusText);
+                    console.error('âŒ Donki API error:', response.status, response.statusText);
                 }
             } catch (e) {
-                console.error('❌ Donki hint fetch error:', e);
+                console.error('âŒ Donki hint fetch error:', e);
             }
             
             // Fallback hints (offline mode)
-            console.log('⚠️ Using fallback hint (Donki API unavailable)');
+            console.log('âš ï¸ Using fallback hint (Donki API unavailable)');
             let hint = currentChallenge === 1 
                 ? `Hey ${studentName}! For text, wrap in quotes: <strong>print("Hi!")</strong>`
                 : `Remember ${studentName}, numbers like 20 don't need quotes: <strong>print(20)</strong>`;
-            status.innerHTML = `🐴 <strong>Donki:</strong> ${hint}`;
+            status.innerHTML = `ðŸ´ <strong>Donki:</strong> ${hint}`;
             const cleanText = hint.replace(/<[^>]*>/g, '').replace(studentName + ',', '').replace(studentName + '!', '');
             speak(cleanText, 1.1, true); // true = use female voice
         }
@@ -1210,7 +1210,7 @@
                 const userText = validateChallenge1(code);
                 if (userText) {
                     // Sam speaks what the user typed!
-                    samSpeech.textContent = `${userText} 😊`;
+                    samSpeech.textContent = `${userText} ðŸ˜Š`;
                     samSpeech.style.borderColor = '#A8E10C';
                     speak(userText, 1);
                     
@@ -1218,7 +1218,7 @@
                     const samResponse = await getAIDialogue('string_response', userText);
                     
                     setTimeout(async () => {
-                        samSpeech.textContent = samResponse + ' 😊';
+                        samSpeech.textContent = samResponse + ' ðŸ˜Š';
                         speak(samResponse, 1);
                         
                         // Get AI response from Alex asking about age
@@ -1231,10 +1231,10 @@
                     }, 1500);
                     
                     challenge1.classList.add('py3d-completed');
-                    challenge1.innerHTML = '<span class="py3d-challenge-number">✓</span><strong>String Done!</strong> "' + userText + '"';
+                    challenge1.innerHTML = '<span class="py3d-challenge-number">âœ“</span><strong>String Done!</strong> "' + userText + '"';
                     
                     status.className = 'py3d-status-message py3d-success py3d-show';
-                    status.innerHTML = `🎉 <strong>Excellent!</strong> Sam said: "${userText}" - Strings need quotes!`;
+                    status.innerHTML = `ðŸŽ‰ <strong>Excellent!</strong> Sam said: "${userText}" - Strings need quotes!`;
                     playSound('success');
                     
                     currentChallenge = 2;
@@ -1251,12 +1251,12 @@
                 } else {
                     if (!/["']/.test(code) && /print\(.+\)/.test(code)) {
                         status.className = 'py3d-status-message py3d-error py3d-show';
-                        status.innerHTML = '⚠️ Text needs <strong>quotes</strong>! Try: print("Hi!")';
-                        alexSpeech.textContent = `${studentName}, add quotes! 🤔`;
+                        status.innerHTML = 'âš ï¸ Text needs <strong>quotes</strong>! Try: print("Hi!")';
+                        alexSpeech.textContent = `${studentName}, add quotes! ðŸ¤”`;
                         speak("Text needs quotes!", 1.2);
                     } else {
                         playSound('error');
-                        samSpeech.textContent = "... confused 😕";
+                        samSpeech.textContent = "... confused ðŸ˜•";
                         await requestAIHint(code);
                     }
                 }
@@ -1268,7 +1268,7 @@
                     
                     // Get AI response from Sam about age
                     const samAgeResponse = await getAIDialogue('age_response', userNumber);
-                    samSpeech.textContent = samAgeResponse + ' 🎊';
+                    samSpeech.textContent = samAgeResponse + ' ðŸŽŠ';
                     speak(samAgeResponse, 1);
                     
                     // Get AI celebration from Alex
@@ -1280,10 +1280,10 @@
                     }, 1500);
                     
                     challenge2.classList.add('py3d-completed');
-                    challenge2.innerHTML = '<span class="py3d-challenge-number">✓</span><strong>Number Done!</strong> ' + userNumber + ' (no quotes!)';
+                    challenge2.innerHTML = '<span class="py3d-challenge-number">âœ“</span><strong>Number Done!</strong> ' + userNumber + ' (no quotes!)';
                     
                     status.className = 'py3d-status-message py3d-success py3d-show';
-                    status.innerHTML = `🎉 <strong>Perfect ${studentName}!</strong> You mastered:<br>• Strings WITH quotes: "text"<br>• Numbers WITHOUT quotes: ${userNumber}`;
+                    status.innerHTML = `ðŸŽ‰ <strong>Perfect ${studentName}!</strong> You mastered:<br>â€¢ Strings WITH quotes: "text"<br>â€¢ Numbers WITHOUT quotes: ${userNumber}`;
                     xpBadge.classList.add('py3d-show');
                     playSound('success');
                     createHeartCelebration();
@@ -1296,12 +1296,12 @@
                 } else {
                     if (/["']/.test(code) && /\d+/.test(code)) {
                         status.className = 'py3d-status-message py3d-error py3d-show';
-                        status.innerHTML = '⚠️ <strong>Remove quotes!</strong> Numbers don\'t need them: print(20)';
-                        alexSpeech.textContent = `${studentName}, no quotes for numbers! 🔢`;
+                        status.innerHTML = 'âš ï¸ <strong>Remove quotes!</strong> Numbers don\'t need them: print(20)';
+                        alexSpeech.textContent = `${studentName}, no quotes for numbers! ðŸ”¢`;
                         speak("Numbers don't need quotes!", 1.2);
                     } else {
                         playSound('error');
-                        samSpeech.textContent = "... confused 😕";
+                        samSpeech.textContent = "... confused ðŸ˜•";
                         await requestAIHint(code);
                     }
                 }
@@ -1321,9 +1321,9 @@
                     studentName: studentName,
                     timestamp: new Date().toISOString()
                 }, '*');
-                console.log('✅ Lesson completion signal sent to parent page');
+                console.log('âœ… Lesson completion signal sent to parent page');
             } else {
-                console.log('⚠️ Not in iframe, cannot signal parent');
+                console.log('âš ï¸ Not in iframe, cannot signal parent');
             }
         }
         
@@ -1332,3 +1332,4 @@
     </script>
 </body>
 </html>
+

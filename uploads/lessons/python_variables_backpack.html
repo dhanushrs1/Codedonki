@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -421,10 +421,10 @@
     <div class="pv-split-container">
         <div id="pv-canvas-container" class="pv-canvas-container">
             <div class="pv-interaction-hint" style="display:none;" id="pv-interaction-hint">
-                🖱️ Drag • Scroll zoom
+                ðŸ–±ï¸ Drag â€¢ Scroll zoom
             </div>
             
-            <div id="pv-maya-speech" class="pv-speech-bubble">Let's pack! 🎒</div>
+            <div id="pv-maya-speech" class="pv-speech-bubble">Let's pack! ðŸŽ’</div>
             <div id="pv-leo-speech" class="pv-speech-bubble">...</div>
         </div>
         
@@ -435,7 +435,7 @@
                         <div class="pv-lesson-title">Challenge: <span class="pv-highlight" id="pv-challenge-title">Store Notebooks</span></div>
                         <div class="pv-lesson-subtitle">Help Maya pack!</div>
                     </div>
-                    <div class="pv-xp-badge" id="pv-xp-badge">+75 XP! 🎉</div>
+                    <div class="pv-xp-badge" id="pv-xp-badge">+75 XP! ðŸŽ‰</div>
                 </div>
                 
                 <div id="pv-challenge1" class="pv-challenge-card">
@@ -455,10 +455,10 @@
                 
                 <input type="text" id="pv-code-input" placeholder='notebooks = 3' autocomplete="off" spellcheck="false">
                 
-                <div class="pv-hint-text" id="pv-live-hint">💡 Type: notebooks = 3</div>
+                <div class="pv-hint-text" id="pv-live-hint">ðŸ’¡ Type: notebooks = 3</div>
                 
                 <div class="pv-controls">
-                    <button id="pv-run-btn" class="pv-btn">▶ Run Code</button>
+                    <button id="pv-run-btn" class="pv-btn">â–¶ Run Code</button>
                 </div>
                 
                 <div class="pv-status-message" id="pv-status"></div>
@@ -467,24 +467,24 @@
     </div>
     
     <div id="pv-story-intro" class="pv-story-bubble">
-        <h2>🎒 The School Backpack Adventure</h2>
+        <h2>ðŸŽ’ The School Backpack Adventure</h2>
         <p><strong style="color: #FF69B4;">Maya</strong> (girl) and <strong style="color: #00C2FF;">Leo</strong> (boy) are packing their backpack!</p>
         <p>Learn to <strong>store</strong> items in Python <strong>variables</strong>:</p>
         <div class="pv-code-example">
-            <div>1️⃣ Store a number:</div>
+            <div>1ï¸âƒ£ Store a number:</div>
             <div style="color: #FFD700;">notebooks = 3</div>
             <br>
-            <div>2️⃣ Store text:</div>
+            <div>2ï¸âƒ£ Store text:</div>
             <div style="color: #FFD700;">item = "pencil case"</div>
             <br>
-            <div>3️⃣ Show what's stored:</div>
+            <div>3ï¸âƒ£ Show what's stored:</div>
             <div style="color: #FFD700;">print(notebooks)</div>
         </div>
         <div style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2); padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #FF7B00;">
-            <strong>🐴 Donki is here to help!</strong><br>
+            <strong>ðŸ´ Donki is here to help!</strong><br>
             <small style="color: #666;">If you make a mistake, Donki will automatically give you smart hints!</small>
         </div>
-        <button class="pv-start-btn" onclick="window.pvStartLesson()">Start Packing! 🎒</button>
+        <button class="pv-start-btn" onclick="window.pvStartLesson()">Start Packing! ðŸŽ’</button>
     </div>
 
     <script type="importmap">
@@ -522,7 +522,7 @@
         container.appendChild(renderer.domElement);
         
         // Debug: Ensure canvas is visible
-        console.log('✅ 3D Canvas created:', {
+        console.log('âœ… 3D Canvas created:', {
             width: container.clientWidth,
             height: container.clientHeight,
             canvas: renderer.domElement,
@@ -852,9 +852,9 @@
             scene.add(lid);
         }
         
-        createRecycleBin(-7, 10, 0x00CC00, '♻️'); // Green
-        createRecycleBin(-5.5, 10, 0x4169E1, '📄'); // Blue
-        createRecycleBin(-4, 10, 0xFFD700, '🗑️'); // Yellow
+        createRecycleBin(-7, 10, 0x00CC00, 'â™»ï¸'); // Green
+        createRecycleBin(-5.5, 10, 0x4169E1, 'ðŸ“„'); // Blue
+        createRecycleBin(-4, 10, 0xFFD700, 'ðŸ—‘ï¸'); // Yellow
         
         // Animated butterflies for encouragement
         const butterflies = [];
@@ -1448,10 +1448,10 @@
                 try {
                     // Try to access parent location (will fail if cross-origin)
                     const parentOrigin = window.parent.location.origin;
-                    console.log('✅ Iframe detected, using parent origin:', parentOrigin);
+                    console.log('âœ… Iframe detected, using parent origin:', parentOrigin);
                     return parentOrigin;
                 } catch (e) {
-                    console.log('⚠️ Cross-origin iframe, using document referrer');
+                    console.log('âš ï¸ Cross-origin iframe, using document referrer');
                     // Cross-origin iframe - use document.referrer
                     if (document.referrer) {
                         const url = new URL(document.referrer);
@@ -1462,17 +1462,17 @@
             
             // Standalone mode - check if Live Server
             if (location.port === '5500') {
-                console.log('🔧 Live Server detected, using localhost:5000');
-                return 'http://127.0.0.1:5000';
+                console.log('ðŸ”§ Live Server detected, using localhost:5000');
+                return '';
             }
             
             // Default: same origin
-            console.log('📍 Using same origin for API calls');
+            console.log('ðŸ“ Using same origin for API calls');
             return '';
         }
         
         const API_BASE = getAPIBase();
-        console.log('🌐 API_BASE set to:', API_BASE || 'same-origin');
+        console.log('ðŸŒ API_BASE set to:', API_BASE || 'same-origin');
         
         let studentName = sessionStorage.getItem('studentName') || 'Student';
         
@@ -1531,13 +1531,13 @@
             
             setTimeout(() => {
                 mayaSpeech.classList.add('pv-show');
-                mayaSpeech.textContent = `I put 3 notebooks in my backpack! 📚`;
+                mayaSpeech.textContent = `I put 3 notebooks in my backpack! ðŸ“š`;
                 speak(`Hi ${studentName}! I put 3 notebooks in my backpack. Can you store that?`, 1.1);
             }, 500);
             
             setTimeout(() => {
                 leoSpeech.classList.add('pv-show');
-                leoSpeech.textContent = "Help us code! 💻";
+                leoSpeech.textContent = "Help us code! ðŸ’»";
             }, 2000);
         };
         
@@ -1577,39 +1577,39 @@
             code = code.trim();
             if (currentChallenge === 1) {
                 if (!code) {
-                    liveHint.innerHTML = '💡 Type: <strong>notebooks = 3</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Type: <strong>notebooks = 3</strong>';
                 } else if (!/^notebooks/i.test(code)) {
-                    liveHint.innerHTML = '💡 Start with <strong>notebooks</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Start with <strong>notebooks</strong>';
                 } else if (!/=/.test(code)) {
-                    liveHint.innerHTML = '💡 Add <strong>=</strong> to store';
+                    liveHint.innerHTML = 'ðŸ’¡ Add <strong>=</strong> to store';
                 } else if (!/\d/.test(code)) {
-                    liveHint.innerHTML = '💡 Add the number <strong>3</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Add the number <strong>3</strong>';
                 } else {
-                    liveHint.innerHTML = '✅ Perfect! Run it!';
+                    liveHint.innerHTML = 'âœ… Perfect! Run it!';
                 }
             } else if (currentChallenge === 2) {
                 if (!code) {
-                    liveHint.innerHTML = '💡 Type: <strong>pencil_case = "blue pencil case"</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Type: <strong>pencil_case = "blue pencil case"</strong>';
                 } else if (!/^pencil_case/i.test(code)) {
-                    liveHint.innerHTML = '💡 Start with <strong>pencil_case</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Start with <strong>pencil_case</strong>';
                 } else if (!/=/.test(code)) {
-                    liveHint.innerHTML = '💡 Add <strong>=</strong> to store';
+                    liveHint.innerHTML = 'ðŸ’¡ Add <strong>=</strong> to store';
                 } else if (!/["']/.test(code)) {
-                    liveHint.innerHTML = '💡 Add <strong>quotes</strong> around text';
+                    liveHint.innerHTML = 'ðŸ’¡ Add <strong>quotes</strong> around text';
                 } else {
-                    liveHint.innerHTML = '✅ Great! Run it!';
+                    liveHint.innerHTML = 'âœ… Great! Run it!';
                 }
             } else {
                 if (!code) {
-                    liveHint.innerHTML = '💡 Type: <strong>print(notebooks)</strong> or <strong>print(pencil_case)</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Type: <strong>print(notebooks)</strong> or <strong>print(pencil_case)</strong>';
                 } else if (!/^print/i.test(code)) {
-                    liveHint.innerHTML = '💡 Start with <strong>print</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Start with <strong>print</strong>';
                 } else if (!/\(/.test(code)) {
-                    liveHint.innerHTML = '💡 Add <strong>(</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Add <strong>(</strong>';
                 } else if (!/(notebooks|pencil_case)/.test(code)) {
-                    liveHint.innerHTML = '💡 Print <strong>notebooks</strong> or <strong>pencil_case</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Print <strong>notebooks</strong> or <strong>pencil_case</strong>';
                 } else {
-                    liveHint.innerHTML = '✅ Awesome! Run it!';
+                    liveHint.innerHTML = 'âœ… Awesome! Run it!';
                 }
             }
         }
@@ -1646,9 +1646,9 @@
         
         async function requestAIHint(userCode) {
             status.className = 'pv-status-message pv-hint pv-show';
-            status.innerHTML = '🐴 Donki is thinking...';
+            status.innerHTML = 'ðŸ´ Donki is thinking...';
             
-            console.log('🐴 Requesting Donki hint...', {
+            console.log('ðŸ´ Requesting Donki hint...', {
                 api: `${API_BASE}/api/hint`,
                 challenge: currentChallenge,
                 code: userCode,
@@ -1668,26 +1668,26 @@
                     })
                 });
                 
-                console.log('📡 Donki API response status:', response.status);
+                console.log('ðŸ“¡ Donki API response status:', response.status);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('✅ Donki hint received:', data);
+                    console.log('âœ… Donki hint received:', data);
                     if (data.hint) {
-                        status.innerHTML = `🐴 <strong>Donki:</strong> ${data.hint}`;
+                        status.innerHTML = `ðŸ´ <strong>Donki:</strong> ${data.hint}`;
                         const cleanHint = data.hint.replace(studentName + ',', '').replace(studentName + '!', '');
                         speak(cleanHint, 1.1, true);
                         return;
                     }
                 } else {
-                    console.error('❌ Donki API error:', response.status, response.statusText);
+                    console.error('âŒ Donki API error:', response.status, response.statusText);
                 }
             } catch (e) {
-                console.error('❌ Donki hint fetch error:', e);
+                console.error('âŒ Donki hint fetch error:', e);
             }
             
             // Fallback hints (offline mode)
-            console.log('⚠️ Using fallback hint (Donki API unavailable)');
+            console.log('âš ï¸ Using fallback hint (Donki API unavailable)');
             let hint = '';
             if (currentChallenge === 1) {
                 hint = `Hey ${studentName}! To store a number in Python, type: <strong>notebooks = 3</strong>`;
@@ -1696,7 +1696,7 @@
             } else {
                 hint = `${studentName}, use <strong>print()</strong> to show what's stored! Example: <strong>print(notebooks)</strong>`;
             }
-            status.innerHTML = `🐴 <strong>Donki:</strong> ${hint}`;
+            status.innerHTML = `ðŸ´ <strong>Donki:</strong> ${hint}`;
             const cleanText = hint.replace(/<[^>]*>/g, '').replace(studentName + ',', '').replace(studentName + '!', '');
             speak(cleanText, 1.1, true);
         }
@@ -1715,14 +1715,14 @@
                         }, i * 200);
                     });
                     
-                    mayaSpeech.textContent = `Great! 3 notebooks stored! ✅`;
+                    mayaSpeech.textContent = `Great! 3 notebooks stored! âœ…`;
                     speak(`Excellent ${studentName}! 3 notebooks are now stored in the variable!`, 1.1);
                     
                     challenge1.classList.add('pv-completed');
-                    challenge1.innerHTML = '<span class="pv-challenge-number">✓</span><strong>Stored!</strong> notebooks = 3';
+                    challenge1.innerHTML = '<span class="pv-challenge-number">âœ“</span><strong>Stored!</strong> notebooks = 3';
                     
                     status.className = 'pv-status-message pv-success pv-show';
-                    status.innerHTML = `🎉 <strong>Perfect!</strong> Variable "notebooks" now holds the number 3!`;
+                    status.innerHTML = `ðŸŽ‰ <strong>Perfect!</strong> Variable "notebooks" now holds the number 3!`;
                     playSound('success');
                     
                     currentChallenge = 2;
@@ -1734,7 +1734,7 @@
                         codeInput.placeholder = 'pencil_case = "blue pencil case"';
                         updateLiveHint('');
                         status.style.display = 'none';
-                        leoSpeech.textContent = "I have a blue pencil case! 📝";
+                        leoSpeech.textContent = "I have a blue pencil case! ðŸ“";
                         speak("Now I have a blue pencil case. Can you store it?", 1);
                     }, 3000);
                     
@@ -1750,14 +1750,14 @@
                     pencilCase.userData.visible = true;
                     pencilCase.scale.set(1, 1, 1);
                     
-                    leoSpeech.textContent = `${result} stored! ✅`;
+                    leoSpeech.textContent = `${result} stored! âœ…`;
                     speak(`Perfect ${studentName}! Leo's ${result} is now stored!`, 1);
                     
                     challenge2.classList.add('pv-completed');
-                    challenge2.innerHTML = `<span class="pv-challenge-number">✓</span><strong>Stored!</strong> pencil_case = "${result}"`;
+                    challenge2.innerHTML = `<span class="pv-challenge-number">âœ“</span><strong>Stored!</strong> pencil_case = "${result}"`;
                     
                     status.className = 'pv-status-message pv-success pv-show';
-                    status.innerHTML = `🎉 <strong>Excellent!</strong> Variable "pencil_case" now holds: "${result}"`;
+                    status.innerHTML = `ðŸŽ‰ <strong>Excellent!</strong> Variable "pencil_case" now holds: "${result}"`;
                     playSound('success');
                     
                     currentChallenge = 3;
@@ -1769,7 +1769,7 @@
                         codeInput.placeholder = 'print(notebooks)';
                         updateLiveHint('');
                         status.style.display = 'none';
-                        mayaSpeech.textContent = "Show me what's in the backpack! 🎒";
+                        mayaSpeech.textContent = "Show me what's in the backpack! ðŸŽ’";
                         speak("Can you show me what's in the backpack?", 1.1);
                     }, 3000);
                     
@@ -1784,25 +1784,25 @@
                     currentChallenge = 4;
                     
                     if (result === 'notebooks') {
-                        leoSpeech.textContent = "Output: 3 📚";
+                        leoSpeech.textContent = "Output: 3 ðŸ“š";
                         speak("3", 1);
                     } else {
-                        leoSpeech.textContent = "Output: blue pencil case 📝";
+                        leoSpeech.textContent = "Output: blue pencil case ðŸ“";
                         speak("blue pencil case", 1);
                     }
                     
                     challenge3.classList.add('pv-completed');
-                    challenge3.innerHTML = `<span class="pv-challenge-number">✓</span><strong>Printed!</strong> print(${result})`;
+                    challenge3.innerHTML = `<span class="pv-challenge-number">âœ“</span><strong>Printed!</strong> print(${result})`;
                     
                     status.className = 'pv-status-message pv-success pv-show';
-                    status.innerHTML = `🎉 <strong>Amazing ${studentName}!</strong> You've mastered:<br>• Storing numbers in variables<br>• Storing text in variables<br>• Printing variables!`;
+                    status.innerHTML = `ðŸŽ‰ <strong>Amazing ${studentName}!</strong> You've mastered:<br>â€¢ Storing numbers in variables<br>â€¢ Storing text in variables<br>â€¢ Printing variables!`;
                     xpBadge.classList.add('pv-show');
                     playSound('success');
                     createStarCelebration();
                     
                     setTimeout(() => {
-                        mayaSpeech.textContent = "You're awesome! 🌟";
-                        leoSpeech.textContent = "Variables master! 🎒";
+                        mayaSpeech.textContent = "You're awesome! ðŸŒŸ";
+                        leoSpeech.textContent = "Variables master! ðŸŽ’";
                         speak(`Congratulations ${studentName}! You're a variables master!`, 1.2);
                     }, 1500);
                     
@@ -1830,9 +1830,9 @@
                     studentName: studentName,
                     timestamp: new Date().toISOString()
                 }, '*');
-                console.log('✅ Lesson completion signal sent to parent page');
+                console.log('âœ… Lesson completion signal sent to parent page');
             } else {
-                console.log('⚠️ Not in iframe, cannot signal parent');
+                console.log('âš ï¸ Not in iframe, cannot signal parent');
             }
         }
         
@@ -1840,4 +1840,5 @@
     </script>
 </body>
 </html>
+
 

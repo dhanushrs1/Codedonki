@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -423,10 +423,10 @@
     <div class="pc-split-container">
         <div id="pc-canvas-container" class="pc-canvas-container">
             <div class="pc-interaction-hint" style="display:none;" id="pc-interaction-hint">
-                🖱️ Drag • Scroll zoom
+                ðŸ–±ï¸ Drag â€¢ Scroll zoom
             </div>
             
-            <div id="pc-ria-speech" class="pc-speech-bubble">Let me show you! 💻</div>
+            <div id="pc-ria-speech" class="pc-speech-bubble">Let me show you! ðŸ’»</div>
             <div id="pc-computer-speech" class="pc-speech-bubble">...</div>
         </div>
         
@@ -437,7 +437,7 @@
                         <div class="pc-lesson-title">Challenge: <span class="pc-highlight" id="pc-challenge-title">Ask for Name</span></div>
                         <div class="pc-lesson-subtitle">Chat with the computer!</div>
                     </div>
-                    <div class="pc-xp-badge" id="pc-xp-badge">+100 XP! 🎉</div>
+                    <div class="pc-xp-badge" id="pc-xp-badge">+100 XP! ðŸŽ‰</div>
                 </div>
                 
                 <div id="pc-challenge1" class="pc-challenge-card">
@@ -457,10 +457,10 @@
                 
                 <input type="text" id="pc-code-input" placeholder='name = input("What is your name? ")' autocomplete="off" spellcheck="false">
                 
-                <div class="pc-hint-text" id="pc-live-hint">💡 Type: name = input("What is your name? ")</div>
+                <div class="pc-hint-text" id="pc-live-hint">ðŸ’¡ Type: name = input("What is your name? ")</div>
                 
                 <div class="pc-controls">
-                    <button id="pc-run-btn" class="pc-btn">▶ Run Code</button>
+                    <button id="pc-run-btn" class="pc-btn">â–¶ Run Code</button>
                 </div>
                 
                 <div class="pc-status-message" id="pc-status"></div>
@@ -469,23 +469,23 @@
     </div>
     
     <div id="pc-story-intro" class="pc-story-bubble">
-        <h2>💬 The Computer Lab Chat</h2>
+        <h2>ðŸ’¬ The Computer Lab Chat</h2>
         <p><strong style="color: #FF69B4;">Ria</strong> is chatting with her computer!</p>
         <p>Learn to <strong>talk</strong> with the computer using <strong>input()</strong>:</p>
         <div class="pc-code-example">
-            <div>1️⃣ Ask a question:</div>
+            <div>1ï¸âƒ£ Ask a question:</div>
             <div style="color: #FFD700;">name = input("What is your name? ")</div>
             <br>
-            <div>2️⃣ Use the answer:</div>
+            <div>2ï¸âƒ£ Use the answer:</div>
             <div style="color: #FFD700;">print("Hello " + name)</div>
             <br>
-            <div>💡 input() = Computer asks YOU!</div>
+            <div>ðŸ’¡ input() = Computer asks YOU!</div>
         </div>
         <div style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2); padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #FF7B00;">
-            <strong>🐴 Donki is here to help!</strong><br>
+            <strong>ðŸ´ Donki is here to help!</strong><br>
             <small style="color: #666;">If you make a mistake, Donki will automatically give you smart hints!</small>
         </div>
-        <button class="pc-start-btn" onclick="window.pcStartLesson()">Start Chatting! 💬</button>
+        <button class="pc-start-btn" onclick="window.pcStartLesson()">Start Chatting! ðŸ’¬</button>
     </div>
 
     <script type="importmap">
@@ -522,7 +522,7 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
         
-        console.log('✅ 3D Computer Lab created');
+        console.log('âœ… 3D Computer Lab created');
         
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
@@ -1244,10 +1244,10 @@
             if (window.parent && window.parent !== window) {
                 try {
                     const parentOrigin = window.parent.location.origin;
-                    console.log('✅ Iframe detected, using parent origin:', parentOrigin);
+                    console.log('âœ… Iframe detected, using parent origin:', parentOrigin);
                     return parentOrigin;
                 } catch (e) {
-                    console.log('⚠️ Cross-origin iframe, using document referrer');
+                    console.log('âš ï¸ Cross-origin iframe, using document referrer');
                     if (document.referrer) {
                         const url = new URL(document.referrer);
                         return url.origin;
@@ -1256,16 +1256,16 @@
             }
             
             if (location.port === '5500') {
-                console.log('🔧 Live Server detected, using localhost:5000');
-                return 'http://127.0.0.1:5000';
+                console.log('ðŸ”§ Live Server detected, using localhost:5000');
+                return '';
             }
             
-            console.log('📍 Using same origin for API calls');
+            console.log('ðŸ“ Using same origin for API calls');
             return '';
         }
         
         const API_BASE = getAPIBase();
-        console.log('🌐 API_BASE set to:', API_BASE || 'same-origin');
+        console.log('ðŸŒ API_BASE set to:', API_BASE || 'same-origin');
         
         let studentName = sessionStorage.getItem('studentName') || 'Student';
         
@@ -1318,18 +1318,18 @@
             
             setTimeout(() => {
                 riaSpeech.classList.add('pc-show');
-                riaSpeech.textContent = `Hi ${studentName}! Watch the computer ask ME! 💬`;
+                riaSpeech.textContent = `Hi ${studentName}! Watch the computer ask ME! ðŸ’¬`;
                 speak(`Hi ${studentName}! Watch the computer ask me questions!`, 1.2, true);
             }, 500);
             
             setTimeout(() => {
                 computerSpeech.classList.add('pc-show');
-                computerSpeech.textContent = "What is your name? 🖥️";
+                computerSpeech.textContent = "What is your name? ðŸ–¥ï¸";
                 speak("What is your name?", 1);
             }, 2000);
             
             setTimeout(() => {
-                riaSpeech.textContent = "Help me code this! 💻";
+                riaSpeech.textContent = "Help me code this! ðŸ’»";
                 speak(`${studentName}, help me code this conversation!`, 1.2, true);
             }, 3500);
         };
@@ -1370,37 +1370,37 @@
             code = code.trim();
             if (currentChallenge === 1) {
                 if (!code) {
-                    liveHint.innerHTML = '💡 Type: <strong>name = input("What is your name? ")</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Type: <strong>name = input("What is your name? ")</strong>';
                 } else if (!/^name/i.test(code)) {
-                    liveHint.innerHTML = '💡 Start with variable: <strong>name</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Start with variable: <strong>name</strong>';
                 } else if (!/=/.test(code)) {
-                    liveHint.innerHTML = '💡 Add <strong>=</strong> to store';
+                    liveHint.innerHTML = 'ðŸ’¡ Add <strong>=</strong> to store';
                 } else if (!/input/.test(code)) {
-                    liveHint.innerHTML = '💡 Use <strong>input()</strong> to ask';
+                    liveHint.innerHTML = 'ðŸ’¡ Use <strong>input()</strong> to ask';
                 } else if (!/["']/.test(code)) {
-                    liveHint.innerHTML = '💡 Add question in <strong>quotes</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Add question in <strong>quotes</strong>';
                 } else {
-                    liveHint.innerHTML = '✅ Perfect! Run it!';
+                    liveHint.innerHTML = 'âœ… Perfect! Run it!';
                 }
             } else if (currentChallenge === 2) {
                 if (!code) {
-                    liveHint.innerHTML = '💡 Type: <strong>print("Hello " + name)</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Type: <strong>print("Hello " + name)</strong>';
                 } else if (!/^print/i.test(code)) {
-                    liveHint.innerHTML = '💡 Start with <strong>print</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Start with <strong>print</strong>';
                 } else if (!/\+/.test(code)) {
-                    liveHint.innerHTML = '💡 Use <strong>+</strong> to join text and variable';
+                    liveHint.innerHTML = 'ðŸ’¡ Use <strong>+</strong> to join text and variable';
                 } else {
-                    liveHint.innerHTML = '✅ Great! Run it!';
+                    liveHint.innerHTML = 'âœ… Great! Run it!';
                 }
             } else {
                 if (!code) {
-                    liveHint.innerHTML = '💡 Type: <strong>age = input("How old are you? ")</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Type: <strong>age = input("How old are you? ")</strong>';
                 } else if (!/^age/i.test(code)) {
-                    liveHint.innerHTML = '💡 Start with variable: <strong>age</strong>';
+                    liveHint.innerHTML = 'ðŸ’¡ Start with variable: <strong>age</strong>';
                 } else if (!/input/.test(code)) {
-                    liveHint.innerHTML = '💡 Use <strong>input()</strong> to ask';
+                    liveHint.innerHTML = 'ðŸ’¡ Use <strong>input()</strong> to ask';
                 } else {
-                    liveHint.innerHTML = '✅ Awesome! Run it!';
+                    liveHint.innerHTML = 'âœ… Awesome! Run it!';
                 }
             }
         }
@@ -1438,9 +1438,9 @@
         
         async function requestAIHint(userCode) {
             status.className = 'pc-status-message pc-hint pc-show';
-            status.innerHTML = '🐴 Donki is thinking...';
+            status.innerHTML = 'ðŸ´ Donki is thinking...';
             
-            console.log('🐴 Requesting Donki hint...', {
+            console.log('ðŸ´ Requesting Donki hint...', {
                 api: `${API_BASE}/api/hint`,
                 challenge: currentChallenge,
                 code: userCode,
@@ -1460,26 +1460,26 @@
                     })
                 });
                 
-                console.log('📡 Donki API response status:', response.status);
+                console.log('ðŸ“¡ Donki API response status:', response.status);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('✅ Donki hint received:', data);
+                    console.log('âœ… Donki hint received:', data);
                     if (data.hint) {
-                        status.innerHTML = `🐴 <strong>Donki:</strong> ${data.hint}`;
+                        status.innerHTML = `ðŸ´ <strong>Donki:</strong> ${data.hint}`;
                         const cleanHint = data.hint.replace(studentName + ',', '').replace(studentName + '!', '');
                         speak(cleanHint, 1.1, true);
                         return;
                     }
                 } else {
-                    console.error('❌ Donki API error:', response.status, response.statusText);
+                    console.error('âŒ Donki API error:', response.status, response.statusText);
                 }
             } catch (e) {
-                console.error('❌ Donki hint fetch error:', e);
+                console.error('âŒ Donki hint fetch error:', e);
             }
             
             // Fallback hints (offline mode)
-            console.log('⚠️ Using fallback hint (Donki API unavailable)');
+            console.log('âš ï¸ Using fallback hint (Donki API unavailable)');
             let hint = '';
             if (currentChallenge === 1) {
                 hint = `Hey ${studentName}! Use input() to ask: <strong>name = input("What is your name? ")</strong>`;
@@ -1488,7 +1488,7 @@
             } else {
                 hint = `${studentName}, ask for age: <strong>age = input("How old are you? ")</strong>`;
             }
-            status.innerHTML = `🐴 <strong>Donki:</strong> ${hint}`;
+            status.innerHTML = `ðŸ´ <strong>Donki:</strong> ${hint}`;
             const cleanText = hint.replace(/<[^>]*>/g, '').replace(studentName + ',', '').replace(studentName + '!', '');
             speak(cleanText, 1.1, true);
         }
@@ -1502,18 +1502,18 @@
             if (currentChallenge === 1) {
                 const result = validateChallenge1(code);
                 if (result) {
-                    computerSpeech.textContent = result.question + " 💬";
+                    computerSpeech.textContent = result.question + " ðŸ’¬";
                     speak(result.question, 1);
                     
                     setTimeout(() => {
-                        riaSpeech.textContent = `I'm ${simulatedInput}! ✅`;
+                        riaSpeech.textContent = `I'm ${simulatedInput}! âœ…`;
                         speak(`I'm ${simulatedInput}!`, 1.2, true);
                         
                         challenge1.classList.add('pc-completed');
-                        challenge1.innerHTML = '<span class="pc-challenge-number">✓</span><strong>Asked!</strong> Computer asked your name!';
+                        challenge1.innerHTML = '<span class="pc-challenge-number">âœ“</span><strong>Asked!</strong> Computer asked your name!';
                         
                         status.className = 'pc-status-message pc-success pc-show';
-                        status.innerHTML = `🎉 <strong>Perfect!</strong> input() asked: "${result.question}"<br>Computer waits for YOUR answer!`;
+                        status.innerHTML = `ðŸŽ‰ <strong>Perfect!</strong> input() asked: "${result.question}"<br>Computer waits for YOUR answer!`;
                         playSound('success');
                         
                         currentChallenge = 2;
@@ -1525,7 +1525,7 @@
                             codeInput.placeholder = 'print("Hello " + name)';
                             updateLiveHint('');
                             status.style.display = 'none';
-                            computerSpeech.textContent = "Now use my name! 🤝";
+                            computerSpeech.textContent = "Now use my name! ðŸ¤";
                             speak("Now use my name to greet back!", 1);
                         }, 3000);
                     }, 1500);
@@ -1538,17 +1538,17 @@
             } else if (currentChallenge === 2) {
                 const result = validateChallenge2(code);
                 if (result) {
-                    computerSpeech.textContent = `${result.greeting}${simulatedInput}! 💙`;
+                    computerSpeech.textContent = `${result.greeting}${simulatedInput}! ðŸ’™`;
                     speak(`${result.greeting}${simulatedInput}!`, 1);
                     
-                    riaSpeech.textContent = "It used my name! 🎊";
+                    riaSpeech.textContent = "It used my name! ðŸŽŠ";
                     speak("Yay! It used my name!", 1.2, true);
                     
                     challenge2.classList.add('pc-completed');
-                    challenge2.innerHTML = `<span class="pc-challenge-number">✓</span><strong>Greeted!</strong> Used the stored name!`;
+                    challenge2.innerHTML = `<span class="pc-challenge-number">âœ“</span><strong>Greeted!</strong> Used the stored name!`;
                     
                     status.className = 'pc-status-message pc-success pc-show';
-                    status.innerHTML = `🎉 <strong>Excellent!</strong> You joined "${result.greeting}" + name!`;
+                    status.innerHTML = `ðŸŽ‰ <strong>Excellent!</strong> You joined "${result.greeting}" + name!`;
                     playSound('success');
                     
                     currentChallenge = 3;
@@ -1560,7 +1560,7 @@
                         codeInput.placeholder = 'age = input("How old are you? ")';
                         updateLiveHint('');
                         status.style.display = 'none';
-                        computerSpeech.textContent = "Ask me more! 💬";
+                        computerSpeech.textContent = "Ask me more! ðŸ’¬";
                         speak("Now ask me how old I am!", 1);
                     }, 3000);
                     
@@ -1574,25 +1574,25 @@
                 if (result) {
                     currentChallenge = 4;
                     
-                    computerSpeech.textContent = result.question + " 💬";
+                    computerSpeech.textContent = result.question + " ðŸ’¬";
                     speak(result.question, 1);
                     
                     setTimeout(() => {
-                        riaSpeech.textContent = "I'm 12! 🎂";
+                        riaSpeech.textContent = "I'm 12! ðŸŽ‚";
                         speak("I'm twelve!", 1.2, true);
                         
                         challenge3.classList.add('pc-completed');
-                        challenge3.innerHTML = `<span class="pc-challenge-number">✓</span><strong>Chatted!</strong> You mastered input()!`;
+                        challenge3.innerHTML = `<span class="pc-challenge-number">âœ“</span><strong>Chatted!</strong> You mastered input()!`;
                         
                         status.className = 'pc-status-message pc-success pc-show';
-                        status.innerHTML = `🎉 <strong>Amazing ${studentName}!</strong> You've mastered:<br>• input() - Asking questions<br>• Storing answers in variables<br>• Using variables with print()!`;
+                        status.innerHTML = `ðŸŽ‰ <strong>Amazing ${studentName}!</strong> You've mastered:<br>â€¢ input() - Asking questions<br>â€¢ Storing answers in variables<br>â€¢ Using variables with print()!`;
                         xpBadge.classList.add('pc-show');
                         playSound('success');
                         createStarCelebration();
                         
                         setTimeout(() => {
-                            riaSpeech.textContent = "You're a chat master! 🌟";
-                            computerSpeech.textContent = "Well done! 🏆";
+                            riaSpeech.textContent = "You're a chat master! ðŸŒŸ";
+                            computerSpeech.textContent = "Well done! ðŸ†";
                             speak(`Congratulations ${studentName}! You're a Python chat master!`, 1.2, true);
                         }, 1500);
                         
@@ -1620,9 +1620,9 @@
                     studentName: studentName,
                     timestamp: new Date().toISOString()
                 }, '*');
-                console.log('✅ Lesson completion signal sent to parent page');
+                console.log('âœ… Lesson completion signal sent to parent page');
             } else {
-                console.log('⚠️ Not in iframe, cannot signal parent');
+                console.log('âš ï¸ Not in iframe, cannot signal parent');
             }
         }
         
@@ -1630,4 +1630,5 @@
     </script>
 </body>
 </html>
+
 

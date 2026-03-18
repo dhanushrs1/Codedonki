@@ -1,7 +1,7 @@
-// This is the helper script from our plan (Phase 3)
-// We will use it in Phase 5 and beyond.
-
-const API_BASE_URL = 'http://127.0.0.1:5000';
+// Central API helper for CodeDonki
+// API_BASE_URL is intentionally empty so all calls use relative URLs,
+// which works correctly both locally and on Vercel.
+const API_BASE_URL = '';
 
 /**
  * A wrapper for the native fetch function that automatically adds
